@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* キオスク全般 */
+html, body {
+  touch-action: manipulation; /* タップ遅延を除去 */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* 印刷時：受付票だけ表示 */
+@media print {
+  body > * { display: none !important; }
+  #print-receipt { display: block !important; }
+  @page {
+    size: 80mm auto;
+    margin: 3mm;
+  }
+}
+
+#print-receipt {
+  display: none;
+  font-family: "MS Gothic", "Courier New", monospace;
+  font-size: 12px;
+  width: 74mm;
+}
