@@ -103,8 +103,8 @@ export default function KioskTop() {
             overflow: "hidden",
             // 美しいグラデーション
             background: pressed
-              ? "linear-gradient(160deg, #091d3e 0%, #0d2a55 50%, #102f60 100%)"
-              : "linear-gradient(160deg, #0d2347 0%, #143566 50%, #1a4080 100%)",
+              ? "linear-gradient(160deg, #060f20 0%, #0b1e40 50%, #0e2550 100%)"
+              : "linear-gradient(160deg, #0a1a38 0%, #102d5e 50%, #163880 100%)",
             transition: "background 0.1s",
           }}
           onPointerDown={() => { setPressed(true); start(); }}
@@ -130,39 +130,45 @@ export default function KioskTop() {
           </div>
 
           {/* タッチターゲット（パルスリング付き） */}
-          <div className="fade-up-d relative flex items-center justify-center" style={{ width: "38vw", height: "38vw", maxWidth: 420, maxHeight: 420 }}>
+          <div className="fade-up-d relative flex items-center justify-center" style={{ width: "58vw", height: "52vh" }}>
 
             {/* パルスリング */}
-            <div className="ring1 absolute inset-0 rounded-full" style={{ border: "2px solid rgba(255,255,255,0.4)" }} />
-            <div className="ring2 absolute inset-0 rounded-full" style={{ border: "1px solid rgba(255,255,255,0.25)" }} />
+            <div className="ring1 absolute inset-0 rounded-3xl" style={{ border: "3px solid rgba(255,255,255,0.5)" }} />
+            <div className="ring2 absolute inset-0 rounded-3xl" style={{ border: "2px solid rgba(255,255,255,0.3)" }} />
 
-            {/* 円形ボタン本体 */}
+            {/* ボタン本体 */}
             <div style={{
-              width: "75%", height: "75%",
-              borderRadius: "50%",
+              width: "100%", height: "100%",
+              borderRadius: "3vh",
               background: pressed
-                ? "rgba(255,255,255,0.14)"
-                : "rgba(255,255,255,0.1)",
-              border: "2px solid rgba(255,255,255,0.3)",
+                ? "rgba(255,255,255,0.22)"
+                : "rgba(255,255,255,0.16)",
+              border: "3px solid rgba(255,255,255,0.7)",
               boxShadow: pressed
-                ? "inset 0 4px 24px rgba(0,0,0,0.3)"
-                : "0 0 60px rgba(100,160,255,0.15), inset 0 1px 0 rgba(255,255,255,0.15)",
+                ? "inset 0 6px 32px rgba(0,0,0,0.35)"
+                : "0 0 80px rgba(120,180,255,0.25), 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: "1.2vh",
+              gap: "1.8vh",
               transition: "all 0.1s",
-              transform: pressed ? "scale(0.96)" : "scale(1)",
+              transform: pressed ? "scale(0.97)" : "scale(1)",
             }}>
               <div style={{
-                fontSize: "3.8vh", fontWeight: 900, color: "#fff",
-                letterSpacing: "0.15em",
-                textShadow: "0 0 30px rgba(150,200,255,0.6)",
-                lineHeight: 1.5,
+                fontSize: "5.5vh", fontWeight: 900, color: "#fff",
+                letterSpacing: "0.18em",
+                textShadow: "0 2px 24px rgba(0,0,0,0.4)",
+                lineHeight: 1.45,
                 textAlign: "center",
               }}>
                 受付は<br/>こちらから
+              </div>
+              <div style={{
+                fontSize: "2vh", color: "rgba(255,255,255,0.65)",
+                letterSpacing: "0.12em",
+              }}>
+                タッチしてください
               </div>
             </div>
           </div>
