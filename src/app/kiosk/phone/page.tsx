@@ -59,12 +59,17 @@ export default function PhonePage() {
     submit(phone);
   }
 
-  const W = 160; // ボタン幅
-  const H = 118; // ボタン高さ
-  const GAP = 10;
+  const W   = 160;  // テンキーボタン幅
+  const WP  = 150;  // プレフィックスボタン幅
+  const WA  = 160;  // アクションボタン幅
+  const H   = 120;  // ボタン高さ
+  const GAP = 16;   // ボタン間隔（広めに）
+
+  // 3カラム合計幅（プレフィックス列 + テンキー列 + アクション列）
+  const totalW = WP + GAP + (W * 3 + GAP * 2) + GAP + WA;
 
   const numBtn = `flex items-center justify-center font-black rounded-2xl bg-white border-2 border-gray-200
-    text-gray-900 shadow-[0_4px_0_#CBD5E1] active:shadow-[0_1px_0_#CBD5E1] active:translate-y-[3px]
+    text-gray-900 shadow-[0_5px_0_#CBD5E1] active:shadow-[0_1px_0_#CBD5E1] active:translate-y-[3px]
     select-none touch-none transition-all duration-75`;
 
   return (
@@ -90,50 +95,49 @@ export default function PhonePage() {
         <div style={{ width: 140 }} />
       </div>
 
-      {/* メインエリア: 縦中央揃え */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8 pb-6">
+      {/* メインエリア */}
+      <div className="flex-1 flex flex-col items-center justify-center pb-6" style={{ gap: GAP + 8 }}>
 
-        {/* 入力表示 */}
+        {/* ── 入力表示（大きく）── */}
         <div
           suppressHydrationWarning
           className="rounded-2xl border-4 flex items-center justify-center transition-colors"
           style={{
-            width: W * 3 + GAP * 2 + 16 + 160,
-            height: 100,
+            width: totalW,
+            height: 120,
             background: phone ? "#FFF9C4" : "#f1f5f9",
             borderColor: phone ? "#F59E0B" : "#CBD5E1",
           }}
         >
           <span
             className="font-black tracking-widest"
-            style={{ fontSize: 58, color: phone ? "#1a1a1a" : "#94a3b8" }}
+            style={{ fontSize: 72, color: phone ? "#1a1a1a" : "#94a3b8" }}
           >
             {phone ? fmtPhone(phone) : "090-0000-0000"}
           </span>
         </div>
 
-        {/* テンキー + 操作ボタン */}
-        <div className="flex" style={{ gap: 16 }}>
+        {/* ── 3カラムレイアウト ── */}
+        <div className="flex" style={{ gap: GAP }}>
 
-          {/* 左：数字キー */}
+          {/* 左列: 070 / 080 / 090 */}
           <div className="flex flex-col" style={{ gap: GAP }}>
-            {/* 070/080/090 */}
-            <div className="flex" style={{ gap: GAP }}>
-              {["070", "080", "090"].map((prefix) => (
-                <button
-                  key={prefix}
-                  onPointerDown={() => pressPrefix(prefix)}
-                  className="flex items-center justify-center font-bold rounded-2xl text-white
-                    shadow-[0_4px_0_#1E40AF] active:shadow-[0_1px_0_#1E40AF] active:translate-y-[3px]
-                    select-none touch-none transition-all duration-75"
-                  style={{ width: W, height: 82, fontSize: 30, background: "#3B82F6" }}
-                >
-                  {prefix}
-                </button>
-              ))}
-            </div>
+            {["070", "080", "090"].map((prefix) => (
+              <button
+                key={prefix}
+                onPointerDown={() => pressPrefix(prefix)}
+                className="flex items-center justify-center font-bold rounded-2xl text-white
+                  shadow-[0_5px_0_#1E40AF] active:shadow-[0_1px_0_#1E40AF] active:translate-y-[3px]
+                  select-none touch-none transition-all duration-75"
+                style={{ width: WP, height: H, fontSize: 32, background: "#3B82F6" }}
+              >
+                {prefix}
+              </button>
+            ))}
+          </div>
 
-            {/* 1〜9 */}
+          {/* 中央列: テンキー（1〜9 + 0） */}
+          <div className="flex flex-col" style={{ gap: GAP }}>
             {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
               <div key={ri} className="flex" style={{ gap: GAP }}>
                 {row.map((k) => (
@@ -144,8 +148,6 @@ export default function PhonePage() {
                 ))}
               </div>
             ))}
-
-            {/* 0 */}
             <div className="flex" style={{ gap: GAP }}>
               <button onPointerDown={() => press("0")}
                 className={numBtn}
@@ -155,23 +157,23 @@ export default function PhonePage() {
             </div>
           </div>
 
-          {/* 右：操作ボタン */}
-          <div className="flex flex-col" style={{ gap: GAP, width: 160 }}>
+          {/* 右列: 全消し / 1文字消す / OK */}
+          <div className="flex flex-col" style={{ gap: GAP, width: WA }}>
             <button
               onPointerDown={() => setPhone("")}
               className="flex items-center justify-center font-bold rounded-2xl text-white
-                shadow-[0_4px_0_#991B1B] active:shadow-[0_1px_0_#991B1B] active:translate-y-[3px]
+                shadow-[0_5px_0_#991B1B] active:shadow-[0_1px_0_#991B1B] active:translate-y-[3px]
                 select-none touch-none transition-all duration-75"
-              style={{ height: 82, fontSize: 22, background: "#EF4444" }}
+              style={{ height: H, fontSize: 28, background: "#EF4444" }}
             >
               全消し
             </button>
             <button
               onPointerDown={() => setPhone(phone.slice(0, -1))}
               className="flex items-center justify-center font-bold rounded-2xl text-white
-                shadow-[0_4px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px]
+                shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px]
                 select-none touch-none transition-all duration-75"
-              style={{ height: H, fontSize: 22, background: "#F97316" }}
+              style={{ height: H, fontSize: 24, background: "#F97316" }}
             >
               1文字<br/>消す
             </button>
@@ -181,17 +183,18 @@ export default function PhonePage() {
               className={`flex items-center justify-center font-black rounded-2xl text-white
                 select-none touch-none transition-all duration-75 flex-1
                 ${isValid && !loading
-                  ? "shadow-[0_4px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-[3px]"
+                  ? "shadow-[0_5px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-[3px]"
                   : "opacity-40 cursor-not-allowed"
                 }`}
               style={{
-                fontSize: 44,
+                fontSize: 52,
                 background: isValid && !loading ? "#22C55E" : "#9CA3AF",
               }}
             >
               {loading ? "…" : "OK"}
             </button>
           </div>
+
         </div>
       </div>
     </div>
