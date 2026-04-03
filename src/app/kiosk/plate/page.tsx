@@ -45,20 +45,31 @@ const REGION_MAP: Record<string, string[]> = {
   を: [], ん: [],
 };
 
+/* ── 五十音表（5列） ─────────────────────────── */
 const KANA_ROWS: (string | null)[][] = [
-  ["わ","ら","や","ま","は","な","た","さ","か","あ"],
-  ["を","り", null,"み","ひ","に","ち","し","き","い"],
-  ["ん","る","ゆ","む","ふ","ぬ","つ","す","く","う"],
-  [null,"れ", null,"め","へ","ね","て","せ","け","え"],
-  [null,"ろ","よ","も","ほ","の","と","そ","こ","お"],
+  ["あ","い","う","え","お"],
+  ["か","き","く","け","こ"],
+  ["さ","し","す","せ","そ"],
+  ["た","ち","つ","て","と"],
+  ["な","に","ぬ","ね","の"],
+  ["は","ひ","ふ","へ","ほ"],
+  ["ま","み","む","め","も"],
+  ["や",null,"ゆ",null,"よ"],
+  ["ら","り","る","れ","ろ"],
+  ["わ","を",null,null,"ん"],
 ];
 
 const HIRA_ROWS: (string | null)[][] = [
-  ["わ","ら","や","ま","は","な","た","さ","か","あ"],
-  ["を","り", null,"み","ひ","に","ち","し","き","い"],
-  ["ん","る","ゆ","む","ふ","ぬ","つ","す","く","う"],
-  [null,"れ", null,"め","へ","ね","て","せ","け","え"],
-  [null,"ろ","よ","も","ほ","の","と","そ","こ","お"],
+  ["あ","い","う","え","お"],
+  ["か","き","く","け","こ"],
+  ["さ","し","す","せ","そ"],
+  ["た","ち","つ","て","と"],
+  ["な","に","ぬ","ね","の"],
+  ["は","ひ","ふ","へ","ほ"],
+  ["ま","み","む","め","も"],
+  ["や",null,"ゆ",null,"よ"],
+  ["ら","り","る","れ","ろ"],
+  ["わ","を",null,null,"ん"],
 ];
 
 const HIRA_UNUSABLE = new Set(["し","へ","ん","お"]);
@@ -88,8 +99,6 @@ function BigPlate({
   const color = detectPlateColor(plate.classNum, plate.hira);
   const { bg, text, dim, border } = COLOR_CONFIG[color];
 
-  const W = 700, H = 350;
-
   const hl = (s: Section): React.CSSProperties => active === s
     ? { outline: "5px solid #FFE600", outlineOffset: 3, borderRadius: 8, background: "rgba(255,230,0,0.20)" }
     : { borderRadius: 8 };
@@ -103,7 +112,6 @@ function BigPlate({
         {[0, 1, 2, 3].map((pos) => {
           const hasDigit = pos >= (4 - len);
           const ch = hasDigit ? num[pos - (4 - len)] : null;
-          const showHyphen = pos === 2 && len >= 3;
           return (
             <span key={pos} style={{ display: "inline-flex", alignItems: "center" }}>
               {pos === 2 && (
@@ -123,25 +131,30 @@ function BigPlate({
   return (
     <div
       style={{
-        width: W, height: H,
+        width: "40vw",
+        height: "20vw",
         background: bg,
-        border: `8px solid ${border}`,
-        borderRadius: 16,
+        border: `clamp(4px, 0.6vw, 10px) solid ${border}`,
+        borderRadius: "clamp(8px, 1.2vw, 20px)",
         boxShadow: "0 16px 48px rgba(0,0,0,0.45)",
-        display: "flex", flexDirection: "column",
-        padding: 12,
+        display: "flex",
+        flexDirection: "column",
+        padding: "clamp(6px, 0.8vw, 14px)",
         boxSizing: "border-box",
         userSelect: "none",
       }}
     >
       {/* 上段: 地名 + 分類番号 */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, flex: "0 0 auto", paddingBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2vw", flex: "0 0 auto", paddingBottom: "0.6vw" }}>
         <div
           onPointerDown={() => onTap("region")}
           style={{
-            fontFamily: pf, fontWeight: 900, fontSize: 60,
+            fontFamily: pf,
+            fontWeight: 900,
+            fontSize: "clamp(24px, 3.8vw, 64px)",
             color: plate.region ? text : dim,
-            cursor: "pointer", padding: "4px 14px",
+            cursor: "pointer",
+            padding: "0.2vw 0.8vw",
             transition: "all 0.1s",
             ...hl("region"),
           }}
@@ -151,9 +164,12 @@ function BigPlate({
         <div
           onPointerDown={() => onTap("classNum")}
           style={{
-            fontFamily: pf, fontWeight: 900, fontSize: 60,
+            fontFamily: pf,
+            fontWeight: 900,
+            fontSize: "clamp(24px, 3.8vw, 64px)",
             color: plate.classNum ? text : dim,
-            cursor: "pointer", padding: "4px 14px",
+            cursor: "pointer",
+            padding: "0.2vw 0.8vw",
             letterSpacing: "0.15em",
             transition: "all 0.1s",
             ...hl("classNum"),
@@ -168,9 +184,12 @@ function BigPlate({
         <div
           onPointerDown={() => onTap("hira")}
           style={{
-            fontFamily: pf, fontWeight: 900, fontSize: 100,
+            fontFamily: pf,
+            fontWeight: 900,
+            fontSize: "clamp(36px, 6.4vw, 110px)",
             color: plate.hira ? text : dim,
-            cursor: "pointer", padding: "4px 10px",
+            cursor: "pointer",
+            padding: "0.2vw 0.5vw",
             lineHeight: 1,
             ...hl("hira"),
           }}
@@ -180,11 +199,18 @@ function BigPlate({
         <div
           onPointerDown={() => onTap("number")}
           style={{
-            flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: pf, fontWeight: 900, fontSize: 116,
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: pf,
+            fontWeight: 900,
+            fontSize: "clamp(36px, 7.2vw, 124px)",
             color: plate.number ? text : dim,
-            cursor: "pointer", padding: "4px 8px",
-            transform: "scaleX(0.85)", transformOrigin: "center",
+            cursor: "pointer",
+            padding: "0.2vw 0.4vw",
+            transform: "scaleX(0.85)",
+            transformOrigin: "center",
             letterSpacing: "0.08em",
             ...hl("number"),
           }}
@@ -266,6 +292,11 @@ export default function PlatePage() {
 
   const step = STEP_CONFIG[active];
 
+  /* テンキーボタン幅: 右パネルの flex-1 幅 ≒ 56vw、3列なら 56vw/3 ≒ 18.5vw */
+  const keyW = "calc((min(56vw, 100%) - 6rem) / 4)";   // 4列基準（消すボタン行）
+  const keyH = "clamp(70px, 8vw, 130px)";
+  const keyFontSize = "clamp(28px, 4vw, 60px)";
+
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
@@ -292,15 +323,15 @@ export default function PlatePage() {
       {/* メインコンテンツ */}
       <div className="flex-1 flex overflow-hidden">
 
-        {/* 左: プレートのみ */}
+        {/* 左: プレートのみ（44vw） */}
         <div
           className="flex flex-col items-center justify-center gap-6 flex-shrink-0 border-r border-blue-200"
-          style={{ width: 760, background: "rgba(255,255,255,0.25)" }}
+          style={{ width: "44vw", background: "rgba(255,255,255,0.25)" }}
         >
           {mounted && (
             <BigPlate plate={plate} active={active} onTap={(s) => { setActive(s); setForceEdit(true); }} />
           )}
-          <p className="text-gray-500 font-bold text-center" style={{ fontSize: 22 }}>
+          <p className="text-gray-500 font-bold text-center" style={{ fontSize: 20 }}>
             プレートの文字をタッチすると切り替えられます
           </p>
         </div>
@@ -387,16 +418,16 @@ export default function PlatePage() {
                 {active === "region" && (
                   <div className="flex-1 overflow-hidden">
                     {!kanaFilter ? (
-                      /* かなグリッド */
+                      /* かなグリッド（5列五十音表） */
                       <div className="h-full flex flex-col items-center justify-center py-4">
-                        <p className="font-bold text-gray-600 mb-5 text-center" style={{ fontSize: 28 }}>
+                        <p className="font-bold text-gray-600 mb-4 text-center" style={{ fontSize: 26 }}>
                           頭文字を選んでください
                         </p>
                         <div className="flex flex-col gap-2">
                           {KANA_ROWS.map((row, ri) => (
                             <div key={ri} className="flex gap-2">
                               {row.map((k, ci) => {
-                                if (!k) return <div key={ci} style={{ width: 88, height: 88 }} />;
+                                if (!k) return <div key={ci} style={{ width: "clamp(56px, 8vw, 100px)", height: "clamp(50px, 6.5vw, 90px)" }} />;
                                 const has = (REGION_MAP[k] ?? []).length > 0;
                                 return (
                                   <button
@@ -408,7 +439,11 @@ export default function PlatePage() {
                                         ? "bg-white text-gray-800 border-2 border-gray-200 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] active:bg-blue-50"
                                         : "bg-gray-100 text-gray-300 border-2 border-gray-100"
                                     }`}
-                                    style={{ width: 88, height: 88, fontSize: 32 }}
+                                    style={{
+                                      width: "clamp(56px, 8vw, 100px)",
+                                      height: "clamp(50px, 6.5vw, 90px)",
+                                      fontSize: "clamp(20px, 2.8vw, 36px)",
+                                    }}
                                   >
                                     {k}
                                   </button>
@@ -460,41 +495,81 @@ export default function PlatePage() {
                 {/* ─── 分類番号パネル ─── */}
                 {active === "classNum" && (
                   <div className="flex-1 flex items-center justify-center">
-                    <div className="flex gap-8">
+                    <div className="flex flex-col items-center gap-4 w-full px-6">
                       {classMode === "num" ? (
-                        <div className="flex gap-4">
-                          <div className="flex flex-col gap-3">
-                            {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
-                              <div key={ri} className="flex gap-3">
-                                {row.map((k) => (
-                                  <button key={k} onPointerDown={() => pressClassNum(k)} className={numBtn} style={{ width: 180, height: 120, fontSize: 56 }}>{k}</button>
-                                ))}
-                              </div>
-                            ))}
-                            <div className="flex gap-3">
-                              <button onPointerDown={() => pressClassNum("0")} className={numBtn} style={{ width: 180*3+24, height: 120, fontSize: 56 }}>0</button>
-                            </div>
-                          </div>
-                          <div className="flex flex-col gap-3">
-                            <button onPointerDown={() => save({ classNum: "" })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75" style={{ width: 200, height: 120, fontSize: 26 }}>すべて消す</button>
-                            <button onPointerDown={() => save({ classNum: plate.classNum.slice(0,-1) })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75" style={{ width: 200, height: 120, fontSize: 26 }}>1文字消す</button>
-                            <button onPointerDown={() => setClassMode("alpha")} className="flex items-center justify-center font-bold rounded-2xl border-2 border-blue-500 bg-blue-500 text-white active:bg-blue-600 touch-none shadow-[0_5px_0_#1D4ED8] active:shadow-[0_1px_0_#1D4ED8] active:translate-y-1 transition-all duration-75" style={{ width: 200, height: 120, fontSize: 26 }}>英字<br/>入力</button>
-                          </div>
+                        /* 数字テンキー: 4列グリッド */
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(3, 1fr)",
+                            gap: "clamp(6px, 1vw, 14px)",
+                            width: "100%",
+                            maxWidth: "clamp(260px, 36vw, 560px)",
+                          }}
+                        >
+                          {/* 行1〜3: 1-9 */}
+                          {["1","2","3","4","5","6","7","8","9"].map((k) => (
+                            <button
+                              key={k}
+                              onPointerDown={() => pressClassNum(k)}
+                              className={numBtn}
+                              style={{ height: keyH, fontSize: keyFontSize }}
+                            >
+                              {k}
+                            </button>
+                          ))}
+                          {/* 行4: [消す][0][1文字消す] */}
+                          <button
+                            onPointerDown={() => save({ classNum: "" })}
+                            className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75"
+                            style={{ height: keyH, fontSize: "clamp(14px, 1.8vw, 24px)" }}
+                          >
+                            消す
+                          </button>
+                          <button
+                            onPointerDown={() => pressClassNum("0")}
+                            className={numBtn}
+                            style={{ height: keyH, fontSize: keyFontSize }}
+                          >
+                            0
+                          </button>
+                          <button
+                            onPointerDown={() => save({ classNum: plate.classNum.slice(0, -1) })}
+                            className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75"
+                            style={{ height: keyH, fontSize: "clamp(12px, 1.6vw, 22px)" }}
+                          >
+                            1文字消す
+                          </button>
                         </div>
                       ) : (
+                        /* 英字パネル */
                         <div className="flex flex-col gap-4 items-center">
-                          <div className="flex gap-3 flex-wrap justify-center" style={{ maxWidth: 700 }}>
+                          <div className="flex gap-3 flex-wrap justify-center" style={{ maxWidth: "clamp(340px, 48vw, 700px)" }}>
                             {ALPHA_KEYS.map((ch) => (
-                              <button key={ch} onPointerDown={() => pressClassNum(ch)} className="flex items-center justify-center font-black rounded-2xl border-2 border-gray-200 bg-white text-gray-900 select-none touch-none shadow-[0_5px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-1 transition-all duration-75" style={{ width: 120, height: 120, fontSize: 40 }}>{ch}</button>
+                              <button
+                                key={ch}
+                                onPointerDown={() => pressClassNum(ch)}
+                                className="flex items-center justify-center font-black rounded-2xl border-2 border-gray-200 bg-white text-gray-900 select-none touch-none shadow-[0_5px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-1 transition-all duration-75"
+                                style={{ width: "clamp(70px, 8vw, 120px)", height: "clamp(70px, 8vw, 120px)", fontSize: "clamp(24px, 3vw, 44px)" }}
+                              >
+                                {ch}
+                              </button>
                             ))}
                           </div>
                           <div className="flex gap-3">
                             <button onPointerDown={() => save({ classNum: "" })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white text-2xl active:bg-red-600 touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75" style={{ width: 180, height: 90 }}>すべて消す</button>
-                            <button onPointerDown={() => save({ classNum: plate.classNum.slice(0,-1) })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white text-2xl active:bg-orange-500 touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75" style={{ width: 180, height: 90 }}>1文字消す</button>
-                            <button onPointerDown={() => setClassMode("num")} className="flex items-center justify-center font-bold rounded-2xl border-2 border-blue-500 bg-blue-500 text-white text-2xl active:bg-blue-600 touch-none shadow-[0_5px_0_#1D4ED8] active:shadow-[0_1px_0_#1D4ED8] active:translate-y-1 transition-all duration-75" style={{ width: 180, height: 90 }}>数字入力</button>
+                            <button onPointerDown={() => save({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white text-2xl active:bg-orange-500 touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75" style={{ width: 180, height: 90 }}>1文字消す</button>
                           </div>
                         </div>
                       )}
+                      {/* 数字/英字モード切替ボタン */}
+                      <button
+                        onPointerDown={() => setClassMode(classMode === "num" ? "alpha" : "num")}
+                        className="flex items-center justify-center font-bold rounded-2xl border-2 border-blue-500 bg-blue-500 text-white touch-none shadow-[0_5px_0_#1D4ED8] active:shadow-[0_1px_0_#1D4ED8] active:translate-y-1 transition-all duration-75"
+                        style={{ height: "clamp(50px, 6vw, 90px)", paddingLeft: 32, paddingRight: 32, fontSize: "clamp(16px, 2vw, 28px)" }}
+                      >
+                        {classMode === "num" ? "英字入力に切替" : "数字入力に切替"}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -505,25 +580,33 @@ export default function PlatePage() {
                     {/* 凡例 */}
                     <div className="flex items-center gap-6 px-8 py-3 flex-shrink-0 border-b border-blue-100">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-blue-500" />
-                        <span className="font-bold text-gray-700" style={{ fontSize: 20 }}>事業用（緑ナンバー）</span>
+                        <div className="w-6 h-6 rounded-lg bg-blue-500" />
+                        <span className="font-bold text-gray-700" style={{ fontSize: 18 }}>事業用（緑ナンバー）</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-orange-400" />
-                        <span className="font-bold text-gray-700" style={{ fontSize: 20 }}>レンタカー</span>
+                        <div className="w-6 h-6 rounded-lg bg-orange-400" />
+                        <span className="font-bold text-gray-700" style={{ fontSize: 18 }}>レンタカー</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-gray-200" />
-                        <span className="font-bold text-gray-500" style={{ fontSize: 20 }}>使用不可</span>
+                        <div className="w-6 h-6 rounded-lg bg-gray-200" />
+                        <span className="font-bold text-gray-500" style={{ fontSize: 18 }}>使用不可</span>
                       </div>
                     </div>
-                    {/* かなグリッド */}
+                    {/* かなグリッド（5列五十音表・中央寄せ） */}
                     <div className="flex-1 flex items-center justify-center">
                       <div className="flex flex-col gap-2">
                         {HIRA_ROWS.map((row, ri) => (
                           <div key={ri} className="flex gap-2">
                             {row.map((ch, ci) => {
-                              if (!ch) return <div key={ci} style={{ width: 90, height: 80 }} />;
+                              if (!ch) return (
+                                <div
+                                  key={ci}
+                                  style={{
+                                    width: "clamp(56px, 8vw, 100px)",
+                                    height: "clamp(50px, 6.5vw, 90px)",
+                                  }}
+                                />
+                              );
                               const disabled = HIRA_UNUSABLE.has(ch);
                               const isJigyo = HIRA_JIGYOYO.has(ch);
                               const isRental = HIRA_RENTAL.has(ch);
@@ -540,7 +623,11 @@ export default function PlatePage() {
                                   onPointerDown={() => !disabled && selectHira(ch)}
                                   disabled={disabled}
                                   className={`rounded-2xl font-bold flex items-center justify-center transition-all duration-75 ${btnClass}`}
-                                  style={{ width: 90, height: 80, fontSize: 30 }}
+                                  style={{
+                                    width: "clamp(56px, 8vw, 100px)",
+                                    height: "clamp(50px, 6.5vw, 90px)",
+                                    fontSize: "clamp(20px, 2.8vw, 36px)",
+                                  }}
                                 >
                                   {ch}
                                 </button>
@@ -556,22 +643,50 @@ export default function PlatePage() {
                 {/* ─── 4桁番号パネル ─── */}
                 {active === "number" && (
                   <div className="flex-1 flex items-center justify-center">
-                    <div className="flex gap-4">
-                      <div className="flex flex-col gap-3">
-                        {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
-                          <div key={ri} className="flex gap-3">
-                            {row.map((k) => (
-                              <button key={k} onPointerDown={() => pressNumber(k)} className={numBtn} style={{ width: 180, height: 120, fontSize: 56 }}>{k}</button>
-                            ))}
-                          </div>
+                    <div className="flex flex-col items-center gap-4 w-full px-6">
+                      {/* 数字テンキー: 3列グリッド → 行4は4列（消す×1, 0×1, 1文字消す×1 + 空) */}
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(3, 1fr)",
+                          gap: "clamp(6px, 1vw, 14px)",
+                          width: "100%",
+                          maxWidth: "clamp(260px, 36vw, 560px)",
+                        }}
+                      >
+                        {/* 行1〜3: 1-9 */}
+                        {["1","2","3","4","5","6","7","8","9"].map((k) => (
+                          <button
+                            key={k}
+                            onPointerDown={() => pressNumber(k)}
+                            className={numBtn}
+                            style={{ height: keyH, fontSize: keyFontSize }}
+                          >
+                            {k}
+                          </button>
                         ))}
-                        <div className="flex gap-3">
-                          <button onPointerDown={() => pressNumber("0")} className={numBtn} style={{ width: 180*3+24, height: 120, fontSize: 56 }}>0</button>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        <button onPointerDown={() => save({ number: "" })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75" style={{ width: 200, height: 120, fontSize: 26 }}>すべて消す</button>
-                        <button onPointerDown={() => save({ number: plate.number.slice(0,-1) })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75" style={{ width: 200, height: 120, fontSize: 26 }}>1文字消す</button>
+                        {/* 行4: [消す][0][1文字消す] */}
+                        <button
+                          onPointerDown={() => save({ number: "" })}
+                          className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75"
+                          style={{ height: keyH, fontSize: "clamp(14px, 1.8vw, 24px)" }}
+                        >
+                          消す
+                        </button>
+                        <button
+                          onPointerDown={() => pressNumber("0")}
+                          className={numBtn}
+                          style={{ height: keyH, fontSize: keyFontSize }}
+                        >
+                          0
+                        </button>
+                        <button
+                          onPointerDown={() => save({ number: plate.number.slice(0, -1) })}
+                          className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75"
+                          style={{ height: keyH, fontSize: "clamp(12px, 1.6vw, 22px)" }}
+                        >
+                          1文字消す
+                        </button>
                       </div>
                     </div>
                   </div>
