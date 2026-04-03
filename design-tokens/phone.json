@@ -1,0 +1,30 @@
+{
+  "$metadata": {
+    "tokenSetOrder": ["phone"]
+  },
+  "phone": {
+    "button": {
+      "width": {
+        "numpad": { "value": "180", "type": "sizing", "description": "テンキーボタン幅(px)" },
+        "prefix": { "value": "165", "type": "sizing", "description": "070/080/090ボタン幅(px)" },
+        "action": { "value": "180", "type": "sizing", "description": "右列ボタン幅(px)" }
+      },
+      "height": { "value": "120", "type": "sizing", "description": "全ボタン共通高さ(px)" },
+      "gap":    { "value": "24",  "type": "spacing", "description": "ボタン間の隙間(px)" },
+      "radius": { "value": "16",  "type": "borderRadius", "description": "角丸(px)" }
+    },
+    "font": {
+      "numpad":  { "value": "52", "type": "fontSizes", "description": "テンキー数字サイズ(px)" },
+      "prefix":  { "value": "34", "type": "fontSizes", "description": "070/080/090サイズ(px)" },
+      "input":   { "value": "72", "type": "fontSizes", "description": "入力欄電話番号サイズ(px)" },
+      "label":   { "value": "28", "type": "fontSizes", "description": "入力欄ラベルサイズ(px)" }
+    },
+    "color": {
+      "prefix":    { "value": "#3B82F6", "type": "color", "description": "070/080/090ボタン色" },
+      "clearAll":  { "value": "#EF4444", "type": "color", "description": "全消しボタン色" },
+      "backspace": { "value": "#F97316", "type": "color", "description": "1文字消すボタン色" },
+      "ok":        { "value": "#22C55E", "type": "color", "description": "OKボタン色" },
+      "header":    { "value": "#1a3a6b", "type": "color", "description": "ヘッダー左色" }
+    }
+  }
+}
