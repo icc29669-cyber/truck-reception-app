@@ -2,26 +2,39 @@ import type { KioskSession } from "@/types/reception";
 
 const KEY = "kiosk_session";
 
-export function getKioskSession(): KioskSession | null {
-  if (typeof window === "undefined") return null;
+const DEFAULT: KioskSession = {
+  centerId: 1,
+  centerName: "",
+  phone: "",
+  plate: { region: "", classNum: "", hira: "", number: "" },
+  driverInput: { companyName: "", driverName: "", phone: "", maxLoad: "" },
+  driverCandidates: [],
+  selectedDriver: null,
+  vehicleCandidates: [],
+  selectedVehicle: null,
+  receptionResult: null,
+};
+
+export function getKioskSession(): KioskSession {
+  if (typeof window === "undefined") return { ...DEFAULT };
   try {
     const raw = sessionStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return { ...DEFAULT };
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT,
+      ...parsed,
+      plate: { ...DEFAULT.plate, ...(parsed.plate ?? {}) },
+      driverInput: { ...DEFAULT.driverInput, ...(parsed.driverInput ?? {}) },
+    };
   } catch {
-    return null;
+    return { ...DEFAULT };
   }
 }
 
 export function setKioskSession(partial: Partial<KioskSession>): void {
   if (typeof window === "undefined") return;
-  const current = getKioskSession() ?? {
-    centerId: Number(process.env.NEXT_PUBLIC_CENTER_ID ?? 1),
-    centerName: "",
-    phone: "",
-    lookupResult: null,
-    driverInput: { companyName: "", driverName: "", vehicleNumber: "" },
-    receptionResult: null,
-  };
+  const current = getKioskSession();
   sessionStorage.setItem(KEY, JSON.stringify({ ...current, ...partial }));
 }
 

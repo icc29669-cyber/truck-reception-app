@@ -21,7 +21,8 @@ export default function PrintReceipt({ data }: Props) {
   useEffect(() => {
     if (!barcodeRef.current) return;
     import("jsbarcode").then((mod) => {
-      mod.default(barcodeRef.current!, data.barcodeValue, {
+      const barcodeVal = (data as unknown as { barcodeValue?: string }).barcodeValue ?? String(data.id);
+      mod.default(barcodeRef.current!, barcodeVal, {
         format: "CODE128",
         width: 1.8,
         height: 55,
@@ -30,7 +31,7 @@ export default function PrintReceipt({ data }: Props) {
         margin: 2,
       });
     });
-  }, [data.barcodeValue]);
+  }, [data.id]);
 
   return (
     <div id="print-receipt" style={{ width: "74mm", fontFamily: "'MS Gothic', monospace", fontSize: "12px" }}>

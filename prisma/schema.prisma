@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── センター（拠点）───────────────────────────────────────
+model Center {
+  id        Int      @id @default(autoincrement())
+  name      String
+  secretKey String   @default("")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  receptions Reception[]
+}
+
+// ─── ドライバー ────────────────────────────────────────────
+model Driver {
+  id          Int      @id @default(autoincrement())
+  name        String   // カタカナ
+  companyName String   // 運送会社名
+  phone       String   // 電話番号（重複あり：同番で複数名）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  receptions Reception[]
+}
+
+// ─── 車両 ──────────────────────────────────────────────────
+model Vehicle {
+  id            Int      @id @default(autoincrement())
+  region        String   @default("") // 地名
+  classNum      String   @default("") // 分類番号
+  hira          String   @default("") // ひらがな
+  number        String   @default("") // 4桁数字
+  vehicleNumber String   // フォーマット済み "多摩 500 あ 7917"
+  maxLoad       String   @default("") // 最大積載量 kg
+  phone         String   // 紐づく電話番号
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  receptions Reception[]
+}
+
+// ─── 受付記録 ──────────────────────────────────────────────
+model Reception {
+  id            Int      @id @default(autoincrement())
+  centerId      Int
+  centerDailyNo Int      // その日のセンター内連番
+  arrivedAt     DateTime @default(now())
+
+  // 人情報（スナップショット）
+  driverName  String
+  companyName String
+  phone       String
+
+  // 車両情報（スナップショット）
+  plateRegion   String @default("")
+  plateClassNum String @default("")
+  plateHira     String @default("")
+  plateNumber   String @default("")
+  vehicleNumber String @default("")
+  maxLoad       String @default("")
+
+  // 参照（任意: 既存ドライバー/車両と紐づいている場合）
+  driverId  Int?
+  vehicleId Int?
+
+  center  Center   @relation(fields: [centerId], references: [id])
+  driver  Driver?  @relation(fields: [driverId], references: [id])
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id])
+
+  @@index([centerId, arrivedAt])
+}

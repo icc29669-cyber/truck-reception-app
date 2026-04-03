@@ -1,50 +1,57 @@
-export interface DriverInfo {
+export interface PlateInput {
+  region: string;
+  classNum: string;
+  hira: string;
+  number: string;
+}
+
+export function formatPlate(p: PlateInput): string {
+  if (!p.region && !p.classNum) return "";
+  return [p.region, p.classNum, p.hira, p.number].filter(Boolean).join(" ");
+}
+
+export interface DriverCandidate {
   id: number;
   name: string;
   companyName: string;
-  defaultVehicle: string;
   phone: string;
 }
 
-export interface ReservationInfo {
+export interface VehicleCandidate {
   id: number;
-  date: string;
-  startTime: string;
-  endTime: string;
   vehicleNumber: string;
-  companyName: string;
-  driverName: string;
-}
-
-export interface LookupResult {
-  driver: DriverInfo | null;
-  reservation: ReservationInfo | null;
+  plate: PlateInput;
+  maxLoad: string;
 }
 
 export interface DriverInput {
   companyName: string;
   driverName: string;
-  vehicleNumber: string;
+  phone: string;
+  maxLoad: string;
 }
 
 export interface ReceptionResult {
   id: number;
   centerDailyNo: number;
-  barcodeSeq: string;
-  barcodeValue: string;
   arrivedAt: string;
-  fiscalYear: string;
+  waitingCount: number;
   driver: { name: string; companyName: string; phone: string };
   vehicleNumber: string;
-  reservation: { startTime: string; endTime: string } | null;
   centerName: string;
+  reservation?: { startTime: string; endTime: string };
+  barcodeValue?: string;
 }
 
 export interface KioskSession {
   centerId: number;
   centerName: string;
   phone: string;
-  lookupResult: LookupResult | null;
+  plate: PlateInput;
   driverInput: DriverInput;
+  driverCandidates: DriverCandidate[];
+  selectedDriver: DriverCandidate | null;
+  vehicleCandidates: VehicleCandidate[];
+  selectedVehicle: VehicleCandidate | null;
   receptionResult: ReceptionResult | null;
 }

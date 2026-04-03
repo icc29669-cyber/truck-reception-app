@@ -8,7 +8,11 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   overflow: hidden;
+  color-scheme: light; /* ダークモード無効化 */
 }
+
+/* 管理画面はスクロール可能 */
+.admin-page html, .admin-page body { overflow: auto; }
 
 /* 印刷時：受付票だけ表示 */
 @media print {

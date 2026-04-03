@@ -3,33 +3,63 @@ import { useRouter } from "next/navigation";
 
 export default function CautionPage() {
   const router = useRouter();
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 px-8">
-      <div className="w-full max-w-xl space-y-8">
-        <h2 className="text-3xl font-black text-center text-yellow-400">⚠️ ご注意事項</h2>
+    <div
+      className="w-screen h-screen flex flex-col select-none overflow-hidden"
+      style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
+    >
+      {/* ヘッダー */}
+      <div
+        className="flex items-center justify-center px-16"
+        style={{ background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)", height: 120 }}
+      >
+        <h1 className="text-white font-black tracking-widest" style={{ fontSize: 52 }}>
+          場内への入場前にご確認ください
+        </h1>
+      </div>
 
-        <div className="bg-gray-800 rounded-3xl p-8 space-y-5 text-lg text-gray-100 leading-relaxed">
-          <p>① 構内では<span className="text-yellow-300 font-bold">徐行運転</span>をお守りください。</p>
-          <p>② 指定された場所以外への<span className="text-yellow-300 font-bold">駐車・停車はご遠慮</span>ください。</p>
-          <p>③ 荷役作業中は<span className="text-yellow-300 font-bold">安全確認</span>を徹底してください。</p>
-          <p>④ 構内での<span className="text-yellow-300 font-bold">喫煙は禁止</span>です。</p>
-          <p>⑤ スタッフの指示に必ず従ってください。</p>
+      {/* メインコンテンツ */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-10 px-20">
+        {/* 2カード横並び */}
+        <div className="flex gap-12 w-full" style={{ maxWidth: 1400 }}>
+          {/* ヘルメットカード */}
+          <div
+            className="flex-1 flex flex-col items-center gap-6 bg-white rounded-3xl border-4 border-blue-300 shadow-lg py-12"
+          >
+            <span style={{ fontSize: 140 }}>🪖</span>
+            <p className="font-black text-center text-gray-800" style={{ fontSize: 44 }}>
+              保護帽（ヘルメット）<br />の着用
+            </p>
+          </div>
+
+          {/* 安全靴カード */}
+          <div
+            className="flex-1 flex flex-col items-center gap-6 bg-white rounded-3xl border-4 border-blue-300 shadow-lg py-12"
+          >
+            <span style={{ fontSize: 140 }}>👟</span>
+            <p className="font-black text-center text-gray-800" style={{ fontSize: 44 }}>
+              安全靴の着用
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onPointerDown={() => router.push("/kiosk")}
-            className="py-6 bg-gray-600 hover:bg-gray-500 active:bg-gray-700 text-white rounded-2xl text-2xl font-bold transition-colors"
-          >
-            戻る
-          </button>
-          <button
-            onPointerDown={() => router.push("/kiosk/phone")}
-            className="py-6 bg-green-500 hover:bg-green-400 active:bg-green-600 text-white rounded-2xl text-2xl font-bold transition-colors"
-          >
-            同意して進む
-          </button>
-        </div>
+        {/* 強調メッセージ */}
+        <p className="font-black text-red-600 tracking-widest" style={{ fontSize: 48 }}>
+          ご協力をお願いします
+        </p>
+
+        {/* 次へボタン */}
+        <button
+          onPointerDown={() => router.push("/kiosk/phone")}
+          className="bg-[#2E7D32] text-white font-black rounded-3xl
+                     shadow-[0_14px_0_#1B5E20] active:shadow-[0_3px_0_#1B5E20]
+                     active:translate-y-[11px] transition-all duration-75 tracking-widest
+                     flex items-center justify-center border-4 border-[#4CAF50]"
+          style={{ width: 600, height: 180, fontSize: 60 }}
+        >
+          確認しました ✓
+        </button>
       </div>
     </div>
   );
