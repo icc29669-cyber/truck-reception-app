@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import NoZoom from "@/components/NoZoom";
 
 export const metadata: Metadata = {
   title: "来場受付",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         style={{ touchAction: "pan-x pan-y" }}
       >
+        <NoZoom />
         {children}
       </body>
     </html>

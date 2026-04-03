@@ -15,8 +15,7 @@ export default function KioskTop() {
   }, []);
 
   const centerId = Number(process.env.NEXT_PUBLIC_CENTER_ID ?? "1") || 1;
-  const centerName =
-    process.env.NEXT_PUBLIC_CENTER_NAME || "だんじり機材センター";
+  const centerName = process.env.NEXT_PUBLIC_CENTER_NAME || "だんじり機材センター";
 
   function start() {
     clearKioskSession();
@@ -35,64 +34,91 @@ export default function KioskTop() {
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
+      style={{ background: "#EDF4FB" }}
     >
-      {/* 上部ヘッダー */}
+      {/* ━━ 上部：ブルー帯（約45%） ━━ */}
       <div
-        className="flex items-center justify-between px-16 py-6"
-        style={{ background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)" }}
+        className="flex items-center justify-between px-14 flex-shrink-0"
+        style={{
+          background: "linear-gradient(135deg, #0d2b6b 0%, #1a4fa8 60%, #1565C0 100%)",
+          height: "44vh",
+        }}
       >
-        <div>
-          <p className="text-white text-3xl font-bold opacity-90 tracking-widest">
+        {/* 左：会社名・センター名 */}
+        <div className="flex flex-col justify-center gap-2">
+          <p
+            className="text-white font-semibold tracking-widest"
+            style={{ fontSize: "clamp(18px, 2vw, 28px)", opacity: 0.75 }}
+          >
             日本セイフティー株式会社
           </p>
-          <h1 className="text-white font-black tracking-[0.12em] mt-1" style={{ fontSize: 52 }}>
+          <h1
+            className="text-white font-black leading-tight"
+            style={{ fontSize: "clamp(36px, 5.5vw, 72px)", letterSpacing: "0.06em" }}
+          >
             {centerName}
           </h1>
         </div>
-        {/* 時計 */}
-        <div className="text-right">
-          <p className="text-white font-bold opacity-80" style={{ fontSize: 28 }}>
+
+        {/* 右：日付・時計 */}
+        <div className="text-right flex-shrink-0">
+          <p
+            className="text-white font-medium"
+            style={{ fontSize: "clamp(16px, 2vw, 26px)", opacity: 0.7, letterSpacing: "0.05em" }}
+          >
             {dateStr}{weekStr}
           </p>
-          <p className="text-white font-black tabular-nums" style={{ fontSize: 80, lineHeight: 1 }}>
+          <p
+            className="text-white font-black tabular-nums"
+            style={{ fontSize: "clamp(56px, 8vw, 108px)", lineHeight: 1, letterSpacing: "0.04em" }}
+          >
             {timeStr}
           </p>
         </div>
       </div>
 
-      {/* メインコンテンツ */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-12">
-        {/* 案内テキスト */}
-        <div className="text-center">
-          <p
-            className="font-black text-[#1a3a6b] tracking-[0.08em]"
-            style={{ fontSize: 56 }}
-          >
-            ご来場ありがとうございます
-          </p>
-          <p className="font-bold text-gray-600 mt-4" style={{ fontSize: 36 }}>
-            受付はこちらのボタンを押してください
-          </p>
-        </div>
+      {/* ━━ 下部：受付エリア（約56%） ━━ */}
+      <div
+        className="flex-1 flex flex-col items-center justify-center gap-8"
+        style={{ background: "#EDF4FB" }}
+      >
+        <p
+          className="font-black text-center"
+          style={{ fontSize: "clamp(28px, 4vw, 54px)", color: "#1a3a6b", letterSpacing: "0.06em" }}
+        >
+          ご来場ありがとうございます
+        </p>
 
-        {/* トラックアイコン */}
-        <div style={{ fontSize: 100 }}>🚛</div>
+        <p
+          className="font-bold text-center"
+          style={{ fontSize: "clamp(18px, 2.4vw, 32px)", color: "#4a6fa5" }}
+        >
+          下のボタンを押して受付を開始してください
+        </p>
 
-        {/* 受付するボタン */}
+        {/* 受付ボタン */}
         <button
           onPointerDown={start}
-          className="bg-[#2E7D32] text-white font-black rounded-3xl
-                     shadow-[0_14px_0_#1B5E20] active:shadow-[0_3px_0_#1B5E20]
-                     active:translate-y-[11px] transition-all duration-75 tracking-widest
-                     flex items-center justify-center border-4 border-[#4CAF50]"
-          style={{ width: 700, height: 220, fontSize: 68 }}
+          className="flex items-center justify-center font-black text-white rounded-3xl
+                     tracking-widest select-none touch-none transition-all duration-75
+                     active:translate-y-[6px]"
+          style={{
+            width: "clamp(320px, 45vw, 640px)",
+            height: "clamp(100px, 13vh, 160px)",
+            fontSize: "clamp(28px, 4.5vw, 60px)",
+            background: "linear-gradient(180deg, #43A047 0%, #2E7D32 100%)",
+            boxShadow: "0 8px 0 #1B5E20, 0 12px 32px rgba(46,125,50,0.35)",
+            border: "3px solid #66BB6A",
+            letterSpacing: "0.18em",
+          }}
         >
           受　付　す　る
         </button>
 
-        {/* 注意書き */}
-        <p className="text-gray-500 font-bold" style={{ fontSize: 28 }}>
+        <p
+          className="font-semibold text-center"
+          style={{ fontSize: "clamp(14px, 1.8vw, 22px)", color: "#7a9abf" }}
+        >
           ※ 保護帽・安全靴を着用の上ご入場ください
         </p>
       </div>
