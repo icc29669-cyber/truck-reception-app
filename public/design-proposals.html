@@ -2,563 +2,627 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>受付トップ画面 デザイン10案</title>
+<title>受付トップ画面 デザイン10案 v2</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #111; font-family: "Hiragino Kaku Gothic ProN","Meiryo",sans-serif; padding: 32px 24px; }
-  .page-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-  .page-sub   { color: #888; font-size: 14px; margin-bottom: 36px; }
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; max-width: 1400px; margin: 0 auto; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0a;
+  font-family: "Hiragino Kaku Gothic ProN","Meiryo",sans-serif;
+  padding: 48px 32px;
+  color: #fff;
+}
+h1 { font-size: 18px; font-weight: 400; color: #555; margin-bottom: 6px; letter-spacing: 0.15em; }
+h2 { font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 48px; letter-spacing: -0.02em; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 48px 40px; max-width: 1440px; margin: 0 auto; }
+.item { }
+.screen {
+  width: 100%; aspect-ratio: 16/9; overflow: hidden;
+  position: relative; display: flex; flex-direction: column;
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+}
+.label-row { display: flex; align-items: baseline; gap: 12px; margin-top: 14px; margin-bottom: 4px; }
+.case-num { font-size: 11px; font-weight: 700; color: #333; letter-spacing: 0.2em; background: #1a1a1a; padding: 3px 8px; border-radius: 4px; }
+.case-title { font-size: 15px; font-weight: 700; color: #e0e0e0; }
+.case-desc { font-size: 12px; color: #555; margin-top: 2px; line-height: 1.5; }
 
-  /* 各カード */
-  .card { position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
-  .card-label {
-    position: absolute; top: 12px; left: 12px; z-index: 10;
-    background: rgba(0,0,0,0.7); color: #fff;
-    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
-    backdrop-filter: blur(4px);
-  }
-  .screen {
-    width: 100%; aspect-ratio: 16/9;
-    display: flex; flex-direction: column;
-    overflow: hidden; position: relative;
-    user-select: none;
-  }
+/* ════════════════════════════════════════
+   案1: タイポグラフィック・ブルータリスト
+   ════════════════════════════════════════ */
+.s1 { background: #F2F0EB; }
+.s1-bg-text {
+  position: absolute; inset: 0;
+  font-size: 28vw; font-weight: 900; color: rgba(0,0,0,0.04);
+  display: flex; align-items: center; justify-content: center;
+  letter-spacing: -0.05em; line-height: 1; pointer-events: none;
+  overflow: hidden;
+}
+.s1-header {
+  position: relative; z-index: 2;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 4% 5% 0;
+}
+.s1-co { font-size: 0.85vw; color: #999; letter-spacing: 0.18em; text-transform: uppercase; }
+.s1-time { font-size: 5vw; font-weight: 900; color: #111; line-height: 1; text-align: right; letter-spacing: -0.04em; }
+.s1-date { font-size: 0.8vw; color: #aaa; text-align: right; margin-bottom: 2px; }
+.s1-body {
+  position: relative; z-index: 2; flex: 1;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 5% 5%;
+}
+.s1-title { font-size: 3.2vw; font-weight: 900; color: #111; letter-spacing: -0.02em; line-height: 1.1; }
+.s1-title span { color: #1A4FA8; }
+.s1-divider { width: 5%; height: 3px; background: #111; margin: 3% 0 2%; }
+.s1-row { display: flex; align-items: flex-end; justify-content: space-between; }
+.s1-sub { font-size: 0.9vw; color: #888; }
+.s1-btn {
+  background: #111; color: #F2F0EB;
+  padding: 2% 5%; font-size: 1.2vw; font-weight: 900;
+  letter-spacing: 0.15em; border-radius: 0;
+}
+.s1-center { font-size: 1.4vw; font-weight: 900; color: #111; }
 
-  /* ──────────── 案1: コーポレートネイビー ──────────── */
-  .s1 { background: #0B1F4B; }
-  .s1 .header {
-    background: linear-gradient(90deg, #0B1F4B 0%, #162E6E 100%);
-    padding: 3% 5%; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 2px solid rgba(201,168,76,0.4);
-  }
-  .s1 .company-sm { color: rgba(201,168,76,0.8); font-size: 1.1vw; letter-spacing: 0.15em; }
-  .s1 .company-lg { color: #fff; font-size: 2.4vw; font-weight: 900; letter-spacing: 0.08em; margin-top: 2px; }
-  .s1 .clock { text-align: right; }
-  .s1 .clock-date { color: rgba(201,168,76,0.7); font-size: 1vw; }
-  .s1 .clock-time { color: #fff; font-size: 3.8vw; font-weight: 900; line-height: 1; }
-  .s1 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; background: #0B1F4B; }
-  .s1 .welcome { color: rgba(255,255,255,0.9); font-size: 2.2vw; font-weight: 900; letter-spacing: 0.1em; }
-  .s1 .sub { color: rgba(201,168,76,0.7); font-size: 1.1vw; margin-top: 1%; }
-  .s1 .btn {
-    margin-top: 3%; width: 40%; padding: 2.5% 0;
-    background: linear-gradient(180deg, #C9A84C 0%, #9D7C2A 100%);
-    border: 2px solid #E8C96A; border-radius: 12px;
-    color: #0B1F4B; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; box-shadow: 0 6px 0 #6B5010, 0 8px 24px rgba(201,168,76,0.3);
-  }
-  .s1 .note { color: rgba(255,255,255,0.3); font-size: 0.9vw; margin-top: 2%; }
+/* ════════════════════════════════════════
+   案2: ブループリント（設計図）
+   ════════════════════════════════════════ */
+.s2 {
+  background: #0C2340;
+  background-image:
+    linear-gradient(rgba(100,160,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100,160,255,0.07) 1px, transparent 1px);
+  background-size: 3.5% 5.5%;
+}
+.s2-cross {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(100,160,255,0.12) 1px, transparent 1px);
+  background-size: 3.5% 5.5%;
+}
+.s2-header { position: relative; z-index: 2; display: flex; justify-content: space-between; padding: 4% 5%; border-bottom: 1px solid rgba(100,160,255,0.2); }
+.s2-co-sm { font-size: 0.75vw; color: rgba(100,160,255,0.6); letter-spacing: 0.25em; text-transform: uppercase; }
+.s2-co-lg { font-size: 1.6vw; font-weight: 700; color: #A8C8FF; margin-top: 2%; letter-spacing: 0.06em; }
+.s2-time { font-size: 4vw; font-weight: 300; color: #fff; letter-spacing: 0.1em; text-align: right; line-height: 1; font-variant-numeric: tabular-nums; }
+.s2-date { font-size: 0.75vw; color: rgba(100,160,255,0.6); text-align: right; margin-bottom: 2px; }
+.s2-body { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
+.s2-frame {
+  border: 1px solid rgba(100,160,255,0.3);
+  padding: 4% 8%; text-align: center; position: relative;
+  background: rgba(100,160,255,0.04);
+}
+.s2-corner {
+  position: absolute; width: 12px; height: 12px;
+  border-color: #5B9BD5; border-style: solid;
+}
+.s2-corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.s2-corner.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+.s2-corner.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+.s2-corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+.s2-label { font-size: 0.7vw; color: rgba(100,160,255,0.5); letter-spacing: 0.3em; margin-bottom: 3%; }
+.s2-welcome { font-size: 1.8vw; font-weight: 700; color: #fff; letter-spacing: 0.06em; }
+.s2-btn {
+  background: transparent; border: 1px solid #5B9BD5; color: #A8C8FF;
+  padding: 2.5% 8%; font-size: 1.2vw; font-weight: 700; letter-spacing: 0.2em;
+  position: relative; overflow: hidden;
+}
+.s2-btn::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #5B9BD5;
+}
+.s2-note { font-size: 0.7vw; color: rgba(100,160,255,0.4); letter-spacing: 0.1em; }
 
-  /* ──────────── 案2: クリーンホワイト ──────────── */
-  .s2 { background: #F8FAFB; }
-  .s2 .stripe { height: 5%; background: linear-gradient(90deg, #0D2B6B, #1565C0); }
-  .s2 .header {
-    padding: 2% 5%; display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid #E2E8F0;
-  }
-  .s2 .company-sm { color: #64748B; font-size: 1vw; }
-  .s2 .company-lg { color: #0D2B6B; font-size: 2.2vw; font-weight: 900; }
-  .s2 .clock-date { color: #64748B; font-size: 0.9vw; text-align: right; }
-  .s2 .clock-time { color: #0D2B6B; font-size: 3.5vw; font-weight: 900; text-align: right; line-height: 1; }
-  .s2 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
-  .s2 .welcome { color: #1E293B; font-size: 2.4vw; font-weight: 900; letter-spacing: 0.08em; }
-  .s2 .sub { color: #64748B; font-size: 1.1vw; margin-top: 0.5%; }
-  .s2 .btn {
-    margin-top: 3%; width: 38%; padding: 2.8% 0;
-    background: linear-gradient(180deg, #1976D2 0%, #0D47A1 100%);
-    border-radius: 50px; color: #fff; font-size: 2vw; font-weight: 900; letter-spacing: 0.18em;
-    text-align: center; box-shadow: 0 6px 0 #0A2E6E, 0 10px 30px rgba(13,71,161,0.35);
-  }
-  .s2 .note { color: #94A3B8; font-size: 0.85vw; margin-top: 2%; }
+/* ════════════════════════════════════════
+   案3: 対角スプリット
+   ════════════════════════════════════════ */
+.s3 { background: #fff; overflow: hidden; }
+.s3-diagonal {
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg, #0B1F4B 0%, #0B1F4B 52%, #fff 52%);
+}
+.s3-left {
+  position: absolute; left: 0; top: 0; width: 56%; height: 100%;
+  display: flex; flex-direction: column; justify-content: center; padding: 6% 8%;
+}
+.s3-co-sm { font-size: 0.8vw; color: rgba(255,255,255,0.5); letter-spacing: 0.18em; }
+.s3-co-lg { font-size: 2.4vw; font-weight: 900; color: #fff; line-height: 1.2; margin-top: 3%; }
+.s3-time { font-size: 5vw; font-weight: 900; color: #fff; line-height: 1; margin-top: 6%; letter-spacing: -0.02em; }
+.s3-date { font-size: 0.8vw; color: rgba(255,255,255,0.45); margin-bottom: 2px; }
+.s3-right {
+  position: absolute; right: 0; top: 0; width: 54%; height: 100%;
+  display: flex; flex-direction: column; align-items: flex-end; justify-content: center; padding: 6% 7%;
+}
+.s3-welcome { font-size: 1.6vw; font-weight: 900; color: #0B1F4B; text-align: right; line-height: 1.4; }
+.s3-sub { font-size: 0.8vw; color: #888; text-align: right; margin-top: 3%; line-height: 1.6; }
+.s3-btn {
+  margin-top: 8%; background: #0B1F4B; color: #fff;
+  padding: 3.5% 8%; font-size: 1.3vw; font-weight: 900; letter-spacing: 0.18em;
+  border-radius: 50px;
+}
+.s3-note { font-size: 0.7vw; color: #bbb; text-align: right; margin-top: 4%; }
 
-  /* ──────────── 案3: スプリットレイアウト ──────────── */
-  .s3 { background: #fff; display: flex; flex-direction: row !important; }
-  .s3 .left {
-    width: 45%; background: linear-gradient(160deg, #0D2B6B 0%, #1A4FA8 100%);
-    display: flex; flex-direction: column; justify-content: center; padding: 5%;
-  }
-  .s3 .company-sm { color: rgba(255,255,255,0.6); font-size: 1vw; letter-spacing: 0.12em; }
-  .s3 .company-lg { color: #fff; font-size: 2.6vw; font-weight: 900; line-height: 1.2; margin-top: 4%; }
-  .s3 .divider { width: 40px; height: 3px; background: #5B9BD5; margin: 6% 0; }
-  .s3 .clock-date { color: rgba(255,255,255,0.6); font-size: 1vw; }
-  .s3 .clock-time { color: #fff; font-size: 4vw; font-weight: 900; line-height: 1; }
-  .s3 .right {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 5%; background: #F8FAFB;
-  }
-  .s3 .welcome { color: #1E293B; font-size: 2vw; font-weight: 900; text-align: center; }
-  .s3 .sub { color: #64748B; font-size: 0.95vw; text-align: center; margin-top: 4%; }
-  .s3 .btn {
-    margin-top: 8%; width: 80%; padding: 2.8% 0;
-    background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%);
-    border-radius: 14px; color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; box-shadow: 0 5px 0 #0D3B11;
-  }
-  .s3 .note { color: #94A3B8; font-size: 0.8vw; text-align: center; margin-top: 5%; }
+/* ════════════════════════════════════════
+   案4: スポットライト（映画ポスター）
+   ════════════════════════════════════════ */
+.s4 { background: #080808; }
+.s4-spot {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 70% at 50% 55%, rgba(25,70,150,0.35) 0%, transparent 70%);
+  pointer-events: none;
+}
+.s4-header {
+  position: relative; z-index: 2;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 3% 5%; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.s4-co-sm { font-size: 0.75vw; color: rgba(255,255,255,0.35); letter-spacing: 0.25em; text-transform: uppercase; }
+.s4-co-lg { font-size: 1.3vw; font-weight: 700; color: rgba(255,255,255,0.7); }
+.s4-time { font-size: 3.2vw; font-weight: 900; color: #fff; line-height: 1; text-align: right; letter-spacing: 0.04em; }
+.s4-date { font-size: 0.75vw; color: rgba(255,255,255,0.3); text-align: right; }
+.s4-body { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2%; }
+.s4-icon { font-size: 5.5vw; filter: drop-shadow(0 0 20px rgba(100,150,255,0.4)); }
+.s4-welcome { font-size: 2.2vw; font-weight: 900; color: #fff; letter-spacing: 0.06em; margin-top: 2%; }
+.s4-sub { font-size: 0.9vw; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; }
+.s4-btn {
+  margin-top: 3%; padding: 2.2% 8%;
+  background: linear-gradient(90deg, #1A4FA8, #2563EB);
+  color: #fff; font-size: 1.5vw; font-weight: 900; letter-spacing: 0.2em;
+  border-radius: 4px;
+  box-shadow: 0 0 40px rgba(37,99,235,0.4);
+}
+.s4-note { font-size: 0.7vw; color: rgba(255,255,255,0.2); margin-top: 3%; }
 
-  /* ──────────── 案4: フルグラジェント ──────────── */
-  .s4 { background: linear-gradient(145deg, #030E24 0%, #0A1E5E 40%, #0D47A1 70%, #1565C0 100%); }
-  .s4 .header { padding: 3% 5%; display: flex; justify-content: space-between; align-items: flex-start; }
-  .s4 .company-sm { color: rgba(255,255,255,0.5); font-size: 0.9vw; letter-spacing: 0.15em; }
-  .s4 .company-lg { color: #fff; font-size: 2.2vw; font-weight: 900; margin-top: 2%; }
-  .s4 .clock-date { color: rgba(255,255,255,0.5); font-size: 0.9vw; text-align: right; }
-  .s4 .clock-time { color: #fff; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
-  .s4 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .s4 .circle {
-    width: 18vw; height: 18vw; border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    border: 1.5px solid rgba(255,255,255,0.2);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    backdrop-filter: blur(10px); margin-bottom: 4%;
-  }
-  .s4 .icon { font-size: 4vw; }
-  .s4 .welcome { color: #fff; font-size: 1.6vw; font-weight: 900; text-align: center; margin-top: 5%; }
-  .s4 .btn {
-    margin-top: 4%; width: 36%; padding: 2.2% 0;
-    background: rgba(255,255,255,0.15);
-    border: 2px solid rgba(255,255,255,0.5); border-radius: 50px;
-    color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; backdrop-filter: blur(8px);
-  }
+/* ════════════════════════════════════════
+   案5: スイスポスター（グリッドシステム）
+   ════════════════════════════════════════ */
+.s5 { background: #fff; }
+.s5-top { height: 55%; display: flex; }
+.s5-red { width: 6%; background: #D40000; flex-shrink: 0; }
+.s5-main { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 4% 5% 5% 6%; }
+.s5-co { font-size: 0.8vw; color: #999; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 2%; }
+.s5-big { font-size: 3.8vw; font-weight: 900; color: #111; line-height: 0.95; letter-spacing: -0.03em; }
+.s5-big em { color: #D40000; font-style: normal; }
+.s5-side { width: 28%; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; padding: 0 5% 4% 0; }
+.s5-time { font-size: 4.5vw; font-weight: 900; color: #111; line-height: 1; text-align: right; }
+.s5-date { font-size: 0.8vw; color: #aaa; text-align: right; margin-bottom: 2px; }
+.s5-bottom { height: 45%; background: #111; display: flex; align-items: center; padding: 0 6% 0 calc(6% + 6%); gap: 6%; }
+.s5-welcome { font-size: 1.8vw; font-weight: 900; color: #fff; letter-spacing: 0.04em; flex: 1; }
+.s5-btn {
+  background: #D40000; color: #fff;
+  padding: 3.5% 7%; font-size: 1.1vw; font-weight: 900; letter-spacing: 0.15em; flex-shrink: 0;
+  border-radius: 2px;
+}
+.s5-note { font-size: 0.7vw; color: #555; position: absolute; bottom: 3%; left: calc(6% + 6%); }
 
-  /* ──────────── 案5: 安全イエロー ──────────── */
-  .s5 { background: #1A1A1A; }
-  .s5 .hazard {
-    height: 6%;
-    background: repeating-linear-gradient(
-      -45deg, #F9C200 0px, #F9C200 20px, #1A1A1A 20px, #1A1A1A 40px
-    );
-  }
-  .s5 .header { background: #111; padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F9C200; }
-  .s5 .company-sm { color: #F9C200; font-size: 0.9vw; letter-spacing: 0.2em; text-transform: uppercase; }
-  .s5 .company-lg { color: #fff; font-size: 2.2vw; font-weight: 900; }
-  .s5 .clock-date { color: #888; font-size: 0.9vw; text-align: right; }
-  .s5 .clock-time { color: #F9C200; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
-  .s5 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
-  .s5 .welcome { color: #fff; font-size: 2.2vw; font-weight: 900; }
-  .s5 .sub { color: #888; font-size: 1vw; }
-  .s5 .btn {
-    width: 38%; padding: 2.5% 0; margin-top: 2%;
-    background: #F9C200; border-radius: 8px;
-    color: #111; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; box-shadow: 0 5px 0 #B8900A;
-  }
-  .s5 .note { color: #555; font-size: 0.85vw; }
+/* ════════════════════════════════════════
+   案6: モーションブラー（速度感）
+   ════════════════════════════════════════ */
+.s6 { background: #F0F4F8; overflow: hidden; }
+.s6-stripe {
+  position: absolute; left: -10%; right: -10%; top: 30%; height: 40%;
+  background: #0B2563;
+  transform: skewY(-4deg);
+}
+.s6-stripe2 {
+  position: absolute; left: -10%; right: -10%; top: 29%; height: 3%;
+  background: #EF8C00;
+  transform: skewY(-4deg);
+}
+.s6-header { position: relative; z-index: 2; display: flex; justify-content: space-between; padding: 3.5% 5%; }
+.s6-co-sm { font-size: 0.8vw; color: #888; letter-spacing: 0.15em; }
+.s6-co-lg { font-size: 1.8vw; font-weight: 900; color: #0B2563; margin-top: 2%; }
+.s6-time { font-size: 4vw; font-weight: 900; color: #0B2563; line-height: 1; text-align: right; }
+.s6-date { font-size: 0.8vw; color: #aaa; text-align: right; margin-bottom: 2px; }
+.s6-body { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.s6-welcome { font-size: 2.2vw; font-weight: 900; color: #fff; letter-spacing: 0.06em; text-align: center; }
+.s6-btn {
+  margin-top: 4%; padding: 2.2% 7%;
+  background: #EF8C00; color: #fff;
+  font-size: 1.4vw; font-weight: 900; letter-spacing: 0.2em;
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(239,140,0,0.4);
+}
+.s6-bottom { position: relative; z-index: 2; padding: 0 5% 3%; }
+.s6-note { font-size: 0.75vw; color: #aaa; }
 
-  /* ──────────── 案6: ジャパニーズミニマル ──────────── */
-  .s6 { background: #FAFAFA; }
-  .s6 .top-line { height: 3px; background: #0D2B6B; }
-  .s6 .header { padding: 3% 6%; display: flex; justify-content: space-between; align-items: center; }
-  .s6 .company-sm { color: #999; font-size: 0.9vw; letter-spacing: 0.2em; }
-  .s6 .company-lg { color: #0D2B6B; font-size: 2vw; font-weight: 700; letter-spacing: 0.06em; margin-top: 2%; }
-  .s6 .clock-date { color: #aaa; font-size: 0.9vw; text-align: right; }
-  .s6 .clock-time { color: #333; font-size: 3.5vw; font-weight: 300; letter-spacing: 0.05em; text-align: right; line-height: 1; }
-  .s6 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2%; }
-  .s6 .kanji { color: #0D2B6B; font-size: 1vw; letter-spacing: 0.4em; font-weight: 600; opacity: 0.5; }
-  .s6 .welcome { color: #1A1A1A; font-size: 2.2vw; font-weight: 700; letter-spacing: 0.06em; }
-  .s6 .line { width: 60px; height: 1px; background: #CCC; margin: 3% 0; }
-  .s6 .sub { color: #888; font-size: 1vw; letter-spacing: 0.08em; }
-  .s6 .btn {
-    margin-top: 4%; width: 36%; padding: 2.5% 0;
-    background: #0D2B6B; border-radius: 4px;
-    color: #fff; font-size: 1.8vw; font-weight: 700; letter-spacing: 0.2em;
-    text-align: center;
-  }
-  .s6 .note { color: #bbb; font-size: 0.8vw; margin-top: 3%; }
+/* ════════════════════════════════════════
+   案7: 大きな時計がヒーロー
+   ════════════════════════════════════════ */
+.s7 {
+  background: #0F0F0F;
+  background-image: radial-gradient(ellipse at 30% 60%, rgba(20,40,100,0.3) 0%, transparent 60%);
+}
+.s7-header { display: flex; justify-content: space-between; align-items: center; padding: 3% 5%; border-bottom: 1px solid #1a1a1a; }
+.s7-co-sm { font-size: 0.75vw; color: #444; letter-spacing: 0.2em; }
+.s7-co-lg { font-size: 1.4vw; font-weight: 700; color: #ccc; margin-top: 2%; }
+.s7-tag { background: #1a1a1a; border: 1px solid #2a2a2a; color: #555; font-size: 0.7vw; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.1em; }
+.s7-body { flex: 1; display: flex; align-items: stretch; }
+.s7-left { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 5% 4% 5%; border-right: 1px solid #1a1a1a; }
+.s7-clock-label { font-size: 0.7vw; color: #444; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 2%; }
+.s7-time { font-size: 9vw; font-weight: 900; color: #fff; line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.s7-date { font-size: 0.9vw; color: #555; margin-top: 3%; letter-spacing: 0.08em; }
+.s7-right { width: 38%; display: flex; flex-direction: column; justify-content: center; padding: 0 5%; }
+.s7-welcome { font-size: 1.6vw; font-weight: 900; color: #fff; line-height: 1.3; }
+.s7-sub { font-size: 0.85vw; color: #555; margin-top: 4%; line-height: 1.6; }
+.s7-btn {
+  margin-top: 8%;
+  background: #fff; color: #0F0F0F;
+  padding: 3.5% 0; font-size: 1.2vw; font-weight: 900; letter-spacing: 0.2em;
+  text-align: center; width: 100%;
+}
+.s7-note { font-size: 0.7vw; color: #333; margin-top: 4%; }
 
-  /* ──────────── 案7: カードUI ──────────── */
-  .s7 { background: #E8EDF5; }
-  .s7 .header { background: #fff; padding: 2% 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-  .s7 .logo-area { display: flex; align-items: center; gap: 3%; }
-  .s7 .logo-mark { width: 3vw; height: 3vw; background: #0D2B6B; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5vw; font-weight: 900; }
-  .s7 .company-sm { color: #64748B; font-size: 0.85vw; }
-  .s7 .company-lg { color: #0D2B6B; font-size: 1.5vw; font-weight: 900; }
-  .s7 .clock-date { color: #64748B; font-size: 0.85vw; text-align: right; }
-  .s7 .clock-time { color: #1E293B; font-size: 2.8vw; font-weight: 900; text-align: right; line-height: 1; }
-  .s7 .body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4%; }
-  .s7 .card-main {
-    background: #fff; border-radius: 24px; padding: 5% 8%;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.12);
-    display: flex; flex-direction: column; align-items: center;
-    width: 55%;
-  }
-  .s7 .icon { font-size: 4vw; margin-bottom: 4%; }
-  .s7 .welcome { color: #1E293B; font-size: 2vw; font-weight: 900; text-align: center; }
-  .s7 .sub { color: #64748B; font-size: 0.95vw; text-align: center; margin-top: 3%; }
-  .s7 .btn {
-    margin-top: 6%; width: 80%; padding: 4% 0;
-    background: linear-gradient(180deg, #1976D2, #0D47A1);
-    border-radius: 16px; color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; box-shadow: 0 4px 0 #0A2E6E;
-  }
-  .s7 .note { color: #94A3B8; font-size: 0.8vw; text-align: center; margin-top: 4%; }
+/* ════════════════════════════════════════
+   案8: フロストガラス × 写真背景
+   ════════════════════════════════════════ */
+.s8 {
+  background:
+    linear-gradient(160deg, #0a1628 0%, #1a3a6b 40%, #0d2847 100%);
+}
+.s8-noise {
+  position: absolute; inset: 0; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+.s8-header { position: relative; z-index: 2; display: flex; justify-content: space-between; padding: 3.5% 5%; }
+.s8-co-sm { font-size: 0.75vw; color: rgba(255,255,255,0.4); letter-spacing: 0.2em; }
+.s8-co-lg { font-size: 1.6vw; font-weight: 700; color: rgba(255,255,255,0.9); margin-top: 2%; }
+.s8-time { font-size: 4vw; font-weight: 900; color: #fff; text-align: right; line-height: 1; }
+.s8-date { font-size: 0.75vw; color: rgba(255,255,255,0.35); text-align: right; margin-bottom: 2px; }
+.s8-body { position: relative; z-index: 2; flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 6% 4%; }
+.s8-glass {
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 5% 8%;
+  width: 70%;
+  display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.s8-icon { font-size: 4vw; margin-bottom: 4%; }
+.s8-welcome { font-size: 1.8vw; font-weight: 900; color: #fff; letter-spacing: 0.04em; text-align: center; }
+.s8-sub { font-size: 0.85vw; color: rgba(255,255,255,0.5); margin-top: 3%; text-align: center; }
+.s8-btn {
+  margin-top: 6%; width: 80%; padding: 3.5% 0;
+  background: rgba(255,255,255,0.9);
+  color: #0a1628; font-size: 1.3vw; font-weight: 900; letter-spacing: 0.2em;
+  text-align: center; border-radius: 12px;
+}
+.s8-note { font-size: 0.7vw; color: rgba(255,255,255,0.25); margin-top: 4%; }
 
-  /* ──────────── 案8: ダークモダン ──────────── */
-  .s8 { background: #0F0F13; }
-  .s8 .header { padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .s8 .company-sm { color: rgba(99,179,237,0.7); font-size: 0.9vw; letter-spacing: 0.2em; }
-  .s8 .company-lg { color: #fff; font-size: 2vw; font-weight: 900; }
-  .s8 .clock-date { color: rgba(255,255,255,0.4); font-size: 0.9vw; text-align: right; }
-  .s8 .clock-time { color: #63B3ED; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
-  .s8 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .s8 .glow-ring {
-    width: 18vw; height: 18vw; border-radius: 50%;
-    border: 2px solid rgba(99,179,237,0.3);
-    box-shadow: 0 0 40px rgba(99,179,237,0.15), inset 0 0 40px rgba(99,179,237,0.05);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 4%;
-  }
-  .s8 .icon { font-size: 5vw; }
-  .s8 .welcome { color: #E2E8F0; font-size: 2vw; font-weight: 700; }
-  .s8 .btn {
-    margin-top: 4%; width: 34%; padding: 2.2% 0;
-    background: linear-gradient(180deg, #3182CE, #1A56A8);
-    border-radius: 50px; color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; box-shadow: 0 0 30px rgba(49,130,206,0.4);
-  }
+/* ════════════════════════════════════════
+   案9: ネオブルータリスト
+   ════════════════════════════════════════ */
+.s9 { background: #FFEB3B; overflow: hidden; }
+.s9-bar { height: 6%; background: #111; }
+.s9-body { flex: 1; display: flex; }
+.s9-left { flex: 1; padding: 5%; display: flex; flex-direction: column; justify-content: space-between; }
+.s9-co-sm { font-size: 0.8vw; font-weight: 700; color: #555; letter-spacing: 0.2em; text-transform: uppercase; }
+.s9-co-lg { font-size: 2.4vw; font-weight: 900; color: #111; line-height: 1.1; margin-top: 3%; }
+.s9-welcome { font-size: 1.4vw; font-weight: 900; color: #111; line-height: 1.4; }
+.s9-note { font-size: 0.75vw; font-weight: 700; color: #888; }
+.s9-right {
+  width: 45%; background: #111;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 5%;
+  border-left: 4px solid #111;
+}
+.s9-time { font-size: 6vw; font-weight: 900; color: #FFEB3B; line-height: 1; letter-spacing: -0.04em; }
+.s9-date { font-size: 0.8vw; color: #666; margin-bottom: 6%; letter-spacing: 0.1em; }
+.s9-btn {
+  width: 90%; padding: 5% 0;
+  background: #FFEB3B; color: #111;
+  font-size: 1.4vw; font-weight: 900; letter-spacing: 0.15em;
+  text-align: center;
+  border: 3px solid #FFEB3B;
+  margin-top: 6%;
+}
 
-  /* ──────────── 案9: インダストリアルオレンジ ──────────── */
-  .s9 { background: #1C1C1C; }
-  .s9 .header { background: #252525; padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; }
-  .s9 .company-sm { color: #F97316; font-size: 0.9vw; letter-spacing: 0.2em; font-weight: 700; text-transform: uppercase; }
-  .s9 .company-lg { color: #fff; font-size: 2.2vw; font-weight: 900; }
-  .s9 .clock-date { color: #666; font-size: 0.9vw; text-align: right; }
-  .s9 .clock-time { color: #fff; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
-  .s9 .accent-bar { height: 4px; background: linear-gradient(90deg, #F97316, #EA580C); }
-  .s9 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
-  .s9 .welcome { color: #fff; font-size: 2.4vw; font-weight: 900; letter-spacing: 0.06em; }
-  .s9 .sub { color: #888; font-size: 1vw; }
-  .s9 .btn {
-    width: 38%; padding: 2.5% 0; margin-top: 2%;
-    background: linear-gradient(180deg, #F97316, #C2410C);
-    border-radius: 10px; color: #fff; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; box-shadow: 0 5px 0 #7C2D12, 0 8px 24px rgba(249,115,22,0.3);
-  }
-  .s9 .note { color: #555; font-size: 0.85vw; }
-
-  /* ──────────── 案10: ソフトグリーン ──────────── */
-  .s10 { background: linear-gradient(160deg, #E8F5E9 0%, #C8E6C9 100%); }
-  .s10 .header { padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(46,125,50,0.15); }
-  .s10 .company-sm { color: #388E3C; font-size: 0.9vw; letter-spacing: 0.12em; }
-  .s10 .company-lg { color: #1B5E20; font-size: 2.2vw; font-weight: 900; }
-  .s10 .clock-date { color: #66BB6A; font-size: 0.9vw; text-align: right; }
-  .s10 .clock-time { color: #1B5E20; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
-  .s10 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
-  .s10 .badge {
-    background: #fff; border-radius: 50px; padding: 1% 4%;
-    color: #2E7D32; font-size: 0.9vw; font-weight: 700; letter-spacing: 0.1em;
-    border: 1.5px solid rgba(46,125,50,0.3);
-  }
-  .s10 .welcome { color: #1B5E20; font-size: 2.4vw; font-weight: 900; text-align: center; }
-  .s10 .sub { color: #4CAF50; font-size: 1vw; }
-  .s10 .btn {
-    width: 38%; padding: 2.5% 0; margin-top: 2%;
-    background: linear-gradient(180deg, #43A047, #2E7D32);
-    border-radius: 50px; color: #fff; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
-    text-align: center; box-shadow: 0 6px 0 #1B5E20, 0 10px 28px rgba(46,125,50,0.3);
-    border: 2px solid #66BB6A;
-  }
-  .s10 .note { color: #81C784; font-size: 0.85vw; }
-
-  /* ラベル */
-  .design-title { color: #fff; font-size: 15px; font-weight: 700; margin-top: 12px; margin-bottom: 2px; }
-  .design-desc { color: #666; font-size: 12px; margin-bottom: 4px; }
+/* ════════════════════════════════════════
+   案10: 和 × モダン（浮世絵カラー）
+   ════════════════════════════════════════ */
+.s10 { background: #F5EFE0; overflow: hidden; }
+.s10-wave {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+  background: #1B3A5C;
+  clip-path: ellipse(60% 100% at 50% 100%);
+}
+.s10-wave2 {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 33%;
+  background: #C0392B;
+  clip-path: ellipse(50% 90% at 50% 100%);
+}
+.s10-wave3 {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 30%;
+  background: #F5EFE0;
+  clip-path: ellipse(40% 80% at 50% 100%);
+}
+.s10-header { position: relative; z-index: 2; display: flex; justify-content: space-between; padding: 3.5% 5%; border-bottom: 1.5px solid rgba(27,58,92,0.15); }
+.s10-co-sm { font-size: 0.8vw; color: #9C8A6E; letter-spacing: 0.18em; }
+.s10-co-lg { font-size: 1.8vw; font-weight: 900; color: #1B3A5C; margin-top: 2%; }
+.s10-time { font-size: 4vw; font-weight: 900; color: #1B3A5C; line-height: 1; text-align: right; }
+.s10-date { font-size: 0.8vw; color: #B0906A; text-align: right; margin-bottom: 2px; }
+.s10-body { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 10%; gap: 2%; }
+.s10-en { font-size: 0.75vw; color: #C0A882; letter-spacing: 0.35em; text-transform: uppercase; }
+.s10-welcome { font-size: 2.4vw; font-weight: 900; color: #1B3A5C; letter-spacing: 0.1em; }
+.s10-line { width: 40px; height: 2px; background: #C0392B; margin: 2% 0; }
+.s10-sub { font-size: 0.9vw; color: #9C8A6E; letter-spacing: 0.08em; }
+.s10-btn {
+  margin-top: 4%; padding: 2.5% 9%;
+  background: #1B3A5C; color: #F5EFE0;
+  font-size: 1.4vw; font-weight: 900; letter-spacing: 0.2em;
+  border-radius: 2px;
+}
 </style>
 </head>
 <body>
 
-<p class="page-title">🎨 受付トップ画面 デザイン10案</p>
-<p class="page-sub">日本セイフティー株式会社 — 来場受付システム / センター名: だんじり機材センター</p>
+<h1>DESIGN PROPOSALS v2 — 日本セイフティー来場受付システム</h1>
+<h2>10 Creative Concepts</h2>
 
 <div class="grid">
 
   <!-- 案1 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案1</div>
-      <div class="screen s1">
-        <div class="header">
-          <div>
-            <div class="company-sm">NIHON SAFETY Co., Ltd.</div>
-            <div class="company-lg">だんじり機材センター</div>
-          </div>
-          <div class="clock">
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s1">
+      <div class="s1-bg-text">受付</div>
+      <div class="s1-header">
+        <div class="s1-co">NIHON SAFETY Co., Ltd.</div>
+        <div>
+          <div class="s1-date">2026年4月3日（金）</div>
+          <div class="s1-time">15:00</div>
         </div>
-        <div class="body">
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="sub">受付はこちらのボタンをタッチしてください</div>
-          <div class="btn">受　付　す　る</div>
-          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
+      <div class="s1-body">
+        <div class="s1-center">だんじり機材センター</div>
+        <div class="s1-title">ご来場<br><span>ありがとう</span><br>ございます</div>
+        <div class="s1-divider"></div>
+        <div class="s1-row">
+          <div class="s1-sub">受付はこちらのボタンをタッチしてください<br>※ 保護帽・安全靴を着用の上ご入場ください</div>
+          <div class="s1-btn">受　付　す　る</div>
         </div>
       </div>
     </div>
-    <div class="design-title">案1｜コーポレートネイビー × ゴールド</div>
-    <div class="design-desc">深紺＋金のアクセント。格調高く信頼感を演出</div>
+    <div class="label-row"><span class="case-num">CASE 01</span><span class="case-title">タイポグラフィック・ブルータリスト</span></div>
+    <div class="case-desc">ベージュ地に超巨大な背景文字。活字が全てを語る、無駄を削ぎ落としたデザイン。ボタンは右下にひっそり配置</div>
   </div>
 
   <!-- 案2 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案2</div>
-      <div class="screen s2">
-        <div class="stripe"></div>
-        <div class="header">
-          <div>
-            <div class="company-sm">日本セイフティー株式会社</div>
-            <div class="company-lg">だんじり機材センター</div>
-          </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s2">
+      <div class="s2-cross"></div>
+      <div class="s2-header">
+        <div>
+          <div class="s2-co-sm">NIHON SAFETY · DANJIRI KIZAI CENTER</div>
+          <div class="s2-co-lg">だんじり機材センター</div>
         </div>
-        <div class="body">
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="sub">受付はこちらのボタンをタッチしてください</div>
-          <div class="btn">受　付　す　る</div>
-          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        <div>
+          <div class="s2-date">2026年4月3日（金）</div>
+          <div class="s2-time">15:00</div>
         </div>
       </div>
+      <div class="s2-body">
+        <div class="s2-frame">
+          <div class="s2-corner tl"></div><div class="s2-corner tr"></div>
+          <div class="s2-corner bl"></div><div class="s2-corner br"></div>
+          <div class="s2-label">— RECEPTION POINT —</div>
+          <div class="s2-welcome">ご来場ありがとうございます</div>
+        </div>
+        <div class="s2-btn">▶ 受　付　す　る</div>
+        <div class="s2-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
     </div>
-    <div class="design-title">案2｜クリーンホワイト × ロイヤルブルー</div>
-    <div class="design-desc">白背景で清潔感。カプセル型ボタンがモダン</div>
+    <div class="label-row"><span class="case-num">CASE 02</span><span class="case-title">アーキテクチュラル・ブループリント</span></div>
+    <div class="case-desc">建設業ならではの設計図（blueprint）をそのままUIに。グリッドと十字マーク、コーナーブラケットで技術の精緻さを表現</div>
   </div>
 
   <!-- 案3 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案3</div>
-      <div class="screen s3">
-        <div class="left">
-          <div class="company-sm">日本セイフティー株式会社</div>
-          <div class="company-lg">だんじり機材<br>センター</div>
-          <div class="divider"></div>
-          <div class="clock-date">2026年4月3日（金）</div>
-          <div class="clock-time">15:00</div>
-        </div>
-        <div class="right">
-          <div class="welcome">ご来場<br>ありがとうございます</div>
-          <div class="sub">下のボタンをタッチして受付を開始してください</div>
-          <div class="btn">受　付　す　る</div>
-          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
-        </div>
+  <div class="item">
+    <div class="screen s3">
+      <div class="s3-diagonal"></div>
+      <div class="s3-left">
+        <div class="s3-co-sm">日本セイフティー株式会社</div>
+        <div class="s3-co-lg">だんじり<br>機材センター</div>
+        <div class="s3-date" style="margin-top:8%">2026年4月3日（金）</div>
+        <div class="s3-time">15:00</div>
+      </div>
+      <div class="s3-right">
+        <div class="s3-welcome">ご来場<br>ありがとう<br>ございます</div>
+        <div class="s3-sub">下のボタンをタッチして<br>受付を開始してください</div>
+        <div class="s3-btn">受　付　す　る</div>
+        <div class="s3-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
       </div>
     </div>
-    <div class="design-title">案3｜左右スプリット（ネイビー＋ホワイト）</div>
-    <div class="design-desc">左に企業情報、右に受付アクション。視線の流れが自然</div>
+    <div class="label-row"><span class="case-num">CASE 03</span><span class="case-title">ダイアゴナル・スプリット</span></div>
+    <div class="case-desc">対角線で画面を二分。ネイビーの左面に会社・時刻、白い右面に受付アクション。斜めの切断面が躍動感を生む</div>
   </div>
 
   <!-- 案4 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案4</div>
-      <div class="screen s4">
-        <div class="header">
-          <div>
-            <div class="company-sm">日本セイフティー株式会社</div>
-            <div class="company-lg">だんじり機材センター</div>
-          </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s4">
+      <div class="s4-spot"></div>
+      <div class="s4-header">
+        <div>
+          <div class="s4-co-sm">NIHON SAFETY Co., Ltd.</div>
+          <div class="s4-co-lg">だんじり機材センター</div>
         </div>
-        <div class="body">
-          <div class="circle">
-            <div class="icon">🚛</div>
-          </div>
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="btn">受　付　す　る</div>
+        <div>
+          <div class="s4-date">2026年4月3日（金）</div>
+          <div class="s4-time">15:00</div>
         </div>
       </div>
+      <div class="s4-body">
+        <div class="s4-icon">🚛</div>
+        <div class="s4-welcome">ご来場ありがとうございます</div>
+        <div class="s4-sub">受付はこちらのボタンをタッチしてください</div>
+        <div class="s4-btn">受　付　す　る</div>
+        <div class="s4-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
     </div>
-    <div class="design-title">案4｜ディープブルーグラジェント × グラス</div>
-    <div class="design-desc">深海のような重厚なグラジェント。ガラス感のある円形アイコン</div>
+    <div class="label-row"><span class="case-num">CASE 04</span><span class="case-title">シネマティック・スポットライト</span></div>
+    <div class="case-desc">真っ黒な空間に青白いスポットライト。映画のワンシーンのような劇的な演出。来場者を主役にする</div>
   </div>
 
   <!-- 案5 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案5</div>
-      <div class="screen s5">
-        <div class="hazard"></div>
-        <div class="header">
-          <div>
-            <div class="company-sm">NIHON SAFETY</div>
-            <div class="company-lg">だんじり機材センター</div>
-          </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s5" style="position:relative">
+      <div class="s5-top">
+        <div class="s5-red"></div>
+        <div class="s5-main">
+          <div class="s5-co">Nihon Safety Co., Ltd.</div>
+          <div class="s5-big">だんじり<br>機材<em>センター</em></div>
         </div>
-        <div class="body">
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="sub">受付はこちらのボタンをタッチしてください</div>
-          <div class="btn">受　付　す　る</div>
-          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        <div class="s5-side">
+          <div class="s5-date">2026年4月3日（金）</div>
+          <div class="s5-time">15:00</div>
         </div>
       </div>
+      <div class="s5-bottom">
+        <div class="s5-welcome">ご来場ありがとうございます</div>
+        <div class="s5-btn">受　付　す　る</div>
+      </div>
+      <div class="s5-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
     </div>
-    <div class="design-title">案5｜セーフティーイエロー × ブラック</div>
-    <div class="design-desc">建設現場の安全色。ハザードストライプが業種を表現</div>
+    <div class="label-row"><span class="case-num">CASE 05</span><span class="case-title">スイス・インターナショナルスタイル</span></div>
+    <div class="case-desc">ヘルベチカ精神のグリッド設計。赤の縦ラインがセンター名を強調、黒帯の下部に受付エリアを配置</div>
   </div>
 
   <!-- 案6 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案6</div>
-      <div class="screen s6">
-        <div class="top-line"></div>
-        <div class="header">
-          <div>
-            <div class="company-sm">日本セイフティー株式会社</div>
-            <div class="company-lg">だんじり機材センター</div>
-          </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s6">
+      <div class="s6-stripe"></div>
+      <div class="s6-stripe2"></div>
+      <div class="s6-header">
+        <div>
+          <div class="s6-co-sm">日本セイフティー株式会社</div>
+          <div class="s6-co-lg">だんじり機材センター</div>
         </div>
-        <div class="body">
-          <div class="kanji">― RECEPTION ―</div>
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="line"></div>
-          <div class="sub">受付はこちらのボタンをタッチしてください</div>
-          <div class="btn">受　付　す　る</div>
-          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        <div>
+          <div class="s6-date">2026年4月3日（金）</div>
+          <div class="s6-time">15:00</div>
         </div>
       </div>
+      <div class="s6-body">
+        <div class="s6-welcome">ご来場ありがとうございます</div>
+        <div class="s6-btn">受　付　す　る</div>
+      </div>
+      <div class="s6-bottom">
+        <div class="s6-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
     </div>
-    <div class="design-title">案6｜ジャパニーズミニマル</div>
-    <div class="design-desc">大きな余白と細い罫線。和の美意識を取り入れた上品さ</div>
+    <div class="label-row"><span class="case-num">CASE 06</span><span class="case-title">ダイナミックバンド × アンバー</span></div>
+    <div class="case-desc">斜めに走るネイビーの帯と琥珀色のライン。建機が疾走するような速度感。白地と黒の対比が引き締まる</div>
   </div>
 
   <!-- 案7 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案7</div>
-      <div class="screen s7">
-        <div class="header">
-          <div class="logo-area">
-            <div class="logo-mark">NS</div>
-            <div>
-              <div class="company-sm">日本セイフティー株式会社</div>
-              <div class="company-lg">だんじり機材センター</div>
-            </div>
-          </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s7">
+      <div class="s7-header">
+        <div>
+          <div class="s7-co-sm">日本セイフティー株式会社</div>
+          <div class="s7-co-lg">だんじり機材センター</div>
         </div>
-        <div class="body">
-          <div class="card-main">
-            <div class="icon">🚛</div>
-            <div class="welcome">ご来場ありがとうございます</div>
-            <div class="sub">受付はこちらのボタンをタッチしてください</div>
-            <div class="btn">受　付　す　る</div>
-            <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
-          </div>
+        <div class="s7-tag">RECEPTION KIOSK</div>
+      </div>
+      <div class="s7-body">
+        <div class="s7-left">
+          <div class="s7-clock-label">CURRENT TIME</div>
+          <div class="s7-time">15:00</div>
+          <div class="s7-date">2026年4月3日（金）</div>
+        </div>
+        <div class="s7-right">
+          <div class="s7-welcome">ご来場<br>ありがとう<br>ございます</div>
+          <div class="s7-sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="s7-btn">受　付　す　る</div>
+          <div class="s7-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
         </div>
       </div>
     </div>
-    <div class="design-title">案7｜カードUI（アプリライク）</div>
-    <div class="design-desc">白カードが浮かぶモダンなアプリデザイン。親しみやすい</div>
+    <div class="label-row"><span class="case-num">CASE 07</span><span class="case-title">ジャイアントクロック × ダーク</span></div>
+    <div class="case-desc">時計が画面を支配する超大型タイムピース。左右の分割で「現在時刻」を最重要情報として据える</div>
   </div>
 
   <!-- 案8 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案8</div>
-      <div class="screen s8">
-        <div class="header">
-          <div>
-            <div class="company-sm">NIHON SAFETY Co., Ltd.</div>
-            <div class="company-lg">だんじり機材センター</div>
-          </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s8">
+      <div class="s8-noise"></div>
+      <div class="s8-header">
+        <div>
+          <div class="s8-co-sm">日本セイフティー株式会社</div>
+          <div class="s8-co-lg">だんじり機材センター</div>
         </div>
-        <div class="body">
-          <div class="glow-ring">
-            <div class="icon">🚛</div>
-          </div>
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="btn">受　付　す　る</div>
+        <div>
+          <div class="s8-date">2026年4月3日（金）</div>
+          <div class="s8-time">15:00</div>
+        </div>
+      </div>
+      <div class="s8-body">
+        <div class="s8-glass">
+          <div class="s8-icon">🚛</div>
+          <div class="s8-welcome">ご来場ありがとうございます</div>
+          <div class="s8-sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="s8-btn">受　付　す　る</div>
+          <div class="s8-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
         </div>
       </div>
     </div>
-    <div class="design-title">案8｜ダークモダン × ブルーグロウ</div>
-    <div class="design-desc">夜間でも見やすい暗色ベース。青の輝きが近未来感</div>
+    <div class="label-row"><span class="case-num">CASE 08</span><span class="case-title">ディープネイビー × フロストグラス</span></div>
+    <div class="case-desc">深海のようなグラジェントの上に、すりガラスのパネルが浮かぶ。奥行きと高級感が同居するプレミアムUI</div>
   </div>
 
   <!-- 案9 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案9</div>
-      <div class="screen s9">
-        <div class="header">
+  <div class="item">
+    <div class="screen s9">
+      <div class="s9-bar"></div>
+      <div class="s9-body">
+        <div class="s9-left">
           <div>
-            <div class="company-sm">NIHON SAFETY</div>
-            <div class="company-lg">だんじり機材センター</div>
+            <div class="s9-co-sm">Nihon Safety</div>
+            <div class="s9-co-lg">だんじり<br>機材センター</div>
           </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+          <div class="s9-welcome">ご来場<br>ありがとうございます</div>
+          <div class="s9-note">※ 保護帽・安全靴を着用の上ご入場ください</div>
         </div>
-        <div class="accent-bar"></div>
-        <div class="body">
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="sub">受付はこちらのボタンをタッチしてください</div>
-          <div class="btn">受　付　す　る</div>
-          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        <div class="s9-right">
+          <div style="font-size:0.7vw;color:#555;letter-spacing:0.2em;margin-bottom:3%">2026.04.03 FRI</div>
+          <div class="s9-time">15:00</div>
+          <div class="s9-btn">受　付　す　る</div>
         </div>
       </div>
     </div>
-    <div class="design-title">案9｜インダストリアルオレンジ × ダーク</div>
-    <div class="design-desc">重機・現場感のあるダーク＋橙色。力強くエネルギッシュ</div>
+    <div class="label-row"><span class="case-num">CASE 09</span><span class="case-title">ネオ・ブルータリスト × イエロー</span></div>
+    <div class="case-desc">警告色の黄色と漆黒のコントラスト。太く力強いタイポグラフィ、余計な装飾ゼロ。現場の力強さをそのまま表現</div>
   </div>
 
   <!-- 案10 -->
-  <div>
-    <div class="card">
-      <div class="card-label">案10</div>
-      <div class="screen s10">
-        <div class="header">
-          <div>
-            <div class="company-sm">日本セイフティー株式会社</div>
-            <div class="company-lg">だんじり機材センター</div>
-          </div>
-          <div>
-            <div class="clock-date">2026年4月3日（金）</div>
-            <div class="clock-time">15:00</div>
-          </div>
+  <div class="item">
+    <div class="screen s10">
+      <div class="s10-wave"></div>
+      <div class="s10-wave2"></div>
+      <div class="s10-wave3"></div>
+      <div class="s10-header">
+        <div>
+          <div class="s10-co-sm">日本セイフティー株式会社</div>
+          <div class="s10-co-lg">だんじり機材センター</div>
         </div>
-        <div class="body">
-          <div class="badge">🟢 受付受付中</div>
-          <div class="welcome">ご来場ありがとうございます</div>
-          <div class="sub">受付はこちらのボタンをタッチしてください</div>
-          <div class="btn">受　付　す　る</div>
-          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        <div>
+          <div class="s10-date">2026年4月3日（金）</div>
+          <div class="s10-time">15:00</div>
         </div>
       </div>
+      <div class="s10-body">
+        <div class="s10-en">― WELCOME ―</div>
+        <div class="s10-welcome">ご来場ありがとうございます</div>
+        <div class="s10-line"></div>
+        <div class="s10-sub">受付はこちらのボタンをタッチしてください</div>
+        <div class="s10-btn">受　付　す　る</div>
+      </div>
     </div>
-    <div class="design-title">案10｜ソフトグリーン（安心・自然）</div>
-    <div class="design-desc">安全の緑を全面に。ステータスバッジで受付中を表現</div>
+    <div class="label-row"><span class="case-num">CASE 10</span><span class="case-title">和モダン × 波紋</span></div>
+    <div class="case-desc">和紙のようなベージュ地に、藍色と朱色の波が広がる。北斎の波を現代的に解釈。日本の建設業ならではの美意識</div>
   </div>
 
 </div>
 
-<div style="margin-top:40px;text-align:center;color:#444;font-size:13px;">
-  気に入った番号をお知らせください。コードに反映します。
+<div style="margin:64px auto 0;max-width:1440px;padding:32px;background:#111;border-radius:12px;color:#555;font-size:13px;line-height:2">
+  <span style="color:#fff;font-weight:700">番号をお伝えください</span> → 即コードに反映します。複数案の組み合わせ（例：「01のレイアウトで10の色」）も対応可能です。
 </div>
 
 </body>
