@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>受付トップ画面 デザイン10案</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111; font-family: "Hiragino Kaku Gothic ProN","Meiryo",sans-serif; padding: 32px 24px; }
+  .page-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .page-sub   { color: #888; font-size: 14px; margin-bottom: 36px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* 各カード */
+  .card { position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+  .card-label {
+    position: absolute; top: 12px; left: 12px; z-index: 10;
+    background: rgba(0,0,0,0.7); color: #fff;
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .screen {
+    width: 100%; aspect-ratio: 16/9;
+    display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
+    user-select: none;
+  }
+
+  /* ──────────── 案1: コーポレートネイビー ──────────── */
+  .s1 { background: #0B1F4B; }
+  .s1 .header {
+    background: linear-gradient(90deg, #0B1F4B 0%, #162E6E 100%);
+    padding: 3% 5%; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid rgba(201,168,76,0.4);
+  }
+  .s1 .company-sm { color: rgba(201,168,76,0.8); font-size: 1.1vw; letter-spacing: 0.15em; }
+  .s1 .company-lg { color: #fff; font-size: 2.4vw; font-weight: 900; letter-spacing: 0.08em; margin-top: 2px; }
+  .s1 .clock { text-align: right; }
+  .s1 .clock-date { color: rgba(201,168,76,0.7); font-size: 1vw; }
+  .s1 .clock-time { color: #fff; font-size: 3.8vw; font-weight: 900; line-height: 1; }
+  .s1 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; background: #0B1F4B; }
+  .s1 .welcome { color: rgba(255,255,255,0.9); font-size: 2.2vw; font-weight: 900; letter-spacing: 0.1em; }
+  .s1 .sub { color: rgba(201,168,76,0.7); font-size: 1.1vw; margin-top: 1%; }
+  .s1 .btn {
+    margin-top: 3%; width: 40%; padding: 2.5% 0;
+    background: linear-gradient(180deg, #C9A84C 0%, #9D7C2A 100%);
+    border: 2px solid #E8C96A; border-radius: 12px;
+    color: #0B1F4B; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; box-shadow: 0 6px 0 #6B5010, 0 8px 24px rgba(201,168,76,0.3);
+  }
+  .s1 .note { color: rgba(255,255,255,0.3); font-size: 0.9vw; margin-top: 2%; }
+
+  /* ──────────── 案2: クリーンホワイト ──────────── */
+  .s2 { background: #F8FAFB; }
+  .s2 .stripe { height: 5%; background: linear-gradient(90deg, #0D2B6B, #1565C0); }
+  .s2 .header {
+    padding: 2% 5%; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #E2E8F0;
+  }
+  .s2 .company-sm { color: #64748B; font-size: 1vw; }
+  .s2 .company-lg { color: #0D2B6B; font-size: 2.2vw; font-weight: 900; }
+  .s2 .clock-date { color: #64748B; font-size: 0.9vw; text-align: right; }
+  .s2 .clock-time { color: #0D2B6B; font-size: 3.5vw; font-weight: 900; text-align: right; line-height: 1; }
+  .s2 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
+  .s2 .welcome { color: #1E293B; font-size: 2.4vw; font-weight: 900; letter-spacing: 0.08em; }
+  .s2 .sub { color: #64748B; font-size: 1.1vw; margin-top: 0.5%; }
+  .s2 .btn {
+    margin-top: 3%; width: 38%; padding: 2.8% 0;
+    background: linear-gradient(180deg, #1976D2 0%, #0D47A1 100%);
+    border-radius: 50px; color: #fff; font-size: 2vw; font-weight: 900; letter-spacing: 0.18em;
+    text-align: center; box-shadow: 0 6px 0 #0A2E6E, 0 10px 30px rgba(13,71,161,0.35);
+  }
+  .s2 .note { color: #94A3B8; font-size: 0.85vw; margin-top: 2%; }
+
+  /* ──────────── 案3: スプリットレイアウト ──────────── */
+  .s3 { background: #fff; display: flex; flex-direction: row !important; }
+  .s3 .left {
+    width: 45%; background: linear-gradient(160deg, #0D2B6B 0%, #1A4FA8 100%);
+    display: flex; flex-direction: column; justify-content: center; padding: 5%;
+  }
+  .s3 .company-sm { color: rgba(255,255,255,0.6); font-size: 1vw; letter-spacing: 0.12em; }
+  .s3 .company-lg { color: #fff; font-size: 2.6vw; font-weight: 900; line-height: 1.2; margin-top: 4%; }
+  .s3 .divider { width: 40px; height: 3px; background: #5B9BD5; margin: 6% 0; }
+  .s3 .clock-date { color: rgba(255,255,255,0.6); font-size: 1vw; }
+  .s3 .clock-time { color: #fff; font-size: 4vw; font-weight: 900; line-height: 1; }
+  .s3 .right {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 5%; background: #F8FAFB;
+  }
+  .s3 .welcome { color: #1E293B; font-size: 2vw; font-weight: 900; text-align: center; }
+  .s3 .sub { color: #64748B; font-size: 0.95vw; text-align: center; margin-top: 4%; }
+  .s3 .btn {
+    margin-top: 8%; width: 80%; padding: 2.8% 0;
+    background: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%);
+    border-radius: 14px; color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; box-shadow: 0 5px 0 #0D3B11;
+  }
+  .s3 .note { color: #94A3B8; font-size: 0.8vw; text-align: center; margin-top: 5%; }
+
+  /* ──────────── 案4: フルグラジェント ──────────── */
+  .s4 { background: linear-gradient(145deg, #030E24 0%, #0A1E5E 40%, #0D47A1 70%, #1565C0 100%); }
+  .s4 .header { padding: 3% 5%; display: flex; justify-content: space-between; align-items: flex-start; }
+  .s4 .company-sm { color: rgba(255,255,255,0.5); font-size: 0.9vw; letter-spacing: 0.15em; }
+  .s4 .company-lg { color: #fff; font-size: 2.2vw; font-weight: 900; margin-top: 2%; }
+  .s4 .clock-date { color: rgba(255,255,255,0.5); font-size: 0.9vw; text-align: right; }
+  .s4 .clock-time { color: #fff; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
+  .s4 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .s4 .circle {
+    width: 18vw; height: 18vw; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px); margin-bottom: 4%;
+  }
+  .s4 .icon { font-size: 4vw; }
+  .s4 .welcome { color: #fff; font-size: 1.6vw; font-weight: 900; text-align: center; margin-top: 5%; }
+  .s4 .btn {
+    margin-top: 4%; width: 36%; padding: 2.2% 0;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.5); border-radius: 50px;
+    color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; backdrop-filter: blur(8px);
+  }
+
+  /* ──────────── 案5: 安全イエロー ──────────── */
+  .s5 { background: #1A1A1A; }
+  .s5 .hazard {
+    height: 6%;
+    background: repeating-linear-gradient(
+      -45deg, #F9C200 0px, #F9C200 20px, #1A1A1A 20px, #1A1A1A 40px
+    );
+  }
+  .s5 .header { background: #111; padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F9C200; }
+  .s5 .company-sm { color: #F9C200; font-size: 0.9vw; letter-spacing: 0.2em; text-transform: uppercase; }
+  .s5 .company-lg { color: #fff; font-size: 2.2vw; font-weight: 900; }
+  .s5 .clock-date { color: #888; font-size: 0.9vw; text-align: right; }
+  .s5 .clock-time { color: #F9C200; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
+  .s5 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
+  .s5 .welcome { color: #fff; font-size: 2.2vw; font-weight: 900; }
+  .s5 .sub { color: #888; font-size: 1vw; }
+  .s5 .btn {
+    width: 38%; padding: 2.5% 0; margin-top: 2%;
+    background: #F9C200; border-radius: 8px;
+    color: #111; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; box-shadow: 0 5px 0 #B8900A;
+  }
+  .s5 .note { color: #555; font-size: 0.85vw; }
+
+  /* ──────────── 案6: ジャパニーズミニマル ──────────── */
+  .s6 { background: #FAFAFA; }
+  .s6 .top-line { height: 3px; background: #0D2B6B; }
+  .s6 .header { padding: 3% 6%; display: flex; justify-content: space-between; align-items: center; }
+  .s6 .company-sm { color: #999; font-size: 0.9vw; letter-spacing: 0.2em; }
+  .s6 .company-lg { color: #0D2B6B; font-size: 2vw; font-weight: 700; letter-spacing: 0.06em; margin-top: 2%; }
+  .s6 .clock-date { color: #aaa; font-size: 0.9vw; text-align: right; }
+  .s6 .clock-time { color: #333; font-size: 3.5vw; font-weight: 300; letter-spacing: 0.05em; text-align: right; line-height: 1; }
+  .s6 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2%; }
+  .s6 .kanji { color: #0D2B6B; font-size: 1vw; letter-spacing: 0.4em; font-weight: 600; opacity: 0.5; }
+  .s6 .welcome { color: #1A1A1A; font-size: 2.2vw; font-weight: 700; letter-spacing: 0.06em; }
+  .s6 .line { width: 60px; height: 1px; background: #CCC; margin: 3% 0; }
+  .s6 .sub { color: #888; font-size: 1vw; letter-spacing: 0.08em; }
+  .s6 .btn {
+    margin-top: 4%; width: 36%; padding: 2.5% 0;
+    background: #0D2B6B; border-radius: 4px;
+    color: #fff; font-size: 1.8vw; font-weight: 700; letter-spacing: 0.2em;
+    text-align: center;
+  }
+  .s6 .note { color: #bbb; font-size: 0.8vw; margin-top: 3%; }
+
+  /* ──────────── 案7: カードUI ──────────── */
+  .s7 { background: #E8EDF5; }
+  .s7 .header { background: #fff; padding: 2% 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .s7 .logo-area { display: flex; align-items: center; gap: 3%; }
+  .s7 .logo-mark { width: 3vw; height: 3vw; background: #0D2B6B; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5vw; font-weight: 900; }
+  .s7 .company-sm { color: #64748B; font-size: 0.85vw; }
+  .s7 .company-lg { color: #0D2B6B; font-size: 1.5vw; font-weight: 900; }
+  .s7 .clock-date { color: #64748B; font-size: 0.85vw; text-align: right; }
+  .s7 .clock-time { color: #1E293B; font-size: 2.8vw; font-weight: 900; text-align: right; line-height: 1; }
+  .s7 .body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4%; }
+  .s7 .card-main {
+    background: #fff; border-radius: 24px; padding: 5% 8%;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.12);
+    display: flex; flex-direction: column; align-items: center;
+    width: 55%;
+  }
+  .s7 .icon { font-size: 4vw; margin-bottom: 4%; }
+  .s7 .welcome { color: #1E293B; font-size: 2vw; font-weight: 900; text-align: center; }
+  .s7 .sub { color: #64748B; font-size: 0.95vw; text-align: center; margin-top: 3%; }
+  .s7 .btn {
+    margin-top: 6%; width: 80%; padding: 4% 0;
+    background: linear-gradient(180deg, #1976D2, #0D47A1);
+    border-radius: 16px; color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; box-shadow: 0 4px 0 #0A2E6E;
+  }
+  .s7 .note { color: #94A3B8; font-size: 0.8vw; text-align: center; margin-top: 4%; }
+
+  /* ──────────── 案8: ダークモダン ──────────── */
+  .s8 { background: #0F0F13; }
+  .s8 .header { padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .s8 .company-sm { color: rgba(99,179,237,0.7); font-size: 0.9vw; letter-spacing: 0.2em; }
+  .s8 .company-lg { color: #fff; font-size: 2vw; font-weight: 900; }
+  .s8 .clock-date { color: rgba(255,255,255,0.4); font-size: 0.9vw; text-align: right; }
+  .s8 .clock-time { color: #63B3ED; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
+  .s8 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .s8 .glow-ring {
+    width: 18vw; height: 18vw; border-radius: 50%;
+    border: 2px solid rgba(99,179,237,0.3);
+    box-shadow: 0 0 40px rgba(99,179,237,0.15), inset 0 0 40px rgba(99,179,237,0.05);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 4%;
+  }
+  .s8 .icon { font-size: 5vw; }
+  .s8 .welcome { color: #E2E8F0; font-size: 2vw; font-weight: 700; }
+  .s8 .btn {
+    margin-top: 4%; width: 34%; padding: 2.2% 0;
+    background: linear-gradient(180deg, #3182CE, #1A56A8);
+    border-radius: 50px; color: #fff; font-size: 1.8vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; box-shadow: 0 0 30px rgba(49,130,206,0.4);
+  }
+
+  /* ──────────── 案9: インダストリアルオレンジ ──────────── */
+  .s9 { background: #1C1C1C; }
+  .s9 .header { background: #252525; padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; }
+  .s9 .company-sm { color: #F97316; font-size: 0.9vw; letter-spacing: 0.2em; font-weight: 700; text-transform: uppercase; }
+  .s9 .company-lg { color: #fff; font-size: 2.2vw; font-weight: 900; }
+  .s9 .clock-date { color: #666; font-size: 0.9vw; text-align: right; }
+  .s9 .clock-time { color: #fff; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
+  .s9 .accent-bar { height: 4px; background: linear-gradient(90deg, #F97316, #EA580C); }
+  .s9 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
+  .s9 .welcome { color: #fff; font-size: 2.4vw; font-weight: 900; letter-spacing: 0.06em; }
+  .s9 .sub { color: #888; font-size: 1vw; }
+  .s9 .btn {
+    width: 38%; padding: 2.5% 0; margin-top: 2%;
+    background: linear-gradient(180deg, #F97316, #C2410C);
+    border-radius: 10px; color: #fff; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; box-shadow: 0 5px 0 #7C2D12, 0 8px 24px rgba(249,115,22,0.3);
+  }
+  .s9 .note { color: #555; font-size: 0.85vw; }
+
+  /* ──────────── 案10: ソフトグリーン ──────────── */
+  .s10 { background: linear-gradient(160deg, #E8F5E9 0%, #C8E6C9 100%); }
+  .s10 .header { padding: 2.5% 5%; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(46,125,50,0.15); }
+  .s10 .company-sm { color: #388E3C; font-size: 0.9vw; letter-spacing: 0.12em; }
+  .s10 .company-lg { color: #1B5E20; font-size: 2.2vw; font-weight: 900; }
+  .s10 .clock-date { color: #66BB6A; font-size: 0.9vw; text-align: right; }
+  .s10 .clock-time { color: #1B5E20; font-size: 3.8vw; font-weight: 900; line-height: 1; text-align: right; }
+  .s10 .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
+  .s10 .badge {
+    background: #fff; border-radius: 50px; padding: 1% 4%;
+    color: #2E7D32; font-size: 0.9vw; font-weight: 700; letter-spacing: 0.1em;
+    border: 1.5px solid rgba(46,125,50,0.3);
+  }
+  .s10 .welcome { color: #1B5E20; font-size: 2.4vw; font-weight: 900; text-align: center; }
+  .s10 .sub { color: #4CAF50; font-size: 1vw; }
+  .s10 .btn {
+    width: 38%; padding: 2.5% 0; margin-top: 2%;
+    background: linear-gradient(180deg, #43A047, #2E7D32);
+    border-radius: 50px; color: #fff; font-size: 2vw; font-weight: 900; letter-spacing: 0.2em;
+    text-align: center; box-shadow: 0 6px 0 #1B5E20, 0 10px 28px rgba(46,125,50,0.3);
+    border: 2px solid #66BB6A;
+  }
+  .s10 .note { color: #81C784; font-size: 0.85vw; }
+
+  /* ラベル */
+  .design-title { color: #fff; font-size: 15px; font-weight: 700; margin-top: 12px; margin-bottom: 2px; }
+  .design-desc { color: #666; font-size: 12px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<p class="page-title">🎨 受付トップ画面 デザイン10案</p>
+<p class="page-sub">日本セイフティー株式会社 — 来場受付システム / センター名: だんじり機材センター</p>
+
+<div class="grid">
+
+  <!-- 案1 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案1</div>
+      <div class="screen s1">
+        <div class="header">
+          <div>
+            <div class="company-sm">NIHON SAFETY Co., Ltd.</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div class="clock">
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="btn">受　付　す　る</div>
+          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案1｜コーポレートネイビー × ゴールド</div>
+    <div class="design-desc">深紺＋金のアクセント。格調高く信頼感を演出</div>
+  </div>
+
+  <!-- 案2 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案2</div>
+      <div class="screen s2">
+        <div class="stripe"></div>
+        <div class="header">
+          <div>
+            <div class="company-sm">日本セイフティー株式会社</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="btn">受　付　す　る</div>
+          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案2｜クリーンホワイト × ロイヤルブルー</div>
+    <div class="design-desc">白背景で清潔感。カプセル型ボタンがモダン</div>
+  </div>
+
+  <!-- 案3 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案3</div>
+      <div class="screen s3">
+        <div class="left">
+          <div class="company-sm">日本セイフティー株式会社</div>
+          <div class="company-lg">だんじり機材<br>センター</div>
+          <div class="divider"></div>
+          <div class="clock-date">2026年4月3日（金）</div>
+          <div class="clock-time">15:00</div>
+        </div>
+        <div class="right">
+          <div class="welcome">ご来場<br>ありがとうございます</div>
+          <div class="sub">下のボタンをタッチして受付を開始してください</div>
+          <div class="btn">受　付　す　る</div>
+          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案3｜左右スプリット（ネイビー＋ホワイト）</div>
+    <div class="design-desc">左に企業情報、右に受付アクション。視線の流れが自然</div>
+  </div>
+
+  <!-- 案4 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案4</div>
+      <div class="screen s4">
+        <div class="header">
+          <div>
+            <div class="company-sm">日本セイフティー株式会社</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="circle">
+            <div class="icon">🚛</div>
+          </div>
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="btn">受　付　す　る</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案4｜ディープブルーグラジェント × グラス</div>
+    <div class="design-desc">深海のような重厚なグラジェント。ガラス感のある円形アイコン</div>
+  </div>
+
+  <!-- 案5 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案5</div>
+      <div class="screen s5">
+        <div class="hazard"></div>
+        <div class="header">
+          <div>
+            <div class="company-sm">NIHON SAFETY</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="btn">受　付　す　る</div>
+          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案5｜セーフティーイエロー × ブラック</div>
+    <div class="design-desc">建設現場の安全色。ハザードストライプが業種を表現</div>
+  </div>
+
+  <!-- 案6 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案6</div>
+      <div class="screen s6">
+        <div class="top-line"></div>
+        <div class="header">
+          <div>
+            <div class="company-sm">日本セイフティー株式会社</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="kanji">― RECEPTION ―</div>
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="line"></div>
+          <div class="sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="btn">受　付　す　る</div>
+          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案6｜ジャパニーズミニマル</div>
+    <div class="design-desc">大きな余白と細い罫線。和の美意識を取り入れた上品さ</div>
+  </div>
+
+  <!-- 案7 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案7</div>
+      <div class="screen s7">
+        <div class="header">
+          <div class="logo-area">
+            <div class="logo-mark">NS</div>
+            <div>
+              <div class="company-sm">日本セイフティー株式会社</div>
+              <div class="company-lg">だんじり機材センター</div>
+            </div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="card-main">
+            <div class="icon">🚛</div>
+            <div class="welcome">ご来場ありがとうございます</div>
+            <div class="sub">受付はこちらのボタンをタッチしてください</div>
+            <div class="btn">受　付　す　る</div>
+            <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案7｜カードUI（アプリライク）</div>
+    <div class="design-desc">白カードが浮かぶモダンなアプリデザイン。親しみやすい</div>
+  </div>
+
+  <!-- 案8 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案8</div>
+      <div class="screen s8">
+        <div class="header">
+          <div>
+            <div class="company-sm">NIHON SAFETY Co., Ltd.</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="glow-ring">
+            <div class="icon">🚛</div>
+          </div>
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="btn">受　付　す　る</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案8｜ダークモダン × ブルーグロウ</div>
+    <div class="design-desc">夜間でも見やすい暗色ベース。青の輝きが近未来感</div>
+  </div>
+
+  <!-- 案9 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案9</div>
+      <div class="screen s9">
+        <div class="header">
+          <div>
+            <div class="company-sm">NIHON SAFETY</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="accent-bar"></div>
+        <div class="body">
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="btn">受　付　す　る</div>
+          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案9｜インダストリアルオレンジ × ダーク</div>
+    <div class="design-desc">重機・現場感のあるダーク＋橙色。力強くエネルギッシュ</div>
+  </div>
+
+  <!-- 案10 -->
+  <div>
+    <div class="card">
+      <div class="card-label">案10</div>
+      <div class="screen s10">
+        <div class="header">
+          <div>
+            <div class="company-sm">日本セイフティー株式会社</div>
+            <div class="company-lg">だんじり機材センター</div>
+          </div>
+          <div>
+            <div class="clock-date">2026年4月3日（金）</div>
+            <div class="clock-time">15:00</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="badge">🟢 受付受付中</div>
+          <div class="welcome">ご来場ありがとうございます</div>
+          <div class="sub">受付はこちらのボタンをタッチしてください</div>
+          <div class="btn">受　付　す　る</div>
+          <div class="note">※ 保護帽・安全靴を着用の上ご入場ください</div>
+        </div>
+      </div>
+    </div>
+    <div class="design-title">案10｜ソフトグリーン（安心・自然）</div>
+    <div class="design-desc">安全の緑を全面に。ステータスバッジで受付中を表現</div>
+  </div>
+
+</div>
+
+<div style="margin-top:40px;text-align:center;color:#444;font-size:13px;">
+  気に入った番号をお知らせください。コードに反映します。
+</div>
+
+</body>
+</html>
