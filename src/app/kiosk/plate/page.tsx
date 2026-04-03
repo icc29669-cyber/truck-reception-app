@@ -45,14 +45,18 @@ const REGION_MAP: Record<string, string[]> = {
   を: [], ん: [],
 };
 
-/* ── 五十音表（10列×5行）
-   列 = 行（あ行〜わ行）、行 = 段（あ段〜お段）─── */
+/* ── 五十音表（5列×10行）── */
 const KANA_GRID: (string | null)[][] = [
-  ["あ","か","さ","た","な","は","ま","や","ら","わ"],
-  ["い","き","し","ち","に","ひ","み",null, "り","を"],
-  ["う","く","す","つ","ぬ","ふ","む","ゆ","る",null],
-  ["え","け","せ","て","ね","へ","め",null, "れ",null],
-  ["お","こ","そ","と","の","ほ","も","よ","ろ","ん"],
+  ["あ","い","う","え","お"],
+  ["か","き","く","け","こ"],
+  ["さ","し","す","せ","そ"],
+  ["た","ち","つ","て","と"],
+  ["な","に","ぬ","ね","の"],
+  ["は","ひ","ふ","へ","ほ"],
+  ["ま","み","む","め","も"],
+  ["や",null,"ゆ",null,"よ"],
+  ["ら","り","る","れ","ろ"],
+  ["わ","を",null,null,"ん"],
 ];
 
 const HIRA_UNUSABLE = new Set(["し","へ","ん","お"]);
@@ -168,11 +172,10 @@ function BigPlate({
           style={{
             flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
             fontFamily: pf, fontWeight: 900,
-            fontSize: "clamp(48px, 12vmin, 195px)",
+            fontSize: "clamp(48px, 11vmin, 180px)",
             color: plate.number ? text : dim,
             cursor: "pointer", padding: "0.2vmin 0.5vmin",
-            transform: "scaleX(0.85)", transformOrigin: "center",
-            letterSpacing: "0.08em", ...hl("number"),
+            letterSpacing: "0.12em", ...hl("number"),
           }}
         >
           {numDisplay}
@@ -240,13 +243,13 @@ export default function PlatePage() {
     "text-gray-900 select-none touch-none " +
     "shadow-[0_5px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-1 transition-all duration-75";
 
-  /* 右パネル幅 = 40vw。キーパッドは最大 520px、かなボタンは 10列 */
+  /* 右パネル幅 = 40vw */
   const keyH  = "clamp(60px, 7.5vh, 100px)";
   const keyFs = "clamp(26px, 4vh, 58px)";
-  /* かなグリッド: 40vw内で10列 → 1列≒3.6vw */
-  const kanaW = "clamp(40px, 3.6vw, 60px)";
-  const kanaH = "clamp(48px, 7.5vh, 88px)";
-  const kanaFs= "clamp(14px, 1.8vw, 26px)";
+  /* かなグリッド: 5列 × 10行、repeat(5,1fr) で横幅を自動分割
+     → 40vw内では各ボタン ≒ (40vw - gap×4) / 5 の幅になる */
+  const kanaH = "clamp(52px, 7.5vh, 90px)";
+  const kanaFs= "clamp(16px, 2.8vw, 36px)";
 
   return (
     <div
@@ -281,94 +284,26 @@ export default function PlatePage() {
             左60vw  ── プレート表示
         ════════════════════════════════ */}
         <div
-          className="flex flex-col flex-shrink-0"
+          className="flex flex-col items-center justify-center gap-4 flex-shrink-0"
           style={{
             width: "60vw",
-            background: "#1A2F50",
-            borderRight: "3px solid #0D1E35",
+            background: "rgba(255,255,255,0.38)",
+            borderRight: "2px solid #C0D8F0",
           }}
         >
-          {/* 上部ラベル */}
-          <div style={{
-            padding: "16px 28px 0",
-            color: "rgba(255,255,255,0.45)",
-            fontSize: "clamp(13px, 1.6vh, 20px)",
-            fontWeight: 700,
-            letterSpacing: "0.15em",
-          }}>
-            ナンバープレート
+          {/* プレート本体 */}
+          <div style={{ width: "calc(60vw - 56px)", aspectRatio: "2 / 1" }}>
+            {mounted && (
+              <BigPlate
+                plate={plate}
+                active={active}
+                onTap={(s) => { setActive(s); setForceEdit(true); }}
+              />
+            )}
           </div>
-
-          {/* プレート本体: 左カラム幅いっぱい、flex-1で縦も広げる */}
-          <div className="flex-1 flex items-center justify-center" style={{ padding: "12px 28px" }}>
-            <div style={{ width: "calc(60vw - 56px)", aspectRatio: "2 / 1" }}>
-              {mounted && (
-                <BigPlate
-                  plate={plate}
-                  active={active}
-                  onTap={(s) => { setActive(s); setForceEdit(true); }}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* 下部: 入力ステップ進捗 */}
-          <div style={{ padding: "0 28px 20px" }}>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 8,
-            }}>
-              {(["region","classNum","hira","number"] as Section[]).map((s, i) => {
-                const labels = ["地名","分類番号","ひらがな","番号"];
-                const vals   = [plate.region, plate.classNum, plate.hira, plate.number];
-                const filled = !!vals[i];
-                const isCurrent = active === s && !isComplete;
-                return (
-                  <button
-                    key={s}
-                    onPointerDown={() => { setActive(s); setForceEdit(true); }}
-                    style={{
-                      borderRadius: 12,
-                      border: isCurrent ? "2px solid #FFE600" : "2px solid rgba(255,255,255,0.15)",
-                      background: filled ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)",
-                      padding: "10px 6px",
-                      textAlign: "center",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <div style={{
-                      fontSize: "clamp(11px, 1.3vh, 17px)",
-                      color: filled ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.3)",
-                      marginBottom: 4,
-                      fontWeight: 600,
-                    }}>
-                      {["①","②","③","④"][i]} {labels[i]}
-                    </div>
-                    <div style={{
-                      fontSize: "clamp(14px, 2vh, 26px)",
-                      fontWeight: 900,
-                      color: filled ? "#fff" : "rgba(255,255,255,0.2)",
-                      letterSpacing: "0.05em",
-                      lineHeight: 1.2,
-                    }}>
-                      {vals[i] || "─"}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <p style={{
-              textAlign: "center",
-              marginTop: 10,
-              fontSize: "clamp(12px, 1.5vh, 18px)",
-              color: "rgba(255,255,255,0.3)",
-              fontWeight: 600,
-            }}>
-              ▲ プレートまたはカードをタッチすると修正できます
+          <p style={{ fontSize: "clamp(13px, 1.8vh, 20px)", color: "#7AAAD0", fontWeight: 600 }}>
+              ▲ プレートの文字をタッチすると修正できます
             </p>
-          </div>
         </div>
 
         {/* ════════════════════════════════
@@ -438,35 +373,31 @@ export default function PlatePage() {
                 {active === "region" && (
                   <div className="flex-1 overflow-hidden">
                     {!kanaFilter ? (
-                      /* 五十音表（10列×5行）*/
-                      <div className="h-full flex flex-col items-center justify-center py-2">
-                        <p className="font-bold text-gray-500 mb-2" style={{ fontSize: 18 }}>
+                      /* 五十音表（5列×10行）*/
+                      <div className="h-full flex flex-col justify-center py-2 px-3">
+                        <p className="font-bold text-gray-500 mb-2 text-center" style={{ fontSize: 18 }}>
                           地名の頭文字を選んでください
                         </p>
-                        <div className="flex flex-col" style={{ gap: 5 }}>
-                          {KANA_GRID.map((row, ri) => (
-                            <div key={ri} className="flex" style={{ gap: 5 }}>
-                              {row.map((k, ci) => {
-                                if (!k) return <div key={ci} style={{ width: kanaW, height: kanaH }} />;
-                                const has = (REGION_MAP[k] ?? []).length > 0;
-                                return (
-                                  <button
-                                    key={ci}
-                                    onPointerDown={() => has ? setKanaFilter(k) : undefined}
-                                    disabled={!has}
-                                    className={`rounded-xl font-bold flex items-center justify-center transition-all duration-75 ${
-                                      has
-                                        ? "bg-white text-gray-800 border-2 border-gray-200 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] active:bg-blue-50"
-                                        : "bg-gray-100 text-gray-300 border-2 border-gray-100"
-                                    }`}
-                                    style={{ width: kanaW, height: kanaH, fontSize: kanaFs }}
-                                  >
-                                    {k}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ))}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+                          {KANA_GRID.flat().map((k, i) => {
+                            if (!k) return <div key={i} style={{ height: kanaH }} />;
+                            const has = (REGION_MAP[k] ?? []).length > 0;
+                            return (
+                              <button
+                                key={i}
+                                onPointerDown={() => has ? setKanaFilter(k) : undefined}
+                                disabled={!has}
+                                className={`rounded-xl font-bold flex items-center justify-center transition-all duration-75 ${
+                                  has
+                                    ? "bg-white text-gray-800 border-2 border-gray-200 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] active:bg-blue-50"
+                                    : "bg-gray-100 text-gray-300 border-2 border-gray-100"
+                                }`}
+                                style={{ height: kanaH, fontSize: kanaFs }}
+                              >
+                                {k}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     ) : (
@@ -576,36 +507,32 @@ export default function PlatePage() {
                         <span className="font-bold text-gray-500" style={{ fontSize: 14 }}>使用不可</span>
                       </div>
                     </div>
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="flex flex-col" style={{ gap: 5 }}>
-                        {KANA_GRID.map((row, ri) => (
-                          <div key={ri} className="flex" style={{ gap: 5 }}>
-                            {row.map((ch, ci) => {
-                              if (!ch) return <div key={ci} style={{ width: kanaW, height: kanaH }} />;
-                              const disabled = HIRA_UNUSABLE.has(ch);
-                              const isJigyo  = HIRA_JIGYOYO.has(ch);
-                              const isRental = HIRA_RENTAL.has(ch);
-                              const btnCls = disabled
-                                ? "bg-gray-100 text-gray-300 border-2 border-gray-100 cursor-not-allowed"
-                                : isJigyo
-                                ? "bg-blue-500 border-2 border-blue-600 text-white shadow-[0_4px_0_#1D4ED8] active:shadow-[0_1px_0_#1D4ED8] active:translate-y-[3px]"
-                                : isRental
-                                ? "bg-orange-400 border-2 border-orange-500 text-white shadow-[0_4px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px]"
-                                : "bg-white border-2 border-gray-200 text-gray-900 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px]";
-                              return (
-                                <button
-                                  key={ci}
-                                  onPointerDown={() => !disabled && selectHira(ch)}
-                                  disabled={disabled}
-                                  className={`rounded-xl font-bold flex items-center justify-center transition-all duration-75 ${btnCls}`}
-                                  style={{ width: kanaW, height: kanaH, fontSize: kanaFs }}
-                                >
-                                  {ch}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        ))}
+                    <div className="flex-1 flex flex-col justify-center px-3 py-2">
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+                        {KANA_GRID.flat().map((ch, i) => {
+                          if (!ch) return <div key={i} style={{ height: kanaH }} />;
+                          const disabled = HIRA_UNUSABLE.has(ch);
+                          const isJigyo  = HIRA_JIGYOYO.has(ch);
+                          const isRental = HIRA_RENTAL.has(ch);
+                          const btnCls = disabled
+                            ? "bg-gray-100 text-gray-300 border-2 border-gray-100 cursor-not-allowed"
+                            : isJigyo
+                            ? "bg-blue-500 border-2 border-blue-600 text-white shadow-[0_4px_0_#1D4ED8] active:shadow-[0_1px_0_#1D4ED8] active:translate-y-[3px]"
+                            : isRental
+                            ? "bg-orange-400 border-2 border-orange-500 text-white shadow-[0_4px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px]"
+                            : "bg-white border-2 border-gray-200 text-gray-900 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px]";
+                          return (
+                            <button
+                              key={i}
+                              onPointerDown={() => !disabled && selectHira(ch)}
+                              disabled={disabled}
+                              className={`rounded-xl font-bold flex items-center justify-center transition-all duration-75 ${btnCls}`}
+                              style={{ height: kanaH, fontSize: kanaFs }}
+                            >
+                              {ch}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
