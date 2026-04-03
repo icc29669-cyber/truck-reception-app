@@ -6,7 +6,8 @@ import { clearKioskSession, setKioskSession } from "@/lib/kioskState";
 export default function KioskTop() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow]   = useState(new Date());
+  const [pressed, setPressed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -26,112 +27,80 @@ export default function KioskTop() {
   if (!mounted) return null;
 
   const pad  = (n: number) => String(n).padStart(2, "0");
-  const hh   = pad(now.getHours());
-  const mm   = pad(now.getMinutes());
   const days = ["日","月","火","水","木","金","土"];
-  const dateStr = `${now.getMonth()+1}月${now.getDate()}日（${days[now.getDay()]}）`;
+  const dateStr = `${now.getMonth()+1}/${now.getDate()}（${days[now.getDay()]}）`;
+  const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
   return (
-    <div
-      className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "#F0F4F8" }}
-    >
+    <div className="w-screen h-screen flex flex-col select-none overflow-hidden">
 
-      {/* ── ヘッダー ── */}
+      {/* ── 上部バー（情報だけ、最小限） ── */}
       <div
-        className="flex items-center justify-between flex-shrink-0 px-10"
+        className="flex items-center justify-between flex-shrink-0 px-8"
+        style={{ background: "#1a3a6b", height: "11vh" }}
+      >
+        <div style={{ color: "#fff", fontWeight: 800, fontSize: "2.8vh", letterSpacing: "0.06em" }}>
+          {centerName}
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "2.4vh", fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+          {dateStr}　{timeStr}
+        </div>
+      </div>
+
+      {/* ── ボタン＝残り全画面 ── */}
+      <button
+        className="flex-1 flex flex-col items-center justify-center w-full"
         style={{
-          background: "#1a3a6b",
-          height: "14vh",
+          background: pressed ? "#163060" : "#1a3a6b",
+          border: "none",
+          cursor: "pointer",
+          transform: pressed ? "scale(0.995)" : "scale(1)",
+          transition: "background 0.08s, transform 0.08s",
         }}
+        onPointerDown={() => { setPressed(true); start(); }}
+        onPointerUp={() => setPressed(false)}
+        onPointerLeave={() => setPressed(false)}
       >
-        {/* 左：センター名 */}
-        <div>
-          <div style={{ fontSize: "1.5vh", color: "rgba(255,255,255,0.55)", letterSpacing: "0.12em", marginBottom: "0.4vh" }}>
-            日本セイフティー株式会社
+        {/* メインメッセージ */}
+        <div style={{
+          color: "#fff",
+          fontSize: "5.5vh",
+          fontWeight: 900,
+          letterSpacing: "0.08em",
+          lineHeight: 1.3,
+          textAlign: "center",
+          marginBottom: "4vh",
+        }}>
+          おつかれさまです
+        </div>
+
+        {/* タッチ誘導 */}
+        <div style={{
+          background: "rgba(255,255,255,0.12)",
+          border: "3px solid rgba(255,255,255,0.35)",
+          borderRadius: "2vh",
+          padding: "3vh 10vw",
+          textAlign: "center",
+        }}>
+          <div style={{ color: "rgba(255,255,255,0.65)", fontSize: "2vh", letterSpacing: "0.12em", marginBottom: "1.5vh" }}>
+            受付がお済みでない方
           </div>
-          <div style={{ fontSize: "3.6vh", fontWeight: 900, color: "#fff", letterSpacing: "0.06em" }}>
-            {centerName}
+          <div style={{ color: "#fff", fontSize: "4.5vh", fontWeight: 900, letterSpacing: "0.2em" }}>
+            画面をタッチ
           </div>
         </div>
 
-        {/* 右：時計 */}
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "1.4vh", color: "rgba(255,255,255,0.5)", marginBottom: "0.3vh" }}>
-            {dateStr}
-          </div>
-          <div style={{ fontSize: "5.5vh", fontWeight: 900, color: "#fff", lineHeight: 1, letterSpacing: "0.05em", fontVariantNumeric: "tabular-nums" }}>
-            {hh}<span style={{ opacity: 0.6 }}>:</span>{mm}
-          </div>
+        {/* 安全注意（最下部、控えめに） */}
+        <div style={{
+          position: "absolute",
+          bottom: "3vh",
+          color: "rgba(255,255,255,0.35)",
+          fontSize: "1.6vh",
+          letterSpacing: "0.08em",
+        }}>
+          ⚠️　保護帽・安全靴を着用の上ご入場ください
         </div>
-      </div>
-
-      {/* ── メイン ── */}
-      <div
-        className="flex-1 flex flex-col items-center justify-around px-8"
-        style={{ paddingTop: "3vh", paddingBottom: "3vh" }}
-      >
-
-        {/* あいさつ */}
-        <div className="text-center">
-          <div style={{ fontSize: "3.8vh", fontWeight: 900, color: "#1a3a6b", letterSpacing: "0.06em", lineHeight: 1.4 }}>
-            おつかれさまです！
-          </div>
-          <div style={{ fontSize: "2.2vh", color: "#5a7a9a", marginTop: "1.2vh", fontWeight: 600 }}>
-            受付をされていない方は、下のボタンをタッチしてください
-          </div>
-        </div>
-
-        {/* ── 受付ボタン ── */}
-        <button
-          onPointerDown={start}
-          className="flex flex-col items-center justify-center select-none touch-none"
-          style={{
-            width: "62vw",
-            height: "28vh",
-            background: "linear-gradient(170deg, #2563EB 0%, #1a3a6b 100%)",
-            borderRadius: "2.4vh",
-            boxShadow: "0 1vh 0 #0f2347, 0 1.5vh 4vh rgba(26,58,107,0.35)",
-            border: "none",
-            cursor: "pointer",
-            transition: "transform 0.07s, box-shadow 0.07s",
-          }}
-          onPointerDown={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0.8vh)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0.2vh 0 #0f2347";
-            start();
-          }}
-          onPointerUp={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.transform = "";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 1vh 0 #0f2347, 0 1.5vh 4vh rgba(26,58,107,0.35)";
-          }}
-        >
-          <div style={{ fontSize: "8vh", marginBottom: "0.5vh" }}>🚛</div>
-          <div style={{ fontSize: "3.8vh", fontWeight: 900, color: "#fff", letterSpacing: "0.2em" }}>
-            受　付　開　始
-          </div>
-          <div style={{ fontSize: "1.6vh", color: "rgba(255,255,255,0.6)", marginTop: "0.8vh", letterSpacing: "0.06em" }}>
-            ここをタッチ
-          </div>
-        </button>
-
-        {/* 注意書き */}
-        <div
-          className="flex items-center gap-3"
-          style={{
-            background: "#fff",
-            border: "2px solid #dce6f0",
-            borderRadius: "1.2vh",
-            padding: "1.4vh 3vh",
-          }}
-        >
-          <span style={{ fontSize: "2.6vh" }}>⚠️</span>
-          <span style={{ fontSize: "1.8vh", fontWeight: 700, color: "#5a7a9a" }}>
-            入場前に保護帽・安全靴の着用をご確認ください
-          </span>
-        </div>
-
-      </div>
+      </button>
     </div>
   );
 }
