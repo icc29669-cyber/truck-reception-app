@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>受付トップ バリエーション</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #111; font-family: "Hiragino Kaku Gothic ProN","Meiryo",sans-serif; padding: 40px 32px; }
+h2 { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 36px; }
+
+.row { display: flex; gap: 28px; margin-bottom: 40px; flex-wrap: wrap; }
+.item { flex: 1; min-width: 340px; }
+.screen {
+  width: 100%; aspect-ratio: 16/9;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.label { color: #888; font-size: 12px; margin-top: 10px; }
+.title { color: #ddd; font-size: 15px; font-weight: 700; margin-top: 4px; }
+
+/* アニメ */
+@keyframes pr { 0%{transform:scale(1);opacity:.5} 70%{transform:scale(1.18);opacity:0} 100%{transform:scale(1.18);opacity:0} }
+@keyframes pr2{ 0%{transform:scale(1);opacity:.3} 70%{transform:scale(1.32);opacity:0} 100%{transform:scale(1.32);opacity:0} }
+.r1 { animation: pr  2.4s ease-out infinite; }
+.r2 { animation: pr2 2.4s ease-out infinite 0.4s; }
+
+/* ヘッダー共通 */
+.hdr {
+  height: 11%; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 5%;
+  flex-shrink: 0; position: relative; z-index: 2;
+}
+.hdr-co { display: flex; flex-direction: column; }
+.co-sm { font-size: 1vh; letter-spacing: .12em; }
+.co-lg { font-size: 2.6vh; font-weight: 900; }
+.hdr-clock { text-align: right; }
+.cl-d { font-size: 1vh; margin-bottom: .2vh; }
+.cl-t { font-size: 4vh; font-weight: 900; line-height: 1; letter-spacing: .04em; }
+
+/* ボディ共通 */
+.body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.glow {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.greeting {
+  font-size: 4.5vh; font-weight: 900; letter-spacing: .1em;
+  margin-bottom: 5vh; position: relative; z-index: 2;
+}
+.btn-wrap {
+  position: relative; z-index: 2;
+  width: 55%; height: 42%; display: flex; align-items: center; justify-content: center;
+}
+.ring {
+  position: absolute; inset: 0; border-radius: 2.5vh;
+}
+.btn-inner {
+  width: 100%; height: 100%; border-radius: 2.5vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1vh; position: relative; z-index: 1;
+}
+.btn-main { font-size: 4vh; font-weight: 900; letter-spacing: .15em; text-align: center; line-height: 1.4; }
+.btn-sub  { font-size: 1.6vh; letter-spacing: .1em; }
+.note {
+  position: absolute; bottom: 3%; font-size: 1.3vh; letter-spacing: .08em;
+  z-index: 2;
+}
+
+/* ══ A: 現行（ネイビー）  ══ */
+.a-bg  { background: linear-gradient(160deg,#0a1a38,#102d5e,#163880); }
+.a-hdr { background: #0d2347; border-bottom: 1px solid rgba(255,255,255,.1); color: #fff; }
+.a-hdr .co-sm { color: rgba(255,255,255,.45); }
+.a-glow { background: radial-gradient(ellipse 70% 60% at 50% 55%, rgba(60,120,220,.22), transparent 70%); }
+.a-greeting { color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,.3); }
+.a-r1 { border: 2.5px solid rgba(255,255,255,.5); }
+.a-r2 { border: 1.5px solid rgba(255,255,255,.3); }
+.a-btn { background: rgba(255,255,255,.16); border: 3px solid rgba(255,255,255,.7); box-shadow: 0 0 80px rgba(120,180,255,.25), 0 8px 40px rgba(0,0,0,.3); }
+.a-btn-main { color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,.4); }
+.a-btn-sub  { color: rgba(255,255,255,.65); }
+.a-note     { color: rgba(255,255,255,.28); }
+
+/* ══ B: ディープグリーン  ══ */
+.b-bg  { background: linear-gradient(160deg,#071a10,#0d3320,#104828); }
+.b-hdr { background: #082415; border-bottom: 1px solid rgba(255,255,255,.08); color: #fff; }
+.b-hdr .co-sm { color: rgba(255,255,255,.4); }
+.b-glow { background: radial-gradient(ellipse 70% 60% at 50% 55%, rgba(40,160,80,.25), transparent 70%); }
+.b-greeting { color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,.4); }
+.b-r1 { border: 2.5px solid rgba(100,220,140,.6); }
+.b-r2 { border: 1.5px solid rgba(100,220,140,.35); }
+.b-btn { background: rgba(80,200,120,.12); border: 3px solid rgba(100,220,140,.75); box-shadow: 0 0 80px rgba(60,200,100,.2), 0 8px 40px rgba(0,0,0,.35); }
+.b-btn-main { color: #fff; }
+.b-btn-sub  { color: rgba(255,255,255,.6); }
+.b-note     { color: rgba(255,255,255,.25); }
+
+/* ══ C: ライト（白背景×ネイビーボタン）  ══ */
+.c-bg  { background: #eef3f9; }
+.c-hdr { background: #fff; border-bottom: 2px solid #dce6f0; }
+.c-hdr .co-sm { color: #8aa; }
+.c-hdr .co-lg { color: #1a3a6b; }
+.c-hdr .cl-t  { color: #1a3a6b; }
+.c-hdr .cl-d  { color: #9ab; }
+.c-glow { background: radial-gradient(ellipse 70% 60% at 50% 55%, rgba(26,58,107,.06), transparent 70%); }
+.c-greeting { color: #1a3a6b; }
+.c-r1 { border: 2.5px solid rgba(26,58,107,.3); }
+.c-r2 { border: 1.5px solid rgba(26,58,107,.15); }
+.c-btn { background: #1a3a6b; border: 3px solid #1a3a6b; box-shadow: 0 10px 0 #0d1d3a, 0 14px 40px rgba(26,58,107,.35); }
+.c-btn-main { color: #fff; }
+.c-btn-sub  { color: rgba(255,255,255,.65); }
+.c-note     { color: #9ab; }
+
+/* ══ D: ミッドナイトブラック  ══ */
+.d-bg  { background: linear-gradient(160deg,#060608,#0d0d14,#10101c); }
+.d-hdr { background: #080810; border-bottom: 1px solid rgba(255,255,255,.06); color: #fff; }
+.d-hdr .co-sm { color: rgba(255,255,255,.3); }
+.d-glow { background: radial-gradient(ellipse 60% 55% at 50% 55%, rgba(80,120,255,.18), transparent 68%); }
+.d-greeting { color: #e0e8ff; }
+.d-r1 { border: 2.5px solid rgba(140,170,255,.55); }
+.d-r2 { border: 1.5px solid rgba(140,170,255,.3); }
+.d-btn { background: rgba(100,140,255,.1); border: 3px solid rgba(140,170,255,.65); box-shadow: 0 0 100px rgba(100,140,255,.2), 0 8px 40px rgba(0,0,0,.5); }
+.d-btn-main { color: #e8eeff; }
+.d-btn-sub  { color: rgba(200,210,255,.55); }
+.d-note     { color: rgba(255,255,255,.2); }
+
+/* ══ E: ネイビー × アンバーアクセント  ══ */
+.e-bg  { background: linear-gradient(160deg,#0c1828,#152540,#1c3255); }
+.e-hdr { background: #0e1f38; border-bottom: 1px solid rgba(255,180,50,.2); color: #fff; }
+.e-hdr .co-sm { color: rgba(255,255,255,.4); }
+.e-glow { background: radial-gradient(ellipse 70% 60% at 50% 55%, rgba(200,130,30,.15), transparent 70%); }
+.e-greeting { color: #fff; }
+.e-r1 { border: 2.5px solid rgba(255,185,50,.65); }
+.e-r2 { border: 1.5px solid rgba(255,185,50,.35); }
+.e-btn { background: rgba(255,185,50,.1); border: 3px solid rgba(255,185,50,.75); box-shadow: 0 0 80px rgba(255,185,50,.15), 0 8px 40px rgba(0,0,0,.4); }
+.e-btn-main { color: #fff; }
+.e-btn-sub  { color: rgba(255,220,130,.7); }
+.e-note     { color: rgba(255,255,255,.25); }
+</style>
+</head>
+<body>
+
+<h2>バリエーション 5案 — 同じレイアウト・構造、色と空気感だけ変更</h2>
+
+<div class="row">
+
+  <!-- A -->
+  <div class="item">
+    <div class="screen a-bg">
+      <div class="hdr a-hdr">
+        <div class="hdr-co">
+          <span class="co-sm">日本セイフティー株式会社</span>
+          <span class="co-lg" style="color:#fff">だんじり機材センター</span>
+        </div>
+        <div class="hdr-clock">
+          <div class="cl-d" style="color:rgba(255,255,255,.4)">4月3日（金）</div>
+          <div class="cl-t" style="color:#fff">15:00</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="glow a-glow"></div>
+        <div class="greeting a-greeting">いらっしゃいませ</div>
+        <div class="btn-wrap">
+          <div class="ring r1 a-r1"></div>
+          <div class="ring r2 a-r2"></div>
+          <div class="btn-inner a-btn">
+            <div class="btn-main a-btn-main">受付は<br>こちらから</div>
+            <div class="btn-sub a-btn-sub">タッチしてください</div>
+          </div>
+        </div>
+        <div class="note a-note">⚠️ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
+    </div>
+    <div class="label">現行 A</div>
+    <div class="title">ダークネイビー（現行）</div>
+  </div>
+
+  <!-- B -->
+  <div class="item">
+    <div class="screen b-bg">
+      <div class="hdr b-hdr">
+        <div class="hdr-co">
+          <span class="co-sm" style="color:rgba(255,255,255,.4)">日本セイフティー株式会社</span>
+          <span class="co-lg" style="color:#fff">だんじり機材センター</span>
+        </div>
+        <div class="hdr-clock">
+          <div class="cl-d" style="color:rgba(255,255,255,.4)">4月3日（金）</div>
+          <div class="cl-t" style="color:#fff">15:00</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="glow b-glow"></div>
+        <div class="greeting b-greeting">いらっしゃいませ</div>
+        <div class="btn-wrap">
+          <div class="ring r1 b-r1"></div>
+          <div class="ring r2 b-r2"></div>
+          <div class="btn-inner b-btn">
+            <div class="btn-main b-btn-main">受付は<br>こちらから</div>
+            <div class="btn-sub b-btn-sub">タッチしてください</div>
+          </div>
+        </div>
+        <div class="note b-note">⚠️ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
+    </div>
+    <div class="label">案 B</div>
+    <div class="title">ディープグリーン（安全・自然）</div>
+  </div>
+
+</div>
+<div class="row">
+
+  <!-- C -->
+  <div class="item">
+    <div class="screen c-bg">
+      <div class="hdr c-hdr">
+        <div class="hdr-co">
+          <span class="co-sm">日本セイフティー株式会社</span>
+          <span class="co-lg">だんじり機材センター</span>
+        </div>
+        <div class="hdr-clock">
+          <div class="cl-d">4月3日（金）</div>
+          <div class="cl-t">15:00</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="glow c-glow"></div>
+        <div class="greeting c-greeting">いらっしゃいませ</div>
+        <div class="btn-wrap">
+          <div class="ring r1 c-r1"></div>
+          <div class="ring r2 c-r2"></div>
+          <div class="btn-inner c-btn">
+            <div class="btn-main c-btn-main">受付は<br>こちらから</div>
+            <div class="btn-sub c-btn-sub">タッチしてください</div>
+          </div>
+        </div>
+        <div class="note c-note">⚠️ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
+    </div>
+    <div class="label">案 C</div>
+    <div class="title">ライト（白背景 × ネイビーボタン）</div>
+  </div>
+
+  <!-- D -->
+  <div class="item">
+    <div class="screen d-bg">
+      <div class="hdr d-hdr">
+        <div class="hdr-co">
+          <span class="co-sm" style="color:rgba(255,255,255,.3)">日本セイフティー株式会社</span>
+          <span class="co-lg" style="color:#c8d4ff">だんじり機材センター</span>
+        </div>
+        <div class="hdr-clock">
+          <div class="cl-d" style="color:rgba(200,210,255,.35)">4月3日（金）</div>
+          <div class="cl-t" style="color:#c8d4ff">15:00</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="glow d-glow"></div>
+        <div class="greeting d-greeting">いらっしゃいませ</div>
+        <div class="btn-wrap">
+          <div class="ring r1 d-r1"></div>
+          <div class="ring r2 d-r2"></div>
+          <div class="btn-inner d-btn">
+            <div class="btn-main d-btn-main">受付は<br>こちらから</div>
+            <div class="btn-sub d-btn-sub">タッチしてください</div>
+          </div>
+        </div>
+        <div class="note d-note">⚠️ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
+    </div>
+    <div class="label">案 D</div>
+    <div class="title">ミッドナイトブラック × インディゴ</div>
+  </div>
+
+</div>
+<div class="row" style="max-width:50%;margin:0">
+
+  <!-- E -->
+  <div class="item">
+    <div class="screen e-bg">
+      <div class="hdr e-hdr">
+        <div class="hdr-co">
+          <span class="co-sm" style="color:rgba(255,255,255,.4)">日本セイフティー株式会社</span>
+          <span class="co-lg" style="color:#fff">だんじり機材センター</span>
+        </div>
+        <div class="hdr-clock">
+          <div class="cl-d" style="color:rgba(255,200,80,.5)">4月3日（金）</div>
+          <div class="cl-t" style="color:#ffd060">15:00</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="glow e-glow"></div>
+        <div class="greeting e-greeting">いらっしゃいませ</div>
+        <div class="btn-wrap">
+          <div class="ring r1 e-r1"></div>
+          <div class="ring r2 e-r2"></div>
+          <div class="btn-inner e-btn">
+            <div class="btn-main e-btn-main">受付は<br>こちらから</div>
+            <div class="btn-sub e-btn-sub">タッチしてください</div>
+          </div>
+        </div>
+        <div class="note e-note">⚠️ 保護帽・安全靴を着用の上ご入場ください</div>
+      </div>
+    </div>
+    <div class="label">案 E</div>
+    <div class="title">ネイビー × ゴールドアクセント</div>
+  </div>
+
+</div>
+
+<p style="color:#444;font-size:13px;margin-top:8px">A〜E の記号でお知らせください。即反映します。</p>
+
+</body>
+</html>
