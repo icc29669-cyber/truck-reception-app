@@ -31,60 +31,62 @@ export default function KioskTop() {
   const dateStr = `${now.getMonth()+1}月${now.getDate()}日（${days[now.getDay()]}）`;
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
+  // パステル中間色
+  const BG     = "#E4EDF8";          // 淡いスカイブルー
+  const BTN    = pressed ? "#3A6BB0" : "#4A7FC1";   // ミディアムブルー
+  const BTN_SH = "#2D5A94";          // ボタンの影色
+  const RING   = "#7AAEE0";          // パルスリングの色
+
   return (
     <>
       <style>{`
         @keyframes pulse-ring {
-          0%   { transform: scale(1);    opacity: 0.5; }
-          70%  { transform: scale(1.18); opacity: 0;   }
-          100% { transform: scale(1.18); opacity: 0;   }
+          0%   { transform: scale(1);    opacity: 0.55; }
+          70%  { transform: scale(1.2);  opacity: 0; }
+          100% { transform: scale(1.2);  opacity: 0; }
         }
         @keyframes pulse-ring2 {
-          0%   { transform: scale(1);    opacity: 0.3; }
-          70%  { transform: scale(1.32); opacity: 0;   }
-          100% { transform: scale(1.32); opacity: 0;   }
+          0%   { transform: scale(1);    opacity: 0.35; }
+          70%  { transform: scale(1.36); opacity: 0; }
+          100% { transform: scale(1.36); opacity: 0; }
         }
         .ring1 { animation: pulse-ring  2.4s ease-out infinite; }
-        .ring2 { animation: pulse-ring2 2.4s ease-out infinite 0.4s; }
+        .ring2 { animation: pulse-ring2 2.4s ease-out infinite 0.45s; }
         @keyframes fade-up {
-          from { opacity: 0; transform: translateY(16px); }
+          from { opacity: 0; transform: translateY(14px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .fade-up { animation: fade-up 0.7s ease both; }
-        .fade-up-d { animation: fade-up 0.7s ease 0.15s both; }
-        .fade-up-dd { animation: fade-up 0.7s ease 0.3s both; }
+        .fade-up   { animation: fade-up 0.6s ease both; }
+        .fade-up-d { animation: fade-up 0.6s ease 0.12s both; }
+        .fade-up-dd{ animation: fade-up 0.6s ease 0.24s both; }
       `}</style>
 
-      <div className="w-screen h-screen flex flex-col select-none overflow-hidden">
+      <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
+        style={{ background: BG }}>
 
         {/* ── ヘッダー ── */}
         <div
           className="flex items-center justify-between flex-shrink-0 px-10"
           style={{
             height: "11vh",
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(12px)",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-            position: "relative",
-            zIndex: 10,
-            // ヘッダーは背景の上に重なるため背景色が必要
-            backgroundColor: "#0d2347",
+            background: "#fff",
+            borderBottom: "1.5px solid #D0DEF0",
           }}
         >
           <div>
-            <div style={{ fontSize: "1.3vh", color: "rgba(255,255,255,0.45)", letterSpacing: "0.15em", marginBottom: "0.3vh" }}>
+            <div style={{ fontSize: "1.3vh", color: "#8FAAC8", letterSpacing: "0.15em", marginBottom: "0.3vh" }}>
               日本セイフティー株式会社
             </div>
-            <div style={{ fontSize: "2.8vh", fontWeight: 900, color: "#fff", letterSpacing: "0.07em" }}>
+            <div style={{ fontSize: "2.8vh", fontWeight: 900, color: "#2B4A7A", letterSpacing: "0.07em" }}>
               {centerName}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "1.3vh", color: "rgba(255,255,255,0.4)", marginBottom: "0.3vh" }}>
+            <div style={{ fontSize: "1.3vh", color: "#9BBAD4", marginBottom: "0.3vh" }}>
               {dateStr}
             </div>
             <div style={{
-              fontSize: "4.5vh", fontWeight: 900, color: "#fff",
+              fontSize: "4.5vh", fontWeight: 900, color: "#2B4A7A",
               lineHeight: 1, letterSpacing: "0.06em",
               fontVariantNumeric: "tabular-nums",
             }}>
@@ -93,97 +95,81 @@ export default function KioskTop() {
           </div>
         </div>
 
-        {/* ── メイン（＝ボタン全体） ── */}
-        <button
-          className="flex-1 relative w-full flex flex-col items-center justify-center"
-          style={{
-            border: "none",
-            cursor: "pointer",
-            outline: "none",
-            overflow: "hidden",
-            // 美しいグラデーション
-            background: pressed
-              ? "linear-gradient(160deg, #060f20 0%, #0b1e40 50%, #0e2550 100%)"
-              : "linear-gradient(160deg, #0a1a38 0%, #102d5e 50%, #163880 100%)",
-            transition: "background 0.1s",
-          }}
-          onPointerDown={() => { setPressed(true); start(); }}
-          onPointerUp={() => setPressed(false)}
-          onPointerLeave={() => setPressed(false)}
-        >
-          {/* 背景の光彩 */}
+        {/* ── メイン ── */}
+        <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+
+          {/* 背景の淡い光彩 */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: "radial-gradient(ellipse 70% 60% at 50% 55%, rgba(60,120,220,0.22) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 65% 55% at 50% 58%, rgba(100,160,230,0.18) 0%, transparent 70%)",
           }} />
 
           {/* あいさつ */}
           <div className="fade-up" style={{
-            color: "#fff",
-            fontSize: "5vh",
-            fontWeight: 900,
+            fontSize: "5vh", fontWeight: 900,
+            color: "#2B4A7A",
             letterSpacing: "0.1em",
-            marginBottom: "6vh",
-            textShadow: "0 2px 20px rgba(0,0,0,0.3)",
+            marginBottom: "5vh",
           }}>
             いらっしゃいませ
           </div>
 
-          {/* タッチターゲット（パルスリング付き） */}
-          <div className="fade-up-d relative flex items-center justify-center" style={{ width: "58vw", height: "52vh" }}>
+          {/* ボタン */}
+          <div className="fade-up-d relative flex items-center justify-center"
+            style={{ width: "58vw", height: "52vh" }}>
 
             {/* パルスリング */}
-            <div className="ring1 absolute inset-0 rounded-3xl" style={{ border: "3px solid rgba(255,255,255,0.5)" }} />
-            <div className="ring2 absolute inset-0 rounded-3xl" style={{ border: "2px solid rgba(255,255,255,0.3)" }} />
+            <div className="ring1 absolute inset-0 rounded-3xl"
+              style={{ border: `3px solid ${RING}` }} />
+            <div className="ring2 absolute inset-0 rounded-3xl"
+              style={{ border: `2px solid ${RING}` }} />
 
             {/* ボタン本体 */}
-            <div style={{
-              width: "100%", height: "100%",
-              borderRadius: "3vh",
-              background: pressed
-                ? "rgba(255,255,255,0.22)"
-                : "rgba(255,255,255,0.16)",
-              border: "3px solid rgba(255,255,255,0.7)",
-              boxShadow: pressed
-                ? "inset 0 6px 32px rgba(0,0,0,0.35)"
-                : "0 0 80px rgba(120,180,255,0.25), 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "1.8vh",
-              transition: "all 0.1s",
-              transform: pressed ? "scale(0.97)" : "scale(1)",
-            }}>
+            <button
+              className="w-full h-full flex flex-col items-center justify-center"
+              style={{
+                borderRadius: "3vh",
+                background: BTN,
+                border: "none",
+                boxShadow: pressed
+                  ? `inset 0 6px 20px rgba(0,0,0,0.25)`
+                  : `0 10px 0 ${BTN_SH}, 0 14px 40px rgba(74,127,193,0.35)`,
+                transform: pressed ? "translateY(8px)" : "translateY(0)",
+                transition: "all 0.08s",
+                cursor: "pointer",
+                gap: "1.8vh",
+              }}
+              onPointerDown={() => { setPressed(true); start(); }}
+              onPointerUp={() => setPressed(false)}
+              onPointerLeave={() => setPressed(false)}
+            >
               <div style={{
                 fontSize: "5.5vh", fontWeight: 900, color: "#fff",
                 letterSpacing: "0.18em",
-                textShadow: "0 2px 24px rgba(0,0,0,0.4)",
                 lineHeight: 1.45,
                 textAlign: "center",
               }}>
                 受付は<br/>こちらから
               </div>
               <div style={{
-                fontSize: "2vh", color: "rgba(255,255,255,0.65)",
+                fontSize: "2vh", color: "rgba(255,255,255,0.75)",
                 letterSpacing: "0.12em",
               }}>
                 タッチしてください
               </div>
-            </div>
+            </button>
           </div>
 
           {/* 安全注意 */}
           <div className="fade-up-dd" style={{
-            position: "absolute",
-            bottom: "3.5vh",
-            color: "rgba(255,255,255,0.28)",
+            position: "absolute", bottom: "3.5vh",
+            color: "#9BBAD4",
             fontSize: "1.5vh",
             letterSpacing: "0.1em",
           }}>
             ⚠️　保護帽・安全靴を着用の上ご入場ください
           </div>
-        </button>
+        </div>
       </div>
     </>
   );
