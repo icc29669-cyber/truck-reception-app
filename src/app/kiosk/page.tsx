@@ -40,25 +40,59 @@ export default function KioskTop() {
   return (
     <>
       <style>{`
+        /* ── パルスリング ── */
         @keyframes pulse-ring {
-          0%   { transform: scale(1);    opacity: 0.55; }
-          70%  { transform: scale(1.2);  opacity: 0; }
-          100% { transform: scale(1.2);  opacity: 0; }
+          0%   { transform: scale(1);    opacity: 0.6; }
+          60%  { transform: scale(1.22); opacity: 0; }
+          100% { transform: scale(1.22); opacity: 0; }
         }
         @keyframes pulse-ring2 {
           0%   { transform: scale(1);    opacity: 0.35; }
-          70%  { transform: scale(1.36); opacity: 0; }
-          100% { transform: scale(1.36); opacity: 0; }
+          60%  { transform: scale(1.4);  opacity: 0; }
+          100% { transform: scale(1.4);  opacity: 0; }
         }
-        .ring1 { animation: pulse-ring  2.4s ease-out infinite; }
-        .ring2 { animation: pulse-ring2 2.4s ease-out infinite 0.45s; }
-        @keyframes fade-up {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
+        .ring1 { animation: pulse-ring  1.8s ease-out infinite; }
+        .ring2 { animation: pulse-ring2 1.8s ease-out infinite 0.35s; }
+
+        /* ── ポップ登場（バウンス） ── */
+        @keyframes pop-in {
+          0%   { opacity: 0; transform: scale(0.6); }
+          65%  { opacity: 1; transform: scale(1.08); }
+          80%  { transform: scale(0.96); }
+          100% { transform: scale(1); }
         }
-        .fade-up   { animation: fade-up 0.6s ease both; }
-        .fade-up-d { animation: fade-up 0.6s ease 0.12s both; }
-        .fade-up-dd{ animation: fade-up 0.6s ease 0.24s both; }
+        @keyframes slide-down {
+          0%   { opacity: 0; transform: translateY(-20px); }
+          60%  { transform: translateY(5px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .pop-in    { animation: pop-in    0.55s cubic-bezier(.34,1.56,.64,1) 0.1s both; }
+        .slide-down{ animation: slide-down 0.45s cubic-bezier(.34,1.56,.64,1) both; }
+
+        /* ── ボタンのふわふわ浮遊 ── */
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-10px); }
+        }
+        .floating { animation: float 3.2s ease-in-out infinite; }
+
+        /* ── ボタン上のシマー（光の走り） ── */
+        @keyframes shimmer {
+          0%   { transform: translateX(-120%) skewX(-12deg); }
+          100% { transform: translateX(220%)  skewX(-12deg); }
+        }
+        .shimmer-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: 3vh; pointer-events: none; }
+        .shimmer-line {
+          position: absolute; top: 0; bottom: 0; width: 40%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+          animation: shimmer 3s ease-in-out infinite 1.2s;
+        }
+
+        /* ── 注意テキストのフェード ── */
+        @keyframes fade-in {
+          from { opacity: 0; } to { opacity: 1; }
+        }
+        .fade-late { animation: fade-in 0.6s ease 0.5s both; }
       `}</style>
 
       <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
@@ -104,8 +138,8 @@ export default function KioskTop() {
             background: "radial-gradient(ellipse 65% 55% at 50% 58%, rgba(100,160,230,0.18) 0%, transparent 70%)",
           }} />
 
-          {/* あいさつ */}
-          <div className="fade-up" style={{
+          {/* あいさつ：上からバウンス */}
+          <div className="slide-down" style={{
             fontSize: "5vh", fontWeight: 900,
             color: "#2B4A7A",
             letterSpacing: "0.1em",
@@ -114,54 +148,63 @@ export default function KioskTop() {
             いらっしゃいませ
           </div>
 
-          {/* ボタン */}
-          <div className="fade-up-d relative flex items-center justify-center"
-            style={{ width: "58vw", height: "52vh" }}>
+          {/* ボタン：ポップ登場 → ふわふわ浮遊 */}
+          <div className="pop-in" style={{ width: "58vw", height: "52vh", position: "relative" }}>
+            <div className="floating" style={{ width: "100%", height: "100%", position: "relative" }}>
 
-            {/* パルスリング */}
-            <div className="ring1 absolute inset-0 rounded-3xl"
-              style={{ border: `3px solid ${RING}` }} />
-            <div className="ring2 absolute inset-0 rounded-3xl"
-              style={{ border: `2px solid ${RING}` }} />
+              {/* パルスリング */}
+              <div className="ring1 absolute inset-0 rounded-3xl"
+                style={{ border: `3px solid ${RING}` }} />
+              <div className="ring2 absolute inset-0 rounded-3xl"
+                style={{ border: `2px solid ${RING}` }} />
 
-            {/* ボタン本体 */}
-            <button
-              className="w-full h-full flex flex-col items-center justify-center"
-              style={{
-                borderRadius: "3vh",
-                background: BTN,
-                border: "none",
-                boxShadow: pressed
-                  ? `inset 0 6px 20px rgba(0,0,0,0.25)`
-                  : `0 10px 0 ${BTN_SH}, 0 14px 40px rgba(74,127,193,0.35)`,
-                transform: pressed ? "translateY(8px)" : "translateY(0)",
-                transition: "all 0.08s",
-                cursor: "pointer",
-                gap: "1.8vh",
-              }}
-              onPointerDown={() => { setPressed(true); start(); }}
-              onPointerUp={() => setPressed(false)}
-              onPointerLeave={() => setPressed(false)}
-            >
-              <div style={{
-                fontSize: "5.5vh", fontWeight: 900, color: "#fff",
-                letterSpacing: "0.18em",
-                lineHeight: 1.45,
-                textAlign: "center",
-              }}>
-                受付は<br/>こちらから
-              </div>
-              <div style={{
-                fontSize: "2vh", color: "rgba(255,255,255,0.75)",
-                letterSpacing: "0.12em",
-              }}>
-                タッチしてください
-              </div>
-            </button>
+              {/* ボタン本体 */}
+              <button
+                className="w-full h-full flex flex-col items-center justify-center relative"
+                style={{
+                  borderRadius: "3vh",
+                  background: BTN,
+                  border: "none",
+                  boxShadow: pressed
+                    ? `inset 0 6px 20px rgba(0,0,0,0.25)`
+                    : `0 10px 0 ${BTN_SH}, 0 16px 48px rgba(74,127,193,0.4)`,
+                  transform: pressed ? "scale(0.96)" : "scale(1)",
+                  transition: "transform 0.08s cubic-bezier(.34,1.56,.64,1), box-shadow 0.08s",
+                  cursor: "pointer",
+                  gap: "1.8vh",
+                  overflow: "hidden",
+                }}
+                onPointerDown={() => { setPressed(true); start(); }}
+                onPointerUp={() => setPressed(false)}
+                onPointerLeave={() => setPressed(false)}
+              >
+                {/* シマー */}
+                <div className="shimmer-wrap">
+                  <div className="shimmer-line" />
+                </div>
+
+                <div style={{
+                  fontSize: "5.5vh", fontWeight: 900, color: "#fff",
+                  letterSpacing: "0.18em",
+                  lineHeight: 1.45,
+                  textAlign: "center",
+                  position: "relative",
+                }}>
+                  受付は<br/>こちらから
+                </div>
+                <div style={{
+                  fontSize: "2vh", color: "rgba(255,255,255,0.75)",
+                  letterSpacing: "0.12em",
+                  position: "relative",
+                }}>
+                  タッチしてください
+                </div>
+              </button>
+            </div>
           </div>
 
           {/* 安全注意 */}
-          <div className="fade-up-dd" style={{
+          <div className="fade-late" style={{
             position: "absolute", bottom: "3.5vh",
             color: "#9BBAD4",
             fontSize: "1.5vh",
