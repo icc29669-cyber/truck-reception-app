@@ -176,26 +176,26 @@ function PlatePanel({ plate, onChange }: {
   return (
     <div className="flex gap-6 h-full justify-center px-8">
       {/* BigPlate */}
-      <div className="flex flex-col items-center justify-center flex-shrink-0" style={{width:520}}>
+      <div className="flex flex-col items-center justify-center flex-shrink-0" style={{width:660}}>
         <div style={{
-          width:500,height:250,background:bg,border:`6px solid ${border}`,
-          borderRadius:14,boxShadow:"0 10px 32px rgba(0,0,0,0.35)",
-          display:"flex",flexDirection:"column",padding:"10px 22px 14px",boxSizing:"border-box",userSelect:"none",
+          width:640,height:320,background:bg,border:`6px solid ${border}`,
+          borderRadius:16,boxShadow:"0 10px 32px rgba(0,0,0,0.35)",
+          display:"flex",flexDirection:"column",padding:"12px 28px 16px",boxSizing:"border-box",userSelect:"none",
         }}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16}}>
             <div onPointerDown={()=>setSection("region")} style={hl("region")}>
-              <span style={{fontSize:40,fontWeight:900,fontFamily:pf,color:plate.region?text:dim}}>{plate.region||"地名"}</span>
+              <span style={{fontSize:52,fontWeight:900,fontFamily:pf,color:plate.region?text:dim}}>{plate.region||"地名"}</span>
             </div>
             <div onPointerDown={()=>setSection("classNum")} style={hl("classNum")}>
-              <span style={{fontSize:40,fontWeight:900,fontFamily:pf,letterSpacing:4,color:plate.classNum?text:dim}}>{plate.classNum||"・・・"}</span>
+              <span style={{fontSize:52,fontWeight:900,fontFamily:pf,letterSpacing:4,color:plate.classNum?text:dim}}>{plate.classNum||"・・・"}</span>
             </div>
           </div>
           <div style={{flex:1,display:"flex",alignItems:"center",position:"relative"}}>
             <div onPointerDown={()=>setSection("hira")} style={{position:"absolute",left:0,...hl("hira")}}>
-              <span style={{fontSize:58,fontWeight:900,fontFamily:pf,color:plate.hira?text:dim,lineHeight:1}}>{plate.hira||"あ"}</span>
+              <span style={{fontSize:76,fontWeight:900,fontFamily:pf,color:plate.hira?text:dim,lineHeight:1}}>{plate.hira||"あ"}</span>
             </div>
-            <div onPointerDown={()=>setSection("number")} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",paddingLeft:56,transform:"scaleX(0.85)",transformOrigin:"center",...hl("number")}}>
-              <span style={{fontSize:106,color:plate.number?text:dim}}>{numEl}</span>
+            <div onPointerDown={()=>setSection("number")} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",paddingLeft:72,transform:"scaleX(0.85)",transformOrigin:"center",...hl("number")}}>
+              <span style={{fontSize:138,color:plate.number?text:dim}}>{numEl}</span>
             </div>
           </div>
         </div>
@@ -203,7 +203,7 @@ function PlatePanel({ plate, onChange }: {
       </div>
 
       {/* 入力パネル */}
-      <div className="flex flex-col overflow-hidden" style={{width:960}}>
+      <div className="flex flex-col overflow-hidden flex-1">
         {/* セクションバナー */}
         <div className="flex items-center px-6 flex-shrink-0" style={{
           height:80,background:sectionColors[section],
@@ -259,9 +259,6 @@ function PlatePanel({ plate, onChange }: {
           {/* ② 分類番号 */}
           {section==="classNum" && (
             <div className="flex flex-col gap-4">
-              <div style={{fontSize:48,fontWeight:900,fontFamily:pf,letterSpacing:6,color:plate.classNum?"#1e293b":"#94a3b8",minHeight:60}}>
-                {plate.classNum||"・・・"}
-              </div>
               <div>
                 <div className="flex flex-col gap-2">
                   {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row,ri)=>(
@@ -330,9 +327,6 @@ function PlatePanel({ plate, onChange }: {
           {/* ④ 4桁番号 */}
           {section==="number" && (
             <div className="flex flex-col gap-4">
-              <div style={{fontSize:72,fontWeight:900,fontFamily:pf,color:plate.number?"#1e293b":"#94a3b8",minHeight:80,letterSpacing:4}}>
-                {plate.number || "・・・・"}
-              </div>
               <div className="flex flex-col gap-2">
                 {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row,ri)=>(
                   <div key={ri} className="flex gap-2">
