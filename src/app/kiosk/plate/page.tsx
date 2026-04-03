@@ -87,7 +87,7 @@ function BigPlate({
 
   const numDisplay = (() => {
     const num = plate.number;
-    if (!num) return <span style={{ opacity: 0.35 }}>{"・・-・・"}</span>;
+    if (!num) return <span style={{ opacity: 0.55 }}>{"・・-・・"}</span>;
     const len = num.length;
     return (
       <>
@@ -97,7 +97,7 @@ function BigPlate({
           return (
             <span key={pos} style={{ display: "inline-flex", alignItems: "center" }}>
               {pos === 2 && <span style={{ visibility: len >= 3 ? "visible" : "hidden" }}>-</span>}
-              {ch !== null ? <span>{ch}</span> : <span style={{ opacity: 0.35 }}>・</span>}
+              {ch !== null ? <span>{ch}</span> : <span style={{ opacity: 0.55 }}>・</span>}
             </span>
           );
         })}
@@ -145,7 +145,7 @@ function BigPlate({
             ...hl("classNum"),
           }}
         >
-          {plate.classNum || <span style={{ opacity: 0.4 }}>・・・</span>}
+          {plate.classNum || <span style={{ opacity: 0.6 }}>・・・</span>}
         </div>
       </div>
 
@@ -161,7 +161,7 @@ function BigPlate({
             lineHeight: 1, ...hl("hira"),
           }}
         >
-          {plate.hira || <span style={{ opacity: 0.4 }}>あ</span>}
+          {plate.hira || <span style={{ opacity: 0.6 }}>あ</span>}
         </div>
         <div
           onPointerDown={() => onTap("number")}
@@ -240,13 +240,13 @@ export default function PlatePage() {
     "text-gray-900 select-none touch-none " +
     "shadow-[0_5px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-1 transition-all duration-75";
 
-  /* 右パネル幅 = 50vw。キーパッドは最大 600px、かなボタンは 10列 */
+  /* 右パネル幅 = 40vw。キーパッドは最大 520px、かなボタンは 10列 */
   const keyH  = "clamp(60px, 7.5vh, 100px)";
   const keyFs = "clamp(26px, 4vh, 58px)";
-  /* かなグリッド: 50vw内で10列 → 1列≒4.6vw */
-  const kanaW = "clamp(44px, 4.5vw, 68px)";
-  const kanaH = "clamp(44px, 6.5vh, 82px)";
-  const kanaFs= "clamp(16px, 2.2vw, 30px)";
+  /* かなグリッド: 40vw内で10列 → 1列≒3.6vw */
+  const kanaW = "clamp(40px, 3.6vw, 60px)";
+  const kanaH = "clamp(48px, 7.5vh, 88px)";
+  const kanaFs= "clamp(14px, 1.8vw, 26px)";
 
   return (
     <div
@@ -278,34 +278,97 @@ export default function PlatePage() {
       <div className="flex-1 flex overflow-hidden">
 
         {/* ════════════════════════════════
-            左半分 (50vw)  ── プレート表示
+            左60vw  ── プレート表示
         ════════════════════════════════ */}
         <div
-          className="flex flex-col items-center justify-center gap-4 flex-shrink-0"
+          className="flex flex-col flex-shrink-0"
           style={{
-            width: "50vw",
-            background: "rgba(255,255,255,0.38)",
-            borderRight: "2px solid #C0D8F0",
+            width: "60vw",
+            background: "#1A2F50",
+            borderRight: "3px solid #0D1E35",
           }}
         >
-          {/* プレート: 2:1 比、左半分幅いっぱいに */}
-          <div
-            style={{
-              width: "min(46vw, 90%)",
-              aspectRatio: "2 / 1",
-            }}
-          >
-            {mounted && (
-              <BigPlate
-                plate={plate}
-                active={active}
-                onTap={(s) => { setActive(s); setForceEdit(true); }}
-              />
-            )}
+          {/* 上部ラベル */}
+          <div style={{
+            padding: "16px 28px 0",
+            color: "rgba(255,255,255,0.45)",
+            fontSize: "clamp(13px, 1.6vh, 20px)",
+            fontWeight: 700,
+            letterSpacing: "0.15em",
+          }}>
+            ナンバープレート
           </div>
-          <p style={{ fontSize: "clamp(13px, 1.6vh, 20px)", color: "#7AAAD0", fontWeight: 600 }}>
-            ▲ プレートの文字をタッチすると修正できます
-          </p>
+
+          {/* プレート本体: 左カラム幅いっぱい、flex-1で縦も広げる */}
+          <div className="flex-1 flex items-center justify-center" style={{ padding: "12px 28px" }}>
+            <div style={{ width: "calc(60vw - 56px)", aspectRatio: "2 / 1" }}>
+              {mounted && (
+                <BigPlate
+                  plate={plate}
+                  active={active}
+                  onTap={(s) => { setActive(s); setForceEdit(true); }}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* 下部: 入力ステップ進捗 */}
+          <div style={{ padding: "0 28px 20px" }}>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 8,
+            }}>
+              {(["region","classNum","hira","number"] as Section[]).map((s, i) => {
+                const labels = ["地名","分類番号","ひらがな","番号"];
+                const vals   = [plate.region, plate.classNum, plate.hira, plate.number];
+                const filled = !!vals[i];
+                const isCurrent = active === s && !isComplete;
+                return (
+                  <button
+                    key={s}
+                    onPointerDown={() => { setActive(s); setForceEdit(true); }}
+                    style={{
+                      borderRadius: 12,
+                      border: isCurrent ? "2px solid #FFE600" : "2px solid rgba(255,255,255,0.15)",
+                      background: filled ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)",
+                      padding: "10px 6px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <div style={{
+                      fontSize: "clamp(11px, 1.3vh, 17px)",
+                      color: filled ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.3)",
+                      marginBottom: 4,
+                      fontWeight: 600,
+                    }}>
+                      {["①","②","③","④"][i]} {labels[i]}
+                    </div>
+                    <div style={{
+                      fontSize: "clamp(14px, 2vh, 26px)",
+                      fontWeight: 900,
+                      color: filled ? "#fff" : "rgba(255,255,255,0.2)",
+                      letterSpacing: "0.05em",
+                      lineHeight: 1.2,
+                    }}>
+                      {vals[i] || "─"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{
+              textAlign: "center",
+              marginTop: 10,
+              fontSize: "clamp(12px, 1.5vh, 18px)",
+              color: "rgba(255,255,255,0.3)",
+              fontWeight: 600,
+            }}>
+              ▲ プレートまたはカードをタッチすると修正できます
+            </p>
+          </div>
         </div>
 
         {/* ════════════════════════════════
