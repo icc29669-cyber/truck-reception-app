@@ -36,11 +36,16 @@ const REGION_MAP: Record<string, string[]> = {
   ら:[],り:[],る:[],れ:[],ろ:[], わ:["和歌山"], を:[], ん:[],
 };
 const KANA_ROWS: (string|null)[][] = [
-  ["わ","ら","や","ま","は","な","た","さ","か","あ"],
-  ["を","り",null,"み","ひ","に","ち","し","き","い"],
-  ["ん","る","ゆ","む","ふ","ぬ","つ","す","く","う"],
-  [null,"れ",null,"め","へ","ね","て","せ","け","え"],
-  [null,"ろ","よ","も","ほ","の","と","そ","こ","お"],
+  ["あ","い","う","え","お"],
+  ["か","き","く","け","こ"],
+  ["さ","し","す","せ","そ"],
+  ["た","ち","つ","て","と"],
+  ["な","に","ぬ","ね","の"],
+  ["は","ひ","ふ","へ","ほ"],
+  ["ま","み","む","め","も"],
+  ["や",null,"ゆ",null,"よ"],
+  ["ら","り","る","れ","ろ"],
+  ["わ","を",null,null,"ん"],
 ];
 const HIRA_ROWS: (string|null)[][] = KANA_ROWS;
 const HIRA_UNUSABLE = new Set(["し","へ","ん","お"]);
@@ -241,7 +246,7 @@ function PlatePanel({ plate, onChange }: {
                 <div className="flex flex-wrap gap-3">
                   {(REGION_MAP[kanaFilter]||[]).map(r=>(
                     <button key={r} onPointerDown={()=>{onChange({region:r});setKanaFilter(null);setTimeout(()=>setSection("classNum"),100);}}
-                      className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_3px_0_#BDBDBD] active:translate-y-[2px] transition-all"
+                      className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-blue-50 shadow-[0_3px_0_#BDBDBD] active:translate-y-[2px] transition-all"
                       style={{height:72,padding:"0 24px",fontSize:30,minWidth:120}}>
                       {r}
                     </button>
