@@ -59,11 +59,11 @@ export default function PhonePage() {
     submit(phone);
   }
 
-  const W   = 160;  // テンキーボタン幅
-  const WP  = 150;  // プレフィックスボタン幅
-  const WA  = 160;  // アクションボタン幅
+  const W   = 180;  // テンキーボタン幅
+  const WP  = 165;  // プレフィックスボタン幅
+  const WA  = 180;  // アクションボタン幅
   const H   = 120;  // ボタン高さ
-  const GAP = 16;   // ボタン間隔（広めに）
+  const GAP = 24;   // ボタン間隔
 
   // 3カラム合計幅（プレフィックス列 + テンキー列 + アクション列）
   const totalW = WP + GAP + (W * 3 + GAP * 2) + GAP + WA;
@@ -89,26 +89,36 @@ export default function PhonePage() {
         >
           戻る
         </button>
-        <h1 className="flex-1 font-bold text-white text-center" style={{ fontSize: 36 }}>
-          電話番号を入力してください
-        </h1>
+        <div style={{ flex: 1 }} />
         <div style={{ width: 140 }} />
       </div>
 
       {/* メインエリア */}
       <div className="flex-1 flex flex-col items-center justify-center pb-6" style={{ gap: GAP + 8 }}>
 
-        {/* ── 入力表示（大きく）── */}
+        {/* ── ラベル＋入力表示（同じ枠）── */}
         <div
           suppressHydrationWarning
-          className="rounded-2xl border-4 flex items-center justify-center transition-colors"
+          className="rounded-2xl border-4 flex flex-col items-center justify-center transition-colors"
           style={{
             width: totalW,
-            height: 120,
-            background: phone ? "#FFF9C4" : "#f1f5f9",
-            borderColor: phone ? "#F59E0B" : "#CBD5E1",
+            borderColor: phone ? "#F59E0B" : "#93C5FD",
+            background: phone ? "#FFF9C4" : "rgba(255,255,255,0.72)",
+            paddingTop: 18,
+            paddingBottom: 18,
+            gap: 6,
           }}
         >
+          <div
+            style={{
+              fontSize: 28,
+              fontWeight: 800,
+              color: phone ? "#92400E" : "#1a3a6b",
+              letterSpacing: "0.12em",
+            }}
+          >
+            電話番号を入力してください
+          </div>
           <span
             className="font-black tracking-widest"
             style={{ fontSize: 72, color: phone ? "#1a1a1a" : "#94a3b8" }}
@@ -129,7 +139,7 @@ export default function PhonePage() {
                 className="flex items-center justify-center font-bold rounded-2xl text-white
                   shadow-[0_5px_0_#1E40AF] active:shadow-[0_1px_0_#1E40AF] active:translate-y-[3px]
                   select-none touch-none transition-all duration-75"
-                style={{ width: WP, height: H, fontSize: 32, background: "#3B82F6" }}
+                style={{ width: WP, height: H, fontSize: 34, background: "#3B82F6" }}
               >
                 {prefix}
               </button>
