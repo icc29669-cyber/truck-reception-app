@@ -23,152 +23,122 @@ export default function PhonePage() {
 
   const isValid = phone.length >= 10 && phone.length <= 11;
 
-  async function pressAndAdvance(next: string) {
-    if (next.length >= 11) {
-      // 11桁で自動進行
-      setPhone(next);
-      const session = getKioskSession();
-      setLoading(true);
-      try {
-        const result = await lookupByPhone(next, session.centerId);
-        setKioskSession({
-          phone: next,
-          driverInput: { ...session.driverInput, phone: next },
-          driverCandidates: result.drivers,
-          vehicleCandidates: result.vehicles,
-          selectedDriver: null,
-          selectedVehicle: null,
-        });
-        router.push("/kiosk/person");
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-    setPhone(next);
-  }
-
-  function press(d: string) {
-    if (phone.length >= 11) return;
-    pressAndAdvance(phone + d);
-  }
-
-  function pressPrefix(prefix: string) {
-    pressAndAdvance(prefix);
-  }
-
-  async function handleOk() {
-    if (!isValid || loading) return;
+  async function submit(p: string) {
+    const session = getKioskSession();
     setLoading(true);
     try {
-      const session = getKioskSession();
-      const result = await lookupByPhone(phone, session.centerId);
+      const result = await lookupByPhone(p, session.centerId);
       setKioskSession({
-        phone,
-        driverInput: { ...session.driverInput, phone },
+        phone: p,
+        driverInput: { ...session.driverInput, phone: p },
         driverCandidates: result.drivers,
         vehicleCandidates: result.vehicles,
         selectedDriver: null,
         selectedVehicle: null,
       });
-      // 候補数に関わらず /kiosk/person で3パターンを統合処理
       router.push("/kiosk/person");
     } finally {
       setLoading(false);
     }
   }
 
-  // ボタン共通スタイル
-  const numBtn =
-    "flex items-center justify-center font-black rounded-2xl border-2 border-gray-300 bg-white text-gray-900 active:bg-gray-200 select-none touch-none transition-all duration-75";
+  function press(d: string) {
+    if (phone.length >= 11 || loading) return;
+    const next = phone + d;
+    setPhone(next);
+    if (next.length >= 11) submit(next);
+  }
 
-  const NUM_W = 440;
-  const NUM_H = 200;
+  function pressPrefix(prefix: string) {
+    if (loading) return;
+    setPhone(prefix);
+  }
+
+  async function handleOk() {
+    if (!isValid || loading) return;
+    submit(phone);
+  }
+
+  const W = 160; // ボタン幅
+  const H = 118; // ボタン高さ
+  const GAP = 10;
+
+  const numBtn = `flex items-center justify-center font-black rounded-2xl bg-white border-2 border-gray-200
+    text-gray-900 shadow-[0_4px_0_#CBD5E1] active:shadow-[0_1px_0_#CBD5E1] active:translate-y-[3px]
+    select-none touch-none transition-all duration-75`;
 
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
+      style={{ background: "linear-gradient(160deg,#E8F4FD 0%,#D0E8FA 50%,#B8D8F6 100%)" }}
     >
-      {/* ヘッダーバー */}
+      {/* ヘッダー */}
       <div
-        className="flex items-center px-10 flex-shrink-0"
-        style={{
-          background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)",
-          height: 100,
-        }}
+        className="flex items-center px-8 flex-shrink-0"
+        style={{ background: "linear-gradient(90deg,#1a3a6b 0%,#1E5799 100%)", height: 80 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/caution")}
-          className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 70, width: 200, fontSize: 32 }}
+          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800"
+          style={{ height: 56, width: 140, fontSize: 26 }}
         >
           戻る
         </button>
-        <h1
-          className="flex-1 font-bold text-white text-center"
-          style={{ fontSize: 44 }}
-        >
+        <h1 className="flex-1 font-bold text-white text-center" style={{ fontSize: 36 }}>
           電話番号を入力してください
         </h1>
-        {/* 右側スペーサー（戻るボタンと対称） */}
-        <div style={{ width: 200 }} />
+        <div style={{ width: 140 }} />
       </div>
 
-      {/* 入力表示エリア */}
-      <div className="flex justify-center px-10 pt-4 pb-4">
+      {/* メインエリア: 縦中央揃え */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-8 pb-6">
+
+        {/* 入力表示 */}
         <div
           suppressHydrationWarning
-          className="rounded-3xl border-4 flex items-center justify-center px-10 transition-colors"
+          className="rounded-2xl border-4 flex items-center justify-center transition-colors"
           style={{
-            width: "100%",
-            maxWidth: 1200,
-            height: 160,
-            background: phone ? "#FFF176" : "#f3f4f6",
-            borderColor: phone ? "#f59e0b" : "#d1d5db",
+            width: W * 3 + GAP * 2 + 16 + 160,
+            height: 100,
+            background: phone ? "#FFF9C4" : "#f1f5f9",
+            borderColor: phone ? "#F59E0B" : "#CBD5E1",
           }}
         >
           <span
             className="font-black tracking-widest"
-            style={{
-              fontSize: 88,
-              color: phone ? "#1a1a1a" : "#9ca3af",
-            }}
+            style={{ fontSize: 58, color: phone ? "#1a1a1a" : "#94a3b8" }}
           >
             {phone ? fmtPhone(phone) : "090-0000-0000"}
           </span>
         </div>
-      </div>
 
-      {/* テンキーエリア */}
-      <div className="flex-1 flex justify-center px-10 pb-6">
-        <div className="flex gap-6 h-full">
-          {/* 左側: プレフィックス + 数字 */}
-          <div className="flex flex-col gap-3">
-            {/* 070/080/090 ショートカット */}
-            <div className="flex gap-3">
+        {/* テンキー + 操作ボタン */}
+        <div className="flex" style={{ gap: 16 }}>
+
+          {/* 左：数字キー */}
+          <div className="flex flex-col" style={{ gap: GAP }}>
+            {/* 070/080/090 */}
+            <div className="flex" style={{ gap: GAP }}>
               {["070", "080", "090"].map((prefix) => (
                 <button
                   key={prefix}
                   onPointerDown={() => pressPrefix(prefix)}
-                  className="flex items-center justify-center font-bold rounded-2xl border-2 border-blue-500 bg-blue-500 text-white text-4xl active:bg-blue-600 touch-none"
-                  style={{ width: 440, height: 130 }}
+                  className="flex items-center justify-center font-bold rounded-2xl text-white
+                    shadow-[0_4px_0_#1E40AF] active:shadow-[0_1px_0_#1E40AF] active:translate-y-[3px]
+                    select-none touch-none transition-all duration-75"
+                  style={{ width: W, height: 82, fontSize: 30, background: "#3B82F6" }}
                 >
                   {prefix}
                 </button>
               ))}
             </div>
 
-            {/* 数字キー 1〜9 */}
-            {[["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]].map((row, ri) => (
-              <div key={ri} className="flex gap-3">
+            {/* 1〜9 */}
+            {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
+              <div key={ri} className="flex" style={{ gap: GAP }}>
                 {row.map((k) => (
-                  <button
-                    key={k}
-                    onPointerDown={() => press(k)}
-                    className={numBtn}
-                    style={{ width: NUM_W, height: NUM_H, fontSize: 80 }}
-                  >
+                  <button key={k} onPointerDown={() => press(k)}
+                    className={numBtn} style={{ width: W, height: H, fontSize: 52 }}>
                     {k}
                   </button>
                 ))}
@@ -176,44 +146,50 @@ export default function PhonePage() {
             ))}
 
             {/* 0 */}
-            <div className="flex gap-3">
-              <button
-                onPointerDown={() => press("0")}
+            <div className="flex" style={{ gap: GAP }}>
+              <button onPointerDown={() => press("0")}
                 className={numBtn}
-                style={{ width: NUM_W * 3 + 24, height: NUM_H, fontSize: 80 }}
-              >
+                style={{ width: W * 3 + GAP * 2, height: H, fontSize: 52 }}>
                 0
               </button>
             </div>
           </div>
 
-          {/* 右側: すべて消す / 1文字消す / OK */}
-          <div className="flex flex-col gap-3">
+          {/* 右：操作ボタン */}
+          <div className="flex flex-col" style={{ gap: GAP, width: 160 }}>
             <button
               onPointerDown={() => setPhone("")}
-              className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white text-3xl active:bg-red-600 touch-none"
-              style={{ width: 320, height: 170 }}
+              className="flex items-center justify-center font-bold rounded-2xl text-white
+                shadow-[0_4px_0_#991B1B] active:shadow-[0_1px_0_#991B1B] active:translate-y-[3px]
+                select-none touch-none transition-all duration-75"
+              style={{ height: 82, fontSize: 22, background: "#EF4444" }}
             >
-              すべて消す
+              全消し
             </button>
             <button
               onPointerDown={() => setPhone(phone.slice(0, -1))}
-              className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white text-3xl active:bg-orange-500 touch-none"
-              style={{ width: 320, height: 170 }}
+              className="flex items-center justify-center font-bold rounded-2xl text-white
+                shadow-[0_4px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px]
+                select-none touch-none transition-all duration-75"
+              style={{ height: H, fontSize: 22, background: "#F97316" }}
             >
-              1文字消す
+              1文字<br/>消す
             </button>
             <button
               onPointerDown={handleOk}
               disabled={!isValid || loading}
-              className={`flex items-center justify-center font-black rounded-2xl border-2 text-white text-6xl touch-none flex-1 transition-colors ${
-                isValid && !loading
-                  ? "border-green-700 bg-green-600 active:bg-green-700"
-                  : "border-gray-400 bg-gray-400 cursor-not-allowed"
-              }`}
-              style={{ width: 320, minHeight: 300 }}
+              className={`flex items-center justify-center font-black rounded-2xl text-white
+                select-none touch-none transition-all duration-75 flex-1
+                ${isValid && !loading
+                  ? "shadow-[0_4px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-[3px]"
+                  : "opacity-40 cursor-not-allowed"
+                }`}
+              style={{
+                fontSize: 44,
+                background: isValid && !loading ? "#22C55E" : "#9CA3AF",
+              }}
             >
-              {loading ? "..." : "OK"}
+              {loading ? "…" : "OK"}
             </button>
           </div>
         </div>

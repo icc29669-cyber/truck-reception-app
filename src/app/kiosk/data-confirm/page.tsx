@@ -176,30 +176,30 @@ function PlatePanel({ plate, onChange }: {
   return (
     <div className="flex gap-6 h-full justify-center px-8">
       {/* BigPlate */}
-      <div className="flex flex-col items-center justify-center flex-shrink-0" style={{width:660}}>
+      <div className="flex flex-col items-center justify-center flex-shrink-0" style={{width:400}}>
         <div style={{
-          width:640,height:320,background:bg,border:`6px solid ${border}`,
-          borderRadius:16,boxShadow:"0 10px 32px rgba(0,0,0,0.35)",
-          display:"flex",flexDirection:"column",padding:"12px 28px 16px",boxSizing:"border-box",userSelect:"none",
+          width:380,height:190,background:bg,border:`5px solid ${border}`,
+          borderRadius:12,boxShadow:"0 6px 20px rgba(0,0,0,0.28)",
+          display:"flex",flexDirection:"column",padding:"8px 18px 10px",boxSizing:"border-box",userSelect:"none",
         }}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
             <div onPointerDown={()=>setSection("region")} style={hl("region")}>
-              <span style={{fontSize:52,fontWeight:900,fontFamily:pf,color:plate.region?text:dim}}>{plate.region||"地名"}</span>
+              <span style={{fontSize:32,fontWeight:900,fontFamily:pf,color:plate.region?text:dim}}>{plate.region||"地名"}</span>
             </div>
             <div onPointerDown={()=>setSection("classNum")} style={hl("classNum")}>
-              <span style={{fontSize:52,fontWeight:900,fontFamily:pf,letterSpacing:4,color:plate.classNum?text:dim}}>{plate.classNum||"・・・"}</span>
+              <span style={{fontSize:32,fontWeight:900,fontFamily:pf,letterSpacing:3,color:plate.classNum?text:dim}}>{plate.classNum||"・・・"}</span>
             </div>
           </div>
           <div style={{flex:1,display:"flex",alignItems:"center",position:"relative"}}>
             <div onPointerDown={()=>setSection("hira")} style={{position:"absolute",left:0,...hl("hira")}}>
-              <span style={{fontSize:76,fontWeight:900,fontFamily:pf,color:plate.hira?text:dim,lineHeight:1}}>{plate.hira||"あ"}</span>
+              <span style={{fontSize:44,fontWeight:900,fontFamily:pf,color:plate.hira?text:dim,lineHeight:1}}>{plate.hira||"あ"}</span>
             </div>
-            <div onPointerDown={()=>setSection("number")} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",paddingLeft:72,transform:"scaleX(0.85)",transformOrigin:"center",...hl("number")}}>
-              <span style={{fontSize:138,color:plate.number?text:dim}}>{numEl}</span>
+            <div onPointerDown={()=>setSection("number")} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",paddingLeft:44,transform:"scaleX(0.85)",transformOrigin:"center",...hl("number")}}>
+              <span style={{fontSize:82,color:plate.number?text:dim}}>{numEl}</span>
             </div>
           </div>
         </div>
-        <p style={{marginTop:10,fontSize:16,color:"rgba(0,0,0,0.4)",fontWeight:600}}>各部分をタッチして切り替え</p>
+        <p style={{marginTop:8,fontSize:14,color:"rgba(0,0,0,0.4)",fontWeight:600}}>各部分をタッチして切り替え</p>
       </div>
 
       {/* 入力パネル */}
