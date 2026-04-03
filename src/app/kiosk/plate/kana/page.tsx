@@ -43,13 +43,18 @@ const REGION_MAP: Record<string, string[]> = {
   を: [], ん: [],
 };
 
-// カーナビ方式: 右から左へ（あ行が右端、わ行が左端）
+// 五十音表: 左から右へ（あ行が上、わ行が下）
 const HIRA_ROWS: (string | null)[][] = [
-  ["わ", "ら", "や", "ま", "は", "な", "た", "さ", "か", "あ"],
-  ["を", "り",  null, "み", "ひ", "に", "ち", "し", "き", "い"],
-  ["ん", "る", "ゆ", "む", "ふ", "ぬ", "つ", "す", "く", "う"],
-  [null, "れ",  null, "め", "へ", "ね", "て", "せ", "け", "え"],
-  [null, "ろ", "よ", "も", "ほ", "の", "と", "そ", "こ", "お"],
+  ["あ", "い", "う", "え", "お"],
+  ["か", "き", "く", "け", "こ"],
+  ["さ", "し", "す", "せ", "そ"],
+  ["た", "ち", "つ", "て", "と"],
+  ["な", "に", "ぬ", "ね", "の"],
+  ["は", "ひ", "ふ", "へ", "ほ"],
+  ["ま", "み", "む", "め", "も"],
+  ["や", null, "ゆ", null, "よ"],
+  ["ら", "り", "る", "れ", "ろ"],
+  ["わ", "を", null, null, "ん"],
 ];
 
 export default function PlateKanaPage() {
@@ -65,7 +70,7 @@ export default function PlateKanaPage() {
   }
 
   const GAP = 8;
-  const BTN_SIZE = 110;
+  const BTN_SIZE = 96;
 
   return (
     <div
@@ -92,11 +97,11 @@ export default function PlateKanaPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* 左カラム: ひらがな選択グリッド */}
         <div
-          className="flex flex-col items-center px-6 py-5 border-r border-blue-200 flex-shrink-0 overflow-y-auto"
-          style={{ width: 1260, background: "transparent" }}
+          className="flex flex-col items-center px-4 py-5 border-r border-blue-200 flex-shrink-0 overflow-y-auto"
+          style={{ background: "transparent" }}
         >
-          <p className="text-5xl font-bold text-gray-800 mb-5 text-center">
-            地名の最初のひと文字をタッチしてください
+          <p className="text-3xl font-bold text-gray-800 mb-4 text-center">
+            地名の最初の文字をタッチ
           </p>
 
           {/* カーナビ方式グリッド */}

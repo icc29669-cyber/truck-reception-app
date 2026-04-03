@@ -19,6 +19,10 @@ export default function PlateNumberPage() {
     setValue(v);
     const session = getKioskSession();
     setKioskSession({ plate: { ...session.plate, number: v } });
+    // 4桁入力で自動進行
+    if (v.length === 4) {
+      router.push("/kiosk/data-confirm");
+    }
   }
 
   function handleOK() {
@@ -44,7 +48,7 @@ export default function PlateNumberPage() {
           戻る
         </button>
         <h1 className="flex-1 text-center text-white font-bold" style={{ fontSize: 40 }}>
-          4桁のナンバーを入力してください
+          ナンバーの数字を入力してください（1〜4桁）
         </h1>
         <PlateDisplay
           plate={{ ...getKioskSession().plate, number: value }}

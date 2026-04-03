@@ -23,13 +23,38 @@ export default function PhonePage() {
 
   const isValid = phone.length >= 10 && phone.length <= 11;
 
+  async function pressAndAdvance(next: string) {
+    if (next.length >= 11) {
+      // 11桁で自動進行
+      setPhone(next);
+      const session = getKioskSession();
+      setLoading(true);
+      try {
+        const result = await lookupByPhone(next, session.centerId);
+        setKioskSession({
+          phone: next,
+          driverInput: { ...session.driverInput, phone: next },
+          driverCandidates: result.drivers,
+          vehicleCandidates: result.vehicles,
+          selectedDriver: null,
+          selectedVehicle: null,
+        });
+        router.push("/kiosk/person");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    setPhone(next);
+  }
+
   function press(d: string) {
     if (phone.length >= 11) return;
-    setPhone(phone + d);
+    pressAndAdvance(phone + d);
   }
 
   function pressPrefix(prefix: string) {
-    setPhone(prefix);
+    pressAndAdvance(prefix);
   }
 
   async function handleOk() {
