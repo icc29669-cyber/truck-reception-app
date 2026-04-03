@@ -126,7 +126,7 @@ export default function KioskTop() {
             marginBottom: "6vh",
             textShadow: "0 2px 20px rgba(0,0,0,0.3)",
           }}>
-            おつかれさまです
+            いらっしゃいませ
           </div>
 
           {/* タッチターゲット（パルスリング付き） */}
@@ -155,15 +155,14 @@ export default function KioskTop() {
               transition: "all 0.1s",
               transform: pressed ? "scale(0.96)" : "scale(1)",
             }}>
-              <div style={{ fontSize: "3vh", color: "rgba(255,255,255,0.5)", letterSpacing: "0.18em" }}>
-                受付がお済みでない方
-              </div>
               <div style={{
-                fontSize: "4.5vh", fontWeight: 900, color: "#fff",
-                letterSpacing: "0.2em",
+                fontSize: "3.8vh", fontWeight: 900, color: "#fff",
+                letterSpacing: "0.15em",
                 textShadow: "0 0 30px rgba(150,200,255,0.6)",
+                lineHeight: 1.5,
+                textAlign: "center",
               }}>
-                タッチ
+                受付は<br/>こちらから
               </div>
             </div>
           </div>
