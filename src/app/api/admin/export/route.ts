@@ -19,16 +19,29 @@ export async function GET(req: NextRequest) {
   const from = req.nextUrl.searchParams.get("from");
   const to = req.nextUrl.searchParams.get("to");
 
-  const fromDate = from ? new Date(from) : new Date();
-  fromDate.setHours(0, 0, 0, 0);
-  const toDate = to ? new Date(to) : new Date();
-  toDate.setHours(23, 59, 59, 999);
+  // Parse dates as local midnight to avoid UTC offset issues
+  let fromDate: Date;
+  let toDate: Date;
+  if (from) {
+    const [y, m, d] = from.split("-").map(Number);
+    fromDate = new Date(y, m - 1, d, 0, 0, 0, 0);
+  } else {
+    const now = new Date();
+    fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  }
+  if (to) {
+    const [y, m, d] = to.split("-").map(Number);
+    toDate = new Date(y, m - 1, d + 1, 0, 0, 0, 0);
+  } else {
+    const now = new Date();
+    toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  }
 
   try {
     const receptions = await prisma.reception.findMany({
       where: {
         ...(centerId ? { centerId } : {}),
-        arrivedAt: { gte: fromDate, lte: toDate },
+        arrivedAt: { gte: fromDate, lt: toDate },
       },
       include: { center: { select: { name: true } } },
       orderBy: [{ centerId: "asc" }, { arrivedAt: "asc" }],
@@ -47,7 +60,8 @@ export async function GET(req: NextRequest) {
     }));
 
     const csv = toCSV(rows as Record<string, string | number>[]);
-    const filename = `reception_${fromDate.toISOString().slice(0, 10)}_${toDate.toISOString().slice(0, 10)}.csv`;
+    const fmtLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const filename = `reception_${from || fmtLocal(fromDate)}_${to || fmtLocal(fromDate)}.csv`;
 
     return new NextResponse(csv, {
       headers: {

@@ -15,38 +15,39 @@ function fmtPhone(d: string): string {
 }
 
 /* ━━ ステップドット ━━ */
-function StepDots({ current }: { current: number }) {
+function StepDots({ current, completed }: { current: number; completed?: boolean[] }) {
   const labels = ["電話番号", "お名前", "車　両", "最終確認"];
   return (
-    <div className="flex items-center gap-3 flex-shrink-0">
+    <div className="flex items-center gap-4">
       {labels.map((label, i) => {
         const step = i + 1;
-        const done = step < current;
+        const done = completed ? (completed[i] ?? false) : step < current;
         const active = step === current;
         return (
-          <div key={i} className="flex items-center gap-3">
-            <div className="flex flex-col items-center" style={{ minWidth: 64 }}>
+          <div key={i} className="flex items-center gap-4">
+            <div className="flex flex-col items-center" style={{ minWidth: 72 }}>
               <div style={{
-                width: 40, height: 40, borderRadius: "50%",
+                width: 52, height: 52, borderRadius: "50%",
                 background: done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.25)",
                 border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, fontWeight: 900,
+                fontSize: 22, fontWeight: 900,
                 color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
               }}>
                 {done ? "✓" : step}
               </div>
               <span style={{
-                fontSize: 13, fontWeight: 700, marginTop: 2,
+                fontSize: 15, fontWeight: 700, marginTop: 4,
                 color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.4)",
                 whiteSpace: "nowrap",
               }}>{label}</span>
             </div>
             {i < labels.length - 1 && (
               <div style={{
-                width: 48, height: 2,
+                width: 56, height: 3,
                 background: done ? "#4ade80" : "rgba(255,255,255,0.2)",
-                marginBottom: 18,
+                borderRadius: 2,
+                marginBottom: 20,
               }} />
             )}
           </div>
@@ -56,36 +57,74 @@ function StepDots({ current }: { current: number }) {
   );
 }
 
-/* ━━ プレート表示（中） ━━ */
-function PlateView({ plate }: { plate: PlateInput }) {
+/* ━━ インタラクティブプレート ━━ */
+type PlateSection = "region" | "classNum" | "hira" | "number";
+
+function InteractivePlate({ plate, onTap }: {
+  plate: PlateInput;
+  onTap: (section: PlateSection) => void;
+}) {
   const color = detectPlateColor(plate.classNum, plate.hira);
   const { bg, text, dim, border } = COLOR_CONFIG[color];
   const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
   const len = plate.number.length;
+
+  const tapStyle = (hasVal: boolean): React.CSSProperties => ({
+    cursor: "pointer",
+    borderRadius: 8,
+    border: "3px solid transparent",
+    transition: "border-color 0.12s",
+    color: hasVal ? text : dim,
+    fontFamily: pf,
+    fontWeight: 900,
+    userSelect: "none",
+  });
+
   return (
     <div style={{
-      width: 360, height: 180, background: bg, border: `5px solid ${border}`,
-      borderRadius: 12, display: "flex", flexDirection: "column",
-      padding: "8px 18px 10px", boxSizing: "border-box", userSelect: "none",
-      boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+      width: 500, height: 250, background: bg, border: `5px solid ${border}`,
+      borderRadius: 16, display: "flex", flexDirection: "column",
+      padding: "8px 18px 10px", boxSizing: "border-box",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.28)", flexShrink: 0,
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-        <span style={{ fontSize: 30, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+        <div
+          onPointerDown={() => onTap("region")}
+          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
+          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
+          style={{ ...tapStyle(!!plate.region), fontSize: 40, padding: "3px 10px" }}
+        >
           {plate.region || "地名"}
-        </span>
-        <span style={{ fontSize: 30, fontWeight: 900, fontFamily: pf, letterSpacing: 3, color: plate.classNum ? text : dim }}>
+        </div>
+        <div
+          onPointerDown={() => onTap("classNum")}
+          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
+          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
+          style={{ ...tapStyle(!!plate.classNum), fontSize: 40, letterSpacing: 4, padding: "3px 10px" }}
+        >
           {plate.classNum || "・・・"}
-        </span>
+        </div>
       </div>
       <div style={{ flex: 1, display: "flex", alignItems: "center", position: "relative" }}>
-        <span style={{ position: "absolute", left: 0, fontSize: 46, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1 }}>
+        <div
+          onPointerDown={() => onTap("hira")}
+          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
+          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
+          style={{ ...tapStyle(!!plate.hira), position: "absolute", left: 0, fontSize: 64, lineHeight: 1, padding: "2px 6px" }}
+        >
           {plate.hira || "あ"}
-        </span>
-        <span style={{
-          flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-          paddingLeft: 52, fontSize: 80, color: plate.number ? text : dim,
-          transform: "scaleX(0.85)", transformOrigin: "center", fontFamily: pf, fontWeight: 900,
-        }}>
+        </div>
+        <div
+          onPointerDown={() => onTap("number")}
+          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
+          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
+          style={{
+            ...tapStyle(!!plate.number),
+            flex: 1, marginLeft: 80, fontSize: 104,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transform: "scaleX(0.85)", transformOrigin: "center", padding: "2px 0",
+          }}
+        >
           {[0, 1, 2, 3].map(pos => {
             const hasDigit = pos >= (4 - len);
             const ch = hasDigit ? plate.number[pos - (4 - len)] : null;
@@ -96,66 +135,117 @@ function PlateView({ plate }: { plate: PlateInput }) {
               </span>
             );
           })}
-        </span>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ━━ 確認行コンポーネント ━━ */
-function ConfirmSection({
-  icon, title, rows, onEdit,
-}: {
-  icon: string;
-  title: string;
-  rows: { label: string; value: string; highlight?: boolean }[];
-  onEdit: () => void;
+/* ━━ アイコン定義 ━━ */
+const IconPhone = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36">
+    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+  </svg>
+);
+const IconPerson = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36">
+    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+  </svg>
+);
+const IconTruck = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36">
+    <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+  </svg>
+);
+
+type SectionIconType = "phone" | "person" | "truck";
+const ICON_CONFIG: Record<SectionIconType, { bg: string; color: string; el: React.ReactNode; colBg: string }> = {
+  phone:  { bg: "#FEE2E2", color: "#EF4444", el: <IconPhone />,  colBg: "#FFF5F5" },
+  person: { bg: "#EDE9FE", color: "#8B5CF6", el: <IconPerson />, colBg: "#F9F5FF" },
+  truck:  { bg: "#DBEAFE", color: "#3B82F6", el: <IconTruck />,  colBg: "#F0F7FF" },
+};
+
+/* ━━ セクションカード（左ラベル型） ━━ */
+function SectionCard({ iconType, title, hint, children, style }: {
+  iconType: SectionIconType; title: string; hint?: string; children: React.ReactNode; style?: React.CSSProperties;
+}) {
+  const ic = ICON_CONFIG[iconType];
+  return (
+    <div style={{
+      display: "flex", background: "#fff", borderRadius: 22, overflow: "hidden",
+      boxShadow: "0 2px 20px rgba(0,0,0,0.08)", ...style,
+    }}>
+      {/* 左：アイコン＋タイトル */}
+      <div style={{
+        width: 160, background: ic.colBg, borderRight: "1.5px solid #EEF0F3",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", gap: 10, padding: "20px 10px", flexShrink: 0,
+      }}>
+        <div style={{
+          width: 68, height: 68, borderRadius: "50%", background: ic.bg,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: ic.color,
+        }}>
+          {ic.el}
+        </div>
+        <span style={{ fontSize: 22, fontWeight: 700, color: "#374151", textAlign: "center", lineHeight: 1.3 }}>
+          {title}
+        </span>
+        {hint && (
+          <span style={{ fontSize: 13, color: "#9CA3AF", textAlign: "center", lineHeight: 1.4 }}>
+            {hint}
+          </span>
+        )}
+      </div>
+      {/* 右：コンテンツ */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>{children}</div>
+    </div>
+  );
+}
+
+/* ━━ フィールド行 ━━ */
+function FieldRow({ label, value, onEdit, tall = false }: {
+  label: string; value: string; onEdit: () => void; tall?: boolean;
 }) {
   return (
     <div style={{
-      borderRadius: 16, overflow: "hidden",
-      border: "2px solid #E5E7EB",
-      boxShadow: "0 4px 16px rgba(0,0,0,0.07)",
+      display: "flex", alignItems: "center",
+      padding: "0 36px 0 48px",
+      borderBottom: "1px solid #F0F3F7",
+      minHeight: tall ? 120 : 100, gap: 0,
     }}>
-      {/* セクションヘッダー */}
-      <div style={{
-        background: "#F8FAFC", borderBottom: "2px solid #E5E7EB",
-        padding: "14px 28px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+      {/* ラベル */}
+      <span style={{
+        fontSize: 22, fontWeight: 600, color: "#94A3B8",
+        width: 150, flexShrink: 0, letterSpacing: "0.04em",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 28 }}>{icon}</span>
-          <span style={{ fontSize: 26, fontWeight: 700, color: "#374151" }}>{title}</span>
-        </div>
-        <button
-          onPointerDown={onEdit}
-          className="flex items-center justify-center gap-2 font-bold rounded-xl border-2 border-blue-500 bg-blue-500 text-white active:bg-blue-600 select-none touch-none transition-all"
-          style={{ height: 60, padding: "0 24px", fontSize: 24 }}
-        >
-          ✎ 修正する
-        </button>
-      </div>
-      {/* 行 */}
-      {rows.map((row, i) => (
-        <div key={i} style={{
-          display: "flex", alignItems: "center",
-          padding: "18px 28px", background: "#fff",
-          borderBottom: i < rows.length - 1 ? "1px solid #F3F4F6" : "none",
-          minHeight: 88,
-        }}>
-          <span style={{ fontSize: 24, fontWeight: 600, color: "#9CA3AF", width: 200, flexShrink: 0 }}>
-            {row.label}
-          </span>
-          <span style={{
-            fontSize: row.highlight ? 44 : 36,
-            fontWeight: 900,
-            color: row.value ? "#111827" : "#EF4444",
-            letterSpacing: row.highlight ? "0.05em" : "normal",
-          }}>
-            {row.value || "未入力"}
-          </span>
-        </div>
-      ))}
+        {label}
+      </span>
+      {/* 値 */}
+      <span style={{
+        flex: 1, fontSize: 56, fontWeight: 800,
+        color: value ? "#1E293B" : "#EF4444",
+        letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        lineHeight: 1.2,
+      }}>
+        {value || "未入力"}
+      </span>
+      {/* 修正ボタン */}
+      <button
+        onPointerDown={onEdit}
+        className="select-none touch-none"
+        style={{
+          width: 160, height: 72, fontSize: 24, fontWeight: 700,
+          background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+          color: "#fff", border: "none",
+          borderRadius: 14, flexShrink: 0, cursor: "pointer",
+          boxShadow: "0 4px 0 #1d4ed8",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          marginLeft: 20,
+        }}
+      >
+        <span style={{ fontSize: 20 }}>✎</span> 修正
+      </button>
     </div>
   );
 }
@@ -184,6 +274,7 @@ export default function FinalConfirmPage() {
         centerId: sessionData.centerId,
         plate: sessionData.plate,
         driverInput: sessionData.driverInput,
+        reservationId: sessionData.selectedReservation?.id,
       });
       setKioskSession({ receptionResult: result });
       router.push("/kiosk/complete");
@@ -195,142 +286,253 @@ export default function FinalConfirmPage() {
 
   if (!sessionData) return <div className="w-screen h-screen" style={{ background: "#1e3a5f" }} />;
 
-  const { driverInput, plate, phone } = sessionData;
+  const { driverInput, plate, phone, selectedReservation } = sessionData;
   const plateStr = formatPlate(plate);
-  const isComplete = driverInput.companyName && driverInput.driverName && plateStr;
+  const isComplete = !!(driverInput.companyName && driverInput.driverName && plateStr);
+
+  const phoneComplete = !!(phone || driverInput.phone);
+  const personComplete = !!(driverInput.companyName && driverInput.driverName);
+  const vehicleComplete = !!plateStr;
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg,#E8F4FD 0%,#D0E8FA 50%,#B8D8F6 100%)" }}>
+      style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)" }}>
 
       {/* ━━ ヘッダー ━━ */}
-      <div className="flex items-center flex-shrink-0 px-8 gap-6"
-        style={{ background: "linear-gradient(90deg,#1a3a6b 0%,#1E5799 100%)", height: 100 }}>
-        <button
-          onPointerDown={() => router.push("/kiosk/vehicle")}
-          className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 70, width: 180, fontSize: 28 }}
-        >◀ 戻る</button>
-        <h1 className="flex-1 font-bold text-white text-center" style={{ fontSize: 40 }}>
-          内容をご確認ください
-        </h1>
-        <StepDots current={4} />
+      <div className="flex flex-col flex-shrink-0" style={{ padding: "0 56px 16px" }}>
+        {/* ナビ行 */}
+        <div className="flex items-center" style={{ height: 84 }}>
+          <button
+            onPointerDown={() => router.push("/kiosk/vehicle")}
+            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
+            style={{ height: 60, width: 160, fontSize: 28 }}
+          >◀ 戻る</button>
+          <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+            <StepDots current={4} completed={[phoneComplete, personComplete, vehicleComplete, true]} />
+          </div>
+          <div style={{ width: 160 }} />
+        </div>
+        {/* タイトル */}
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 52, fontWeight: 800, color: "#fff", letterSpacing: "0.1em" }}>
+            内容をご確認ください
+          </div>
+          <div style={{ fontSize: 22, color: "rgba(255,255,255,0.6)", marginTop: 6, letterSpacing: "0.08em" }}>
+            修正したい項目をタップしてください
+          </div>
+        </div>
       </div>
 
-      {/* ━━ メイン ━━ */}
-      <div className="flex-1 flex gap-6 px-10 py-6 overflow-hidden">
+      {/* ━━ メインコンテンツ ━━ */}
+      <div className="flex-1 flex overflow-hidden" style={{ padding: "10px 40px 20px 56px", gap: 32 }}>
 
-        {/* 左：確認カード群 */}
-        <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
+        {/* 左：セクションカード群 */}
+        <div className="flex flex-col flex-1" style={{ gap: 18, minHeight: 0, justifyContent: "center" }}>
 
           {/* 連絡先 */}
-          <ConfirmSection
-            icon="📞"
-            title="連絡先"
-            rows={[{ label: "電話番号", value: fmtPhone(phone || driverInput.phone) }]}
-            onEdit={() => router.push("/kiosk/phone")}
-          />
+          <SectionCard iconType="phone" title="連絡先">
+            <FieldRow
+              label="電話番号"
+              value={fmtPhone(phone || driverInput.phone)}
+              onEdit={() => router.push("/kiosk/phone?from=final-confirm")}
+              tall
+            />
+          </SectionCard>
 
-          {/* 人情報 */}
-          <ConfirmSection
-            icon="👤"
-            title="ご本人"
-            rows={[
-              { label: "運送会社名", value: driverInput.companyName },
-              { label: "お名前", value: driverInput.driverName, highlight: true },
-            ]}
-            onEdit={() => router.push("/kiosk/person")}
-          />
+          {/* ご本人 */}
+          <SectionCard iconType="person" title="ご本人">
+            <FieldRow
+              label="運送会社名"
+              value={driverInput.companyName}
+              onEdit={() => router.push("/kiosk/person?from=final-confirm&field=company")}
+            />
+            <FieldRow
+              label="お名前"
+              value={driverInput.driverName}
+              onEdit={() => router.push("/kiosk/person?from=final-confirm&field=name")}
+            />
+          </SectionCard>
 
-          {/* 車両情報 */}
-          <ConfirmSection
-            icon="🚛"
-            title="車両"
-            rows={[
-              { label: "車番", value: plateStr, highlight: true },
-              { label: "最大積載量", value: driverInput.maxLoad ? `${Number(driverInput.maxLoad).toLocaleString()} kg` : "" },
-            ]}
-            onEdit={() => router.push("/kiosk/vehicle")}
-          />
+          {/* 車両ナンバー＋最大積載 */}
+          <SectionCard iconType="truck" title="車両情報">
+            <div style={{ display: "flex", flexDirection: "column", padding: "18px 36px 22px 48px", gap: 14 }}>
+              {/* ヒント */}
+              <div>
+                <span style={{
+                  fontSize: 15, color: "#92400E", background: "#FEF3C7",
+                  borderRadius: 20, padding: "5px 18px", fontWeight: 700,
+                  letterSpacing: "0.05em", border: "1px solid #FDE68A",
+                }}>
+                  👆 ナンバーをタップして修正
+                </span>
+              </div>
+              {/* プレート（左）＋最大積載（右） */}
+              <div style={{ display: "flex", alignItems: "stretch", justifyContent: "space-between" }}>
+                <InteractivePlate
+                  plate={plate}
+                  onTap={(section) => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
+                />
+                {/* 最大積載量ボックス */}
+                <div style={{
+                  width: 360, flexShrink: 0, background: "#FFF7ED", borderRadius: 18,
+                  border: "2px solid #FED7AA", display: "flex", flexDirection: "column",
+                  alignItems: "center", justifyContent: "center",
+                  padding: "20px 24px", boxSizing: "border-box",
+                  gap: 12,
+                }}>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
+                    最大積載量
+                  </span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span style={{
+                      fontSize: driverInput.maxLoad ? 72 : 28, fontWeight: 900, lineHeight: 1,
+                      color: driverInput.maxLoad ? "#EA580C" : "#FCA5A5",
+                    }}>
+                      {driverInput.maxLoad ? Number(driverInput.maxLoad).toLocaleString() : "未入力"}
+                    </span>
+                    {driverInput.maxLoad && (
+                      <span style={{ fontSize: 26, fontWeight: 700, color: "#EA580C" }}>kg</span>
+                    )}
+                  </div>
+                  <button
+                    onPointerDown={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
+                    className="select-none touch-none"
+                    style={{
+                      width: 180, height: 72, fontSize: 22, fontWeight: 700,
+                      background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+                      color: "#fff", border: "none",
+                      borderRadius: 14, cursor: "pointer",
+                      boxShadow: "0 4px 0 #1d4ed8",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      marginTop: 4,
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>✎</span> 修正
+                  </button>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
 
           {error && (
             <div style={{
               background: "#FEF2F2", border: "2px solid #FCA5A5",
-              borderRadius: 12, padding: "16px 24px",
+              borderRadius: 12, padding: "14px 20px",
             }}>
-              <p style={{ fontSize: 26, fontWeight: 700, color: "#DC2626" }}>{error}</p>
+              <p style={{ fontSize: 24, fontWeight: 700, color: "#DC2626" }}>{error}</p>
             </div>
           )}
         </div>
 
-        {/* 右：プレート + 受付ボタン */}
-        <div className="flex flex-col items-center gap-6 flex-shrink-0" style={{ width: 460 }}>
-          {/* プレート表示 */}
-          <div style={{
-            background: "#fff", borderRadius: 20,
-            border: "2px solid #E5E7EB", padding: "28px 24px",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 16,
-            width: "100%",
-          }}>
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#9CA3AF" }}>ナンバープレート</span>
-            <PlateView plate={plate} />
-            <span style={{ fontSize: 32, fontWeight: 900, color: "#111827", letterSpacing: "0.05em" }}>
-              {plateStr || "未入力"}
-            </span>
-          </div>
+        {/* 右：予約バナー＋受付ボタン */}
+        <div className="flex flex-col flex-shrink-0" style={{ width: 320, gap: selectedReservation ? 20 : 0 }}>
+          {/* 予約時間バナー（予約ありの場合のみ） */}
+          {selectedReservation && (
+            <div style={{
+              flex: 1,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              background: "linear-gradient(160deg,#F59E0B 0%,#D97706 100%)",
+              borderRadius: 28, gap: 6,
+              boxShadow: "0 6px 0 #92400E, 0 12px 40px rgba(245,158,11,0.45)",
+              padding: "20px 24px",
+              border: "4px solid rgba(255,255,255,0.35)",
+              position: "relative",
+              overflow: "hidden",
+            }}>
+              {/* 背景装飾 */}
+              <div style={{
+                position: "absolute", top: -30, right: -30,
+                width: 120, height: 120, borderRadius: "50%",
+                background: "rgba(255,255,255,0.12)",
+              }} />
+              <div style={{
+                position: "absolute", bottom: -20, left: -20,
+                width: 80, height: 80, borderRadius: "50%",
+                background: "rgba(255,255,255,0.08)",
+              }} />
+              {/* ラベル */}
+              <span style={{
+                fontSize: 20, fontWeight: 800, color: "#fff",
+                background: "rgba(0,0,0,0.18)", borderRadius: 30,
+                padding: "5px 20px", letterSpacing: "0.12em",
+                zIndex: 1,
+              }}>
+                📅 予約時間
+              </span>
+              {/* 時間 */}
+              <span style={{
+                fontSize: 64, fontWeight: 900, color: "#fff",
+                lineHeight: 1, zIndex: 1,
+                textShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              }}>
+                {selectedReservation.startTime}
+              </span>
+              <span style={{
+                fontSize: 24, fontWeight: 800, color: "rgba(255,255,255,0.7)",
+                zIndex: 1,
+              }}>▼</span>
+              <span style={{
+                fontSize: 64, fontWeight: 900, color: "#fff",
+                lineHeight: 1, zIndex: 1,
+                textShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              }}>
+                {selectedReservation.endTime}
+              </span>
+            </div>
+          )}
 
-          {/* 受付ボタン */}
+          {/* 受付するボタン */}
           <button
             onPointerDown={handleRegister}
             disabled={loading || !isComplete}
-            className="w-full flex flex-col items-center justify-center font-black rounded-2xl text-white select-none touch-none transition-all"
+            className="flex flex-col items-center justify-center select-none touch-none"
             style={{
-              flex: 1,
-              fontSize: 52,
+              flex: selectedReservation ? 1 : undefined,
+              alignSelf: selectedReservation ? undefined : "stretch",
+              height: selectedReservation ? undefined : "100%",
+              borderRadius: 28, border: "none",
               background: (loading || !isComplete)
                 ? "linear-gradient(180deg,#9CA3AF,#6B7280)"
-                : "linear-gradient(180deg,#16a34a,#166534)",
-              boxShadow: (loading || !isComplete) ? "0 5px 0 #4B5563" : "0 8px 0 #14532d, 0 12px 32px rgba(22,163,74,0.4)",
+                : "linear-gradient(180deg,#22C55E 0%,#16A34A 100%)",
+              boxShadow: (loading || !isComplete)
+                ? "0 6px 0 #4B5563"
+                : "0 8px 0 #14532d, 0 14px 48px rgba(22,163,74,0.4)",
               cursor: (loading || !isComplete) ? "not-allowed" : "pointer",
-              letterSpacing: "0.08em",
+              gap: selectedReservation ? 8 : 14,
             }}
           >
             {loading ? (
               <>
-                <span style={{ fontSize: 48 }}>⏳</span>
-                <span style={{ fontSize: 36, marginTop: 8 }}>受付中...</span>
+                <span style={{ fontSize: selectedReservation ? 48 : 64, color: "#fff" }}>⏳</span>
+                <span style={{ fontSize: selectedReservation ? 28 : 36, fontWeight: 900, color: "#fff" }}>受付中...</span>
               </>
             ) : (
               <>
-                <span style={{ fontSize: 56 }}>✓</span>
-                <span>受　付</span>
-                <span>す　る</span>
+                <span style={{ fontSize: selectedReservation ? 60 : 88, color: "#fff", lineHeight: 1 }}>✓</span>
+                <span style={{
+                  fontSize: selectedReservation ? 40 : 52, fontWeight: 900, color: "#fff",
+                  letterSpacing: "0.12em", lineHeight: 1.3,
+                }}>
+                  受付する
+                </span>
+                <span style={{ fontSize: selectedReservation ? 18 : 22, color: "rgba(255,255,255,0.7)", letterSpacing: "0.06em" }}>
+                  問題なければタップ
+                </span>
               </>
             )}
-          </button>
-
-          {/* やり直しリンク */}
-          <button
-            onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
-            style={{
-              fontSize: 22, color: "#6B7280", textDecoration: "underline",
-              padding: "8px 0", flexShrink: 0,
-            }}
-          >
-            ← 最初からやり直す
           </button>
         </div>
       </div>
 
-      {/* 注意文言 */}
+      {/* ━━ 下部注意文言 ━━ */}
       <div style={{
-        height: 64, background: "#FFF8E1", borderTop: "2px solid #FDE68A",
+        height: 56, background: "#FFF8E1", borderTop: "2px solid #FDE68A",
         display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
       }}>
-        <span style={{ fontSize: 22, color: "#92400E", fontWeight: 600 }}>
-          ⚠ 内容をご確認の上、「受付する」ボタンを押してください。修正がある場合は各セクションの「修正する」を押してください。
+        <span style={{ fontSize: 20, color: "#92400E", fontWeight: 600, letterSpacing: "0.03em" }}>
+          ⚠ 修正したい項目をタップすると各項目の入力画面に戻ります。修正後、自動的にこの確認画面に戻ります。
         </span>
       </div>
     </div>

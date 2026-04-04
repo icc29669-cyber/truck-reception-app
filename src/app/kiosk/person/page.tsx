@@ -12,35 +12,36 @@ type InputField = "company" | "name";
 function StepDots({ current }: { current: number }) {
   const labels = ["電話番号", "お名前", "車　両", "最終確認"];
   return (
-    <div className="flex items-center gap-3 flex-shrink-0">
+    <div className="flex items-center gap-4">
       {labels.map((label, i) => {
         const step = i + 1;
         const done = step < current;
         const active = step === current;
         return (
-          <div key={i} className="flex items-center gap-3">
-            <div className="flex flex-col items-center" style={{ minWidth: 64 }}>
+          <div key={i} className="flex items-center gap-4">
+            <div className="flex flex-col items-center" style={{ minWidth: 72 }}>
               <div style={{
-                width: 40, height: 40, borderRadius: "50%",
+                width: 52, height: 52, borderRadius: "50%",
                 background: done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.25)",
                 border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, fontWeight: 900,
+                fontSize: 22, fontWeight: 900,
                 color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
               }}>
                 {done ? "✓" : step}
               </div>
               <span style={{
-                fontSize: 13, fontWeight: 700, marginTop: 2,
+                fontSize: 15, fontWeight: 700, marginTop: 4,
                 color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.4)",
                 whiteSpace: "nowrap",
               }}>{label}</span>
             </div>
             {i < labels.length - 1 && (
               <div style={{
-                width: 48, height: 2,
+                width: 56, height: 3,
                 background: done ? "#4ade80" : "rgba(255,255,255,0.2)",
-                marginBottom: 18,
+                borderRadius: 2,
+                marginBottom: 20,
               }} />
             )}
           </div>
@@ -66,7 +67,7 @@ function CandidateCard({
       onPointerLeave={() => setPressed(false)}
       className="w-full flex items-center text-left select-none touch-none transition-all duration-75"
       style={{
-        height: 152, borderRadius: 14,
+        height: 152, borderRadius: 22,
         background: pressed ? "#EFF6FF" : "#fff",
         border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
         boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
@@ -122,38 +123,51 @@ export default function PersonPage() {
   const [name, setName] = useState("");
   const [inputField, setInputField] = useState<InputField>("company");
   const [mounted, setMounted] = useState(false);
+  const [fromFinal, setFromFinal] = useState(false);
 
   useEffect(() => {
     if (initRef.current) return;
     initRef.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const fromParam = params.get("from");
+    const fieldParam = params.get("field");
+    const isFromFinal = fromParam === "final-confirm";
+    setFromFinal(isFromFinal);
+
     const s = getKioskSession();
     setCandidates(s.driverCandidates ?? []);
-    const n = s.driverCandidates?.length ?? 0;
-    if (n === 0) {
-      setMode("input");
-    } else if (n === 1) {
-      setConfirmTarget(s.driverCandidates[0]);
-      setMode("confirm");
-    } else {
-      setMode("select");
-    }
     // 既存入力値を復元
     setCompany(s.driverInput?.companyName ?? "");
     setName(s.driverInput?.driverName ?? "");
+
+    if (isFromFinal) {
+      setMode("input");
+      setInputField(fieldParam === "name" ? "name" : "company");
+    } else {
+      const n = s.driverCandidates?.length ?? 0;
+      if (n === 0) {
+        setMode("input");
+      } else if (n === 1) {
+        setConfirmTarget(s.driverCandidates[0]);
+        setMode("confirm");
+      } else {
+        setMode("select");
+      }
+    }
     setMounted(true);
   }, []);
 
-  /* 候補を選択 → 車両ページへ */
+  /* 候補を選択 → 車両ページへ（final-confirmから来た場合はfinal-confirmへ） */
   function selectCandidate(c: DriverCandidate) {
     const s = getKioskSession();
     setKioskSession({
       selectedDriver: c,
       driverInput: { ...s.driverInput, companyName: c.companyName, driverName: c.name },
     });
-    router.push("/kiosk/vehicle");
+    router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/vehicle");
   }
 
-  /* 手入力を確定 → 車両ページへ */
+  /* 手入力を確定 */
   function submitInput() {
     if (!company || !name) return;
     const s = getKioskSession();
@@ -161,7 +175,7 @@ export default function PersonPage() {
       selectedDriver: null,
       driverInput: { ...s.driverInput, companyName: company, driverName: name },
     });
-    router.push("/kiosk/vehicle");
+    router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/vehicle");
   }
 
   /* companyとnameをセッションに保存 */
@@ -184,20 +198,51 @@ export default function PersonPage() {
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden" style={{ background: bgStyle }}>
 
       {/* ━━ ヘッダー ━━ */}
-      <div className="flex items-center flex-shrink-0 px-8 gap-6"
-        style={{ background: "linear-gradient(90deg,#1a3a6b 0%,#1E5799 100%)", height: 100 }}>
-        <button
-          onPointerDown={() => router.push("/kiosk/phone")}
-          className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 70, width: 180, fontSize: 28 }}
-        >◀ 戻る</button>
-        <h1 className="flex-1 font-bold text-white text-center" style={{ fontSize: 40 }}>
-          {mode === "select" ? "お名前を選んでください" :
-           mode === "confirm" ? "ご本人の確認" :
-           inputField === "company" ? "運送会社名を入力してください" :
-           "お名前を入力してください"}
-        </h1>
-        <StepDots current={2} />
+      <div className="flex flex-col flex-shrink-0 items-center"
+        style={{
+          background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",
+          paddingBottom: mode === "input" ? 52 : 24,
+        }}>
+        <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
+          <button
+            onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/phone")}
+            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+            style={{ height: 60, width: 160, fontSize: 28 }}
+          >◀ 戻る</button>
+          <div style={{ flex: 1 }} />
+          <StepDots current={2} />
+        </div>
+        <div style={{ marginBottom: mode === "input" ? 20 : 0 }}>
+          <span style={{ fontSize: 48, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
+            {mode === "select" ? "お名前を選んでください" :
+             mode === "confirm" ? "ご本人の確認" :
+             inputField === "company" ? "運送会社名を入力してください" :
+             "お名前を入力してください"}
+          </span>
+        </div>
+        {/* 入力モードのみ：入力表示ボックスをヘッダー内に表示 */}
+        {mode === "input" && (
+          <div
+            suppressHydrationWarning
+            className="rounded-2xl border-4 flex items-center px-8 transition-colors"
+            style={{
+              width: 1200,
+              height: 110,
+              borderColor: (inputField === "company" ? company : name) ? "#F59E0B" : "rgba(255,255,255,0.55)",
+              background: "#FFFFFF",
+            }}
+          >
+            <span style={{
+              fontSize: 64, fontWeight: 900,
+              color: (inputField === "company" ? company : name) ? "#111827" : "#94a3b8",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {inputField === "company"
+                ? (company || "（運送会社名を入力してください）")
+                : (name || "（お名前を入力してください）")}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ━━ メインコンテンツ ━━ */}
@@ -242,7 +287,7 @@ export default function PersonPage() {
           <div className="h-full flex flex-col items-center justify-center px-10 gap-8">
             {/* 確認カード */}
             <div style={{
-              width: 1200, borderRadius: 20,
+              width: 1200, borderRadius: 22,
               border: "3px solid #16a34a",
               background: "#fff",
               boxShadow: "0 12px 48px rgba(0,0,0,0.14)",
@@ -287,7 +332,7 @@ export default function PersonPage() {
                 className="flex-1 flex items-center justify-center gap-4 font-black rounded-2xl text-white active:brightness-90 select-none touch-none transition-all"
                 style={{
                   height: 132, fontSize: 44,
-                  background: "linear-gradient(180deg,#16a34a,#166534)",
+                  background: "linear-gradient(180deg,#22C55E,#16A34A)",
                   boxShadow: "0 6px 0 #14532d, 0 8px 24px rgba(22,163,74,0.4)",
                 }}
               >
@@ -311,35 +356,18 @@ export default function PersonPage() {
 
         {/* ── 入力モード：運送会社名 ── */}
         {mode === "input" && inputField === "company" && (
-          <div className="h-full flex flex-col px-10 pt-5 pb-4 gap-3">
-            {/* 入力中フィールド表示 */}
-            <div style={{
-              background: company ? "#FFF9C4" : "#f8fafc",
-              border: `3px solid ${company ? "#F59E0B" : "#e2e8f0"}`,
-              borderRadius: 14, padding: "14px 28px",
-              display: "flex", alignItems: "center", flexShrink: 0, minHeight: 80,
-            }}>
-              <span style={{
-                fontSize: 44, fontWeight: 900,
-                color: company ? "#111827" : "#94a3b8",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {company || "（運送会社名を入力してください）"}
-              </span>
-            </div>
-            {/* キーボード */}
-            <div className="flex-1 flex items-center justify-center overflow-hidden">
+          <div className="h-full flex flex-col items-center justify-center px-10 py-6 gap-4">
+            <div className="flex-1 flex items-center justify-center overflow-hidden py-8">
               <KatakanaKeyboard
                 value={company}
                 onChange={saveCompany}
                 onComplete={() => setInputField("name")}
               />
             </div>
-            {/* 一覧に戻るリンク */}
             {candidates.length > 0 && (
               <button
                 onPointerDown={() => setMode("select")}
-                style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline", flexShrink: 0, padding: "4px 0" }}
+                style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline", flexShrink: 0 }}
               >
                 ← 一覧から選ぶに戻る
               </button>
@@ -349,34 +377,26 @@ export default function PersonPage() {
 
         {/* ── 入力モード：お名前 ── */}
         {mode === "input" && inputField === "name" && (
-          <div className="h-full flex flex-col px-10 pt-5 pb-4 gap-3">
-            {/* 入力中フィールド表示 */}
-            <div style={{
-              background: name ? "#FFF9C4" : "#f8fafc",
-              border: `3px solid ${name ? "#F59E0B" : "#e2e8f0"}`,
-              borderRadius: 14, padding: "14px 28px",
-              display: "flex", alignItems: "center", flexShrink: 0, minHeight: 80,
-            }}>
-              <span style={{
-                fontSize: 44, fontWeight: 900,
-                color: name ? "#111827" : "#94a3b8",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {name || "（お名前を入力してください）"}
-              </span>
-            </div>
-            {/* キーボード */}
-            <div className="flex-1 flex items-center justify-center overflow-hidden">
+          <div className="h-full flex flex-col items-center justify-center px-10 py-6 gap-4">
+            <div className="flex-1 flex items-center justify-center overflow-hidden py-8">
               <KatakanaKeyboard
                 value={name}
                 onChange={saveName}
-                onComplete={submitInput}
+                onComplete={() => {
+                  if (!name.trim()) return;
+                  if (fromFinal) {
+                    const s = getKioskSession();
+                    setKioskSession({ driverInput: { ...s.driverInput, companyName: company, driverName: name } });
+                    router.push("/kiosk/final-confirm");
+                  } else {
+                    submitInput();
+                  }
+                }}
               />
             </div>
-            {/* 会社名入力に戻る */}
             <button
               onPointerDown={() => setInputField("company")}
-              style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline", flexShrink: 0, padding: "4px 0" }}
+              style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline", flexShrink: 0 }}
             >
               ← 運送会社名の入力に戻る
             </button>

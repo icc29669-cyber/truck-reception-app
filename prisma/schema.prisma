@@ -15,18 +15,34 @@ model Center {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  receptions Reception[]
+  receptions   Reception[]
+  reservations Reservation[]
+}
+
+// ─── 運送会社 ──────────────────────────────────────────────
+model Company {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String   @default("")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  drivers Driver[]
 }
 
 // ─── ドライバー ────────────────────────────────────────────
 model Driver {
   id          Int      @id @default(autoincrement())
   name        String   // カタカナ
-  companyName String   // 運送会社名
+  companyName String   // 運送会社名（スナップショット）
   phone       String   // 電話番号（重複あり：同番で複数名）
+  isActive    Boolean  @default(true)
+  companyId   Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  company    Company?    @relation(fields: [companyId], references: [id])
   receptions Reception[]
 }
 
@@ -40,10 +56,65 @@ model Vehicle {
   vehicleNumber String   // フォーマット済み "多摩 500 あ 7917"
   maxLoad       String   @default("") // 最大積載量 kg
   phone         String   // 紐づく電話番号
+  isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   receptions Reception[]
+}
+
+// ─── ナンバープレート地名マスタ ────────────────────────────
+model PlateRegion {
+  id        Int     @id @default(autoincrement())
+  name      String  // 地名 例: "多摩"
+  kana      String  @default("") // 読み仮名 例: "たま"
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+}
+
+// ─── ナンバープレートひらがなマスタ ────────────────────────
+model PlateHiragana {
+  id        Int     @id @default(autoincrement())
+  char      String  // ひらがな1文字
+  category  String  @default("business") // business / rental / unavailable
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+}
+
+// ─── ナンバープレートアルファベットマスタ ──────────────────
+model PlateAlphabet {
+  id        Int     @id @default(autoincrement())
+  char      String  // アルファベット1文字
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+}
+
+// ─── バース予約 ────────────────────────────────────────────
+model Reservation {
+  id              Int      @id @default(autoincrement())
+  centerId        Int
+  phone           String   @default("")
+  driverName      String   @default("")
+  companyName     String   @default("")
+  plateRegion     String   @default("")
+  plateClassNum   String   @default("")
+  plateHira       String   @default("")
+  plateNumber     String   @default("")
+  vehicleNumber   String   @default("")
+  maxLoad         String   @default("")
+  reservationDate DateTime // 予約日
+  startTime       String   // "HH:mm"
+  endTime         String   // "HH:mm"
+  status          String   @default("pending") // pending / checked_in / completed / cancelled / no_show
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  center     Center      @relation(fields: [centerId], references: [id])
+  receptions Reception[]
+
+  @@index([phone, reservationDate])
+  @@index([centerId, reservationDate])
 }
 
 // ─── 受付記録 ──────────────────────────────────────────────
@@ -66,13 +137,15 @@ model Reception {
   vehicleNumber String @default("")
   maxLoad       String @default("")
 
-  // 参照（任意: 既存ドライバー/車両と紐づいている場合）
-  driverId  Int?
-  vehicleId Int?
+  // 参照（任意: 既存ドライバー/車両/予約と紐づいている場合）
+  driverId      Int?
+  vehicleId     Int?
+  reservationId Int?
 
-  center  Center   @relation(fields: [centerId], references: [id])
-  driver  Driver?  @relation(fields: [driverId], references: [id])
-  vehicle Vehicle? @relation(fields: [vehicleId], references: [id])
+  center      Center       @relation(fields: [centerId], references: [id])
+  driver      Driver?      @relation(fields: [driverId], references: [id])
+  vehicle     Vehicle?     @relation(fields: [vehicleId], references: [id])
+  reservation Reservation? @relation(fields: [reservationId], references: [id])
 
   @@index([centerId, arrivedAt])
 }

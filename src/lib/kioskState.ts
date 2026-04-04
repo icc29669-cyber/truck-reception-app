@@ -13,6 +13,8 @@ const DEFAULT: KioskSession = {
   vehicleCandidates: [],
   selectedVehicle: null,
   receptionResult: null,
+  reservationCandidates: [],
+  selectedReservation: null,
 };
 
 export function getKioskSession(): KioskSession {

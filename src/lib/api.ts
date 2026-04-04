@@ -1,5 +1,6 @@
 import type {
   ReceptionResult,
+  ReservationCandidate,
   DriverCandidate,
   VehicleCandidate,
   DriverInput,
@@ -137,18 +138,69 @@ export async function lookupByPhone(
   return res.json();
 }
 
+// ─── 予約検索 ──────────────────────────────────────────
+export async function lookupReservation(
+  phone: string,
+  centerId: number
+): Promise<ReservationCandidate[]> {
+  if (USE_MOCK) {
+    await delay(400);
+    if (phone.startsWith("090")) {
+      return [
+        {
+          id: 1,
+          startTime: "10:00",
+          endTime: "11:00",
+          driverName: "モウリ ケイイチ",
+          companyName: "ニホンセイフティー",
+          vehicleNumber: "多摩 500 あ 7917",
+          maxLoad: "13000",
+          plateRegion: "多摩",
+          plateClassNum: "500",
+          plateHira: "あ",
+          plateNumber: "7917",
+          status: "pending",
+        },
+        {
+          id: 2,
+          startTime: "14:00",
+          endTime: "15:00",
+          driverName: "ヨコタ ケイコ",
+          companyName: "ファルマン ウンユ",
+          vehicleNumber: "多摩 500 あ 1234",
+          maxLoad: "5000",
+          plateRegion: "多摩",
+          plateClassNum: "500",
+          plateHira: "あ",
+          plateNumber: "1234",
+          status: "pending",
+        },
+      ];
+    }
+    return [];
+  }
+  const res = await fetch(
+    `${BASE}/api/reception/lookup-reservation?phone=${encodeURIComponent(phone)}&centerId=${centerId}`,
+    { headers: headers() }
+  );
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export async function registerReception(params: {
   phone: string;
   centerId: number;
   plate?: PlateInput;
   driverInput?: DriverInput;
   driverData?: DriverInput;
+  reservationId?: number;
 }): Promise<ReceptionResult> {
   const normalizedParams = {
     phone: params.phone,
     centerId: params.centerId,
     plate: params.plate ?? { region: "", classNum: "", hira: "", number: "" },
     driverInput: params.driverInput ?? params.driverData ?? { companyName: "", driverName: "", phone: params.phone, maxLoad: "" },
+    reservationId: params.reservationId,
   };
   if (USE_MOCK) {
     await delay(800);

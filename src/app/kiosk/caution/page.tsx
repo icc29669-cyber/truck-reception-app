@@ -5,58 +5,85 @@ export default function CautionPage() {
   const router = useRouter();
 
   return (
-    <div
-      className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
-    >
-      {/* ヘッダー */}
-      <div
-        className="flex items-center justify-center px-16"
-        style={{ background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)", height: 120 }}
-      >
-        <h1 className="text-white font-black tracking-widest" style={{ fontSize: 52 }}>
+    <div className="w-screen h-screen overflow-hidden" style={{
+      display: "flex", flexDirection: "column",
+      userSelect: "none",
+      background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",
+    }}>
+      {/* ── ヘッダー ── */}
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        flexShrink: 0, paddingTop: 48, paddingBottom: 36,
+      }}>
+        <span style={{ fontSize: 52, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
           場内への入場前にご確認ください
-        </h1>
+        </span>
+        <span style={{ fontSize: 22, color: "rgba(255,255,255,0.6)", marginTop: 8, letterSpacing: "0.08em" }}>
+          以下の安全装備を必ず着用してください
+        </span>
       </div>
 
-      {/* メインコンテンツ */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-10 px-20">
+      {/* ── メインエリア ── */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        gap: 40, padding: "0 80px",
+      }}>
         {/* 2カード横並び */}
-        <div className="flex gap-12 w-full" style={{ maxWidth: 1400 }}>
+        <div style={{ display: "flex", gap: 48, width: "100%", maxWidth: 1600 }}>
           {/* ヘルメットカード */}
-          <div
-            className="flex-1 flex flex-col items-center gap-6 bg-white rounded-3xl border-4 border-blue-300 shadow-lg py-12"
-          >
-            <span style={{ fontSize: 140 }}>🪖</span>
-            <p className="font-black text-center text-gray-800" style={{ fontSize: 44 }}>
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+            gap: 24, background: "#fff", borderRadius: 22,
+            boxShadow: "0 2px 20px rgba(0,0,0,0.08)",
+            padding: "56px 40px",
+          }}>
+            <span style={{ fontSize: 180, lineHeight: 1 }}>🪖</span>
+            <p style={{ fontSize: 52, fontWeight: 900, color: "#1f2937", textAlign: "center", lineHeight: 1.4 }}>
               保護帽（ヘルメット）<br />の着用
             </p>
           </div>
-
           {/* 安全靴カード */}
-          <div
-            className="flex-1 flex flex-col items-center gap-6 bg-white rounded-3xl border-4 border-blue-300 shadow-lg py-12"
-          >
-            <span style={{ fontSize: 140 }}>👟</span>
-            <p className="font-black text-center text-gray-800" style={{ fontSize: 44 }}>
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+            gap: 24, background: "#fff", borderRadius: 22,
+            boxShadow: "0 2px 20px rgba(0,0,0,0.08)",
+            padding: "56px 40px",
+          }}>
+            <span style={{ fontSize: 180, lineHeight: 1 }}>👟</span>
+            <p style={{ fontSize: 52, fontWeight: 900, color: "#1f2937", textAlign: "center", lineHeight: 1.4 }}>
               安全靴の着用
             </p>
           </div>
         </div>
 
-        {/* 強調メッセージ */}
-        <p className="font-black text-red-600 tracking-widest" style={{ fontSize: 48 }}>
+        {/* 注意テキスト */}
+        <p style={{ fontSize: 52, fontWeight: 900, color: "#FCA5A5", letterSpacing: "0.12em" }}>
           ご協力をお願いします
         </p>
 
-        {/* 次へボタン */}
+        {/* 確認ボタン */}
         <button
           onPointerDown={() => router.push("/kiosk/phone")}
-          className="bg-[#2E7D32] text-white font-black rounded-3xl
-                     shadow-[0_14px_0_#1B5E20] active:shadow-[0_3px_0_#1B5E20]
-                     active:translate-y-[11px] transition-all duration-75 tracking-widest
-                     flex items-center justify-center border-4 border-[#4CAF50]"
-          style={{ width: 600, height: 180, fontSize: 60 }}
+          style={{
+            width: 860, height: 200, fontSize: 68, fontWeight: 900,
+            background: "linear-gradient(180deg,#22C55E 0%,#16A34A 100%)",
+            color: "#fff", border: "none",
+            borderRadius: 28,
+            boxShadow: "0 8px 0 #14532d, 0 14px 48px rgba(22,163,74,0.4)",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            letterSpacing: "0.1em",
+            transition: "transform 0.08s, box-shadow 0.08s",
+          }}
+          onPointerUp={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.boxShadow = "0 8px 0 #14532d, 0 14px 48px rgba(22,163,74,0.4)";
+          }}
+          onPointerLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.boxShadow = "0 8px 0 #14532d, 0 14px 48px rgba(22,163,74,0.4)";
+          }}
         >
           確認しました ✓
         </button>

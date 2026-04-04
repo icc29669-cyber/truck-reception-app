@@ -50,82 +50,119 @@ export default function CompletePage() {
     : "";
 
   return (
-    <div
-      className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
-    >
-      {/* ヘッダー */}
-      <div
-        className="flex items-center justify-center px-16 py-5"
-        style={{ background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)" }}
-      >
-        <div className="text-center">
-          <p className="text-white font-bold opacity-90" style={{ fontSize: 28 }}>
-            日本セイフティー株式会社
-          </p>
-          <p className="text-white font-black" style={{ fontSize: 40 }}>
-            {result?.centerName ?? ""}
-          </p>
+    <div className="w-screen h-screen overflow-hidden" style={{
+      display: "flex", flexDirection: "column",
+      userSelect: "none",
+      background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",
+    }}>
+      {/* ── ヘッダーセクション ── */}
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        flexShrink: 0, paddingTop: 48, paddingBottom: 40,
+      }}>
+        {/* 完了アイコン */}
+        <div style={{
+          width: 130, height: 130, borderRadius: "50%",
+          background: "#22C55E",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          marginBottom: 20,
+          boxShadow: "0 6px 24px rgba(34,197,94,0.4)",
+        }}>
+          <span style={{ fontSize: 72, color: "#fff", lineHeight: 1 }}>✓</span>
         </div>
-      </div>
 
-      {!result ? (
-        /* ローディング中 */
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-4xl font-bold text-gray-500">読み込み中...</p>
-        </div>
-      ) : (
-        /* メインコンテンツ */
-        <div className="flex-1 flex flex-col items-center justify-center gap-10 px-16">
-          {/* 完了メッセージ */}
-          <div
-            className="rounded-full bg-green-100 border-4 border-green-500 flex items-center justify-center"
-            style={{ width: 200, height: 200 }}
-          >
-            <span style={{ fontSize: 100, color: "#2E7D32" }}>✓</span>
-          </div>
-          <h1 className="font-black text-center" style={{ fontSize: 72, color: "#2E7D32" }}>
+        {/* タイトル */}
+        <div style={{ marginBottom: 32 }}>
+          <span style={{ fontSize: 56, fontWeight: 900, color: "#FFFFFF", letterSpacing: "0.12em" }}>
             受付完了
-          </h1>
+          </span>
+        </div>
 
-          {/* 日時と待機台数 */}
-          <div className="flex gap-10">
-            <div className="bg-white rounded-3xl border-2 border-gray-200 shadow-md px-12 py-6 text-center">
-              <p className="font-bold text-gray-500" style={{ fontSize: 30 }}>受付日時</p>
-              <p className="font-black text-gray-900" style={{ fontSize: 48 }}>{dateStr}</p>
+        {/* 受付情報ボックス */}
+        {result && (
+          <div style={{ display: "flex", gap: 32 }}>
+            <div style={{
+              borderRadius: 22, background: "#FFFFFF",
+              boxShadow: "0 2px 20px rgba(0,0,0,0.08)",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              padding: "28px 64px",
+            }}>
+              <p style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", marginBottom: 8 }}>受付日時</p>
+              <p style={{ fontSize: 48, fontWeight: 900, color: "#111827" }}>{dateStr}</p>
             </div>
-            <div className="bg-white rounded-3xl border-2 border-blue-200 shadow-md px-12 py-6 text-center">
-              <p className="font-bold text-gray-500" style={{ fontSize: 30 }}>現在の待機台数</p>
-              <p className="font-black text-blue-700" style={{ fontSize: 72 }}>
-                {result.waitingCount}
-                <span style={{ fontSize: 40 }}>台</span>
+            {result.reservation && (
+              <div style={{
+                borderRadius: 22, background: "#EFF6FF",
+                border: "3px solid #93C5FD",
+                boxShadow: "0 2px 20px rgba(0,0,0,0.08)",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                padding: "28px 64px",
+              }}>
+                <p style={{ fontSize: 24, fontWeight: 600, color: "#1E40AF", marginBottom: 8 }}>📅 予約時間</p>
+                <p style={{ fontSize: 48, fontWeight: 900, color: "#1E40AF" }}>
+                  {result.reservation.startTime} 〜 {result.reservation.endTime}
+                </p>
+              </div>
+            )}
+            <div style={{
+              borderRadius: 22, background: "#FFFFFF",
+              boxShadow: "0 2px 20px rgba(0,0,0,0.08)",
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              padding: "28px 64px",
+            }}>
+              <p style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", marginBottom: 8 }}>現在の待機台数</p>
+              <p style={{ fontSize: 64, fontWeight: 900, color: "#1E5799" }}>
+                {result.waitingCount}<span style={{ fontSize: 36 }}>台</span>
               </p>
             </div>
           </div>
+        )}
+      </div>
 
-          {/* 案内テキスト */}
-          <div
-            className="rounded-3xl border-4 border-amber-400 px-16 py-8 text-center"
-            style={{ background: "#FFF8E1", maxWidth: 900 }}
-          >
-            <p className="font-black text-amber-900" style={{ fontSize: 48 }}>
+      {/* ── メインエリア ── */}
+      {!result ? (
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <p style={{ fontSize: 40, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>読み込み中...</p>
+        </div>
+      ) : (
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          gap: 32, padding: "0 80px",
+        }}>
+          {/* 案内カード */}
+          <div style={{
+            borderRadius: 22, background: "#FFF8E1",
+            border: "4px solid #FDE68A",
+            boxShadow: "0 2px 20px rgba(0,0,0,0.08)",
+            padding: "40px 80px",
+            textAlign: "center",
+            maxWidth: 1100,
+          }}>
+            <p style={{ fontSize: 52, fontWeight: 900, color: "#92400E", lineHeight: 1.5 }}>
               受付票を取り<br />受付カウンターへお進みください
             </p>
           </div>
 
           {/* カウントダウン */}
-          <p className="font-bold text-gray-500" style={{ fontSize: 32 }}>
+          <p style={{ fontSize: 32, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}>
             {countdown}秒後に自動的に最初の画面に戻ります
           </p>
 
           {/* 戻るボタン */}
           <button
             onPointerDown={goHome}
-            className="bg-[#2E7D32] text-white font-black rounded-3xl
-                       shadow-[0_14px_0_#1B5E20] active:shadow-[0_3px_0_#1B5E20]
-                       active:translate-y-[11px] transition-all duration-75
-                       flex items-center justify-center border-4 border-[#4CAF50]"
-            style={{ width: 600, height: 160, fontSize: 52 }}
+            style={{
+              width: 760, height: 180, fontSize: 56, fontWeight: 900,
+              background: "linear-gradient(180deg,#22C55E 0%,#16A34A 100%)",
+              color: "#fff", border: "none",
+              borderRadius: 28,
+              boxShadow: "0 8px 0 #14532d, 0 14px 48px rgba(22,163,74,0.4)",
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              letterSpacing: "0.1em",
+              transition: "transform 0.08s, box-shadow 0.08s",
+            }}
           >
             最初の画面に戻る
           </button>

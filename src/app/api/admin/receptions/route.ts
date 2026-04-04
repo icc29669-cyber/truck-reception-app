@@ -5,19 +5,29 @@ export async function GET(req: NextRequest) {
   const centerId = Number(req.nextUrl.searchParams.get("centerId") ?? "0") || undefined;
   const date = req.nextUrl.searchParams.get("date"); // YYYY-MM-DD
 
-  const targetDate = date ? new Date(date) : new Date();
-  const dayStart = new Date(targetDate);
-  dayStart.setHours(0, 0, 0, 0);
-  const dayEnd = new Date(targetDate);
-  dayEnd.setHours(23, 59, 59, 999);
+  // Parse date as local midnight to avoid UTC offset issues
+  let dayStart: Date;
+  let dayEnd: Date;
+  if (date) {
+    const [y, m, d] = date.split("-").map(Number);
+    dayStart = new Date(y, m - 1, d, 0, 0, 0, 0);
+    dayEnd = new Date(y, m - 1, d + 1, 0, 0, 0, 0);
+  } else {
+    const now = new Date();
+    dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  }
 
   try {
     const receptions = await prisma.reception.findMany({
       where: {
         ...(centerId ? { centerId } : {}),
-        arrivedAt: { gte: dayStart, lte: dayEnd },
+        arrivedAt: { gte: dayStart, lt: dayEnd },
       },
-      include: { center: { select: { name: true } } },
+      include: {
+        center: { select: { name: true } },
+        reservation: { select: { id: true, startTime: true, endTime: true, status: true } },
+      },
       orderBy: { arrivedAt: "desc" },
     });
 
@@ -32,6 +42,9 @@ export async function GET(req: NextRequest) {
         phone: r.phone,
         vehicleNumber: r.vehicleNumber,
         maxLoad: r.maxLoad,
+        reservation: r.reservation
+          ? { id: r.reservation.id, startTime: r.reservation.startTime, endTime: r.reservation.endTime, status: r.reservation.status }
+          : null,
       }))
     );
   } catch (e) {

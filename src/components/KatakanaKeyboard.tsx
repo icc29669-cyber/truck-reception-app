@@ -17,10 +17,6 @@ const KATA_ROWS: (string | null)[][] = [
   [null,"ロ","ヨ","モ","ホ","ノ","ト","ソ","コ","オ"],
 ];
 
-// ━━ 小文字（縦2列 × 5行）━━
-const SMALL_A = ["ァ","ィ","ゥ","ェ","ォ"];
-const SMALL_B = ["ッ","ャ","ュ","ョ","ー"];
-
 // ━━ 英数（メイン7列×5行 / 数字3列×5行）━━
 const ALPHA_ROWS: (string | null)[][] = [
   ["A","B","C","D","E","F","G"],
@@ -37,7 +33,7 @@ const NUM_ROWS: (string | null)[][] = [
   [null,null,null],
 ];
 
-// ━━ 濁点・半濁点変換（トグル）━━
+// ━━ 濁点・半濁点変換 ━━
 const DAKUTEN: Record<string,string> = {
   "カ":"ガ","キ":"ギ","ク":"グ","ケ":"ゲ","コ":"ゴ",
   "サ":"ザ","シ":"ジ","ス":"ズ","セ":"ゼ","ソ":"ゾ",
@@ -52,6 +48,14 @@ const HANDAKUTEN: Record<string,string> = {
   "ハ":"パ","ヒ":"ピ","フ":"プ","ヘ":"ペ","ホ":"ポ",
   "パ":"ハ","ピ":"ヒ","プ":"フ","ペ":"ヘ","ポ":"ホ",
 };
+// ━━ 小文字変換 ━━
+const SMALL: Record<string,string> = {
+  "ア":"ァ","イ":"ィ","ウ":"ゥ","エ":"ェ","オ":"ォ",
+  "ツ":"ッ","ヤ":"ャ","ユ":"ュ","ヨ":"ョ",
+  "ァ":"ア","ィ":"イ","ゥ":"ウ","ェ":"エ","ォ":"オ",
+  "ッ":"ツ","ャ":"ヤ","ュ":"ユ","ョ":"ヨ",
+};
+
 function applyToLast(map: Record<string,string>, val: string): string {
   if (!val) return val;
   const last = val[val.length-1];
@@ -62,8 +66,8 @@ function applyToLast(map: Record<string,string>, val: string): string {
 const W  = 116;  // メインボタン幅
 const H  = 130;  // メインボタン高さ
 const G  = 8;    // ギャップ
-const LW = 130;  // 左列幅
-const AW = 158;  // 操作列幅
+const LW = 136;  // 左列幅
+const AW = 168;  // 操作列幅
 const TOTAL_H = 5*H + 4*G; // 682px（5行分）
 
 export default function KatakanaKeyboard({ value, onChange, onComplete }: Props) {
@@ -83,7 +87,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
         {/* カタカナ */}
         <button
           onPointerDown={() => setMode("kata")}
-          style={{ width:LW, height:H, fontSize:19, lineHeight:1.2 }}
+          style={{ width:LW, height:H, fontSize:24, lineHeight:1.2 }}
           className={`flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all ${
             mode==="kata"
               ? "bg-gray-900 text-white border-gray-900"
@@ -95,7 +99,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
         {/* 英数字 */}
         <button
           onPointerDown={() => setMode("alpha")}
-          style={{ width:LW, height:H, fontSize:19 }}
+          style={{ width:LW, height:H, fontSize:24 }}
           className={`flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all ${
             mode==="alpha"
               ? "bg-gray-900 text-white border-gray-900"
@@ -108,7 +112,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
         <button
           onPointerDown={() => onChange(applyToLast(DAKUTEN, value))}
           className={btnBase}
-          style={{ width:LW, height:H, fontSize:40 }}
+          style={{ width:LW, height:H, fontSize:44 }}
         >
           ゛
         </button>
@@ -116,17 +120,17 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
         <button
           onPointerDown={() => onChange(applyToLast(HANDAKUTEN, value))}
           className={btnBase}
-          style={{ width:LW, height:H, fontSize:40 }}
+          style={{ width:LW, height:H, fontSize:44 }}
         >
           ゜
         </button>
-        {/* スペース */}
+        {/* 小文字変換 */}
         <button
-          onPointerDown={() => onChange(value + "　")}
+          onPointerDown={() => onChange(applyToLast(SMALL, value))}
           className={btnBase}
-          style={{ width:LW, height:H, fontSize:18 }}
+          style={{ width:LW, height:H, fontSize:22, lineHeight:1.3, textAlign:"center" }}
         >
-          スペース
+          小文字{"\n"}変換
         </button>
       </div>
 
@@ -141,41 +145,15 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
                     key={ci}
                     onPointerDown={() => onChange(value + ch)}
                     className={btnBase}
-                    style={{ ...cell, fontSize: mode==="kata" ? 36 : 30 }}
+                    style={{ ...cell, fontSize: mode==="kata" ? 42 : 34 }}
                   >{ch}</button>
             )}
           </div>
         ))}
       </div>
 
-      {/* ━━ 右補助列（kata=小文字縦2列 / alpha=数字3列）━━ */}
-      {mode === "kata" ? (
-        <>
-          {/* 小文字 列A：ァィゥェォ */}
-          <div className="flex flex-col flex-shrink-0" style={{ gap:G }}>
-            {SMALL_A.map(ch => (
-              <button
-                key={ch}
-                onPointerDown={() => onChange(value + ch)}
-                className={btnBase}
-                style={{ ...cell, fontSize:30, background:"#eef2ff", borderColor:"#a5b4fc" }}
-              >{ch}</button>
-            ))}
-          </div>
-          {/* 小文字 列B：ッャュョー */}
-          <div className="flex flex-col flex-shrink-0" style={{ gap:G }}>
-            {SMALL_B.map(ch => (
-              <button
-                key={ch}
-                onPointerDown={() => onChange(value + ch)}
-                className={btnBase}
-                style={{ ...cell, fontSize:30, background:"#eef2ff", borderColor:"#a5b4fc" }}
-              >{ch}</button>
-            ))}
-          </div>
-        </>
-      ) : (
-        /* 数字（3列×5行） */
+      {/* ━━ 右補助列（alpha=数字3列）━━ */}
+      {mode === "alpha" && (
         <div className="flex flex-col flex-shrink-0" style={{ gap:G }}>
           {NUM_ROWS.map((row, ri) => (
             <div key={ri} className="flex" style={{ gap:G }}>
@@ -186,7 +164,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
                       key={ci}
                       onPointerDown={() => onChange(value + ch)}
                       className={btnBase}
-                      style={{ ...cell, fontSize:32, background:"#fefce8", borderColor:"#fde047" }}
+                      style={{ ...cell, fontSize:38, background:"#fefce8", borderColor:"#fde047" }}
                     >{ch}</button>
               )}
             </div>
@@ -199,21 +177,43 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
         <button
           onPointerDown={() => onChange("")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-red-600 bg-red-500 text-white active:bg-red-600 select-none touch-none transition-all shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1"
-          style={{ width:AW, height:H, fontSize:22, textAlign:"center", lineHeight:1.35 }}
+          style={{ width:AW, height:H, fontSize:28, textAlign:"center", lineHeight:1.35 }}
         >
           すべて<br />消す
         </button>
         <button
           onPointerDown={() => onChange(value.slice(0, -1))}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-500 bg-orange-400 text-white active:bg-orange-500 select-none touch-none transition-all shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1"
-          style={{ width:AW, height:H, fontSize:22, textAlign:"center", lineHeight:1.35 }}
+          style={{ width:AW, height:H, fontSize:28, textAlign:"center", lineHeight:1.35 }}
         >
           1文字<br />消す
         </button>
+        {/* ー（長音符）*/}
         <button
-          onPointerDown={onComplete}
-          className="flex items-center justify-center font-bold rounded-xl border-2 border-green-700 bg-green-600 text-white active:bg-green-700 select-none touch-none transition-all shadow-[0_5px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-1"
-          style={{ width:AW, height: TOTAL_H - 2*(H+G), fontSize:36 }}
+          onPointerDown={() => onChange(value + "ー")}
+          className={btnBase}
+          style={{ width:AW, height:H, fontSize:38 }}
+        >
+          ー
+        </button>
+        {/* スペース */}
+        <button
+          onPointerDown={() => onChange(value + "　")}
+          className={btnBase}
+          style={{ width:AW, height:H, fontSize:22 }}
+        >
+          スペース
+        </button>
+        {/* 入力完了 */}
+        <button
+          onPointerDown={value.trim() ? onComplete : undefined}
+          disabled={!value.trim()}
+          className={`flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all ${
+            value.trim()
+              ? "border-green-700 bg-green-600 text-white active:bg-green-700 shadow-[0_5px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-1"
+              : "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+          style={{ width:AW, height: H, fontSize:36 }}
         >
           入力完了
         </button>

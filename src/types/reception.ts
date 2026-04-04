@@ -31,6 +31,21 @@ export interface DriverInput {
   maxLoad: string;
 }
 
+export interface ReservationCandidate {
+  id: number;
+  startTime: string;
+  endTime: string;
+  driverName: string;
+  companyName: string;
+  vehicleNumber: string;
+  maxLoad: string;
+  plateRegion: string;
+  plateClassNum: string;
+  plateHira: string;
+  plateNumber: string;
+  status: string;
+}
+
 export interface ReceptionResult {
   id: number;
   centerDailyNo: number;
@@ -54,4 +69,7 @@ export interface KioskSession {
   vehicleCandidates: VehicleCandidate[];
   selectedVehicle: VehicleCandidate | null;
   receptionResult: ReceptionResult | null;
+  // 予約連携
+  reservationCandidates: ReservationCandidate[];
+  selectedReservation: ReservationCandidate | null;
 }

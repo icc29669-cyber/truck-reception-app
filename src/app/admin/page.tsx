@@ -11,6 +11,7 @@ type Reception = {
   phone: string;
   vehicleNumber: string;
   maxLoad: string;
+  reservation: { id: number; startTime: string; endTime: string; status: string } | null;
 };
 
 type Center = { id: number; name: string };
@@ -66,18 +67,8 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "#F8FAFC", color: "#111827", overflow: "auto" }}>
-      {/* ヘッダー */}
-      <div className="bg-[#1a3a6b] text-white px-8 py-4 flex items-center gap-6">
-        <h1 className="text-2xl font-black tracking-wide flex-1">
-          🚛 トラック受付　管理画面
-        </h1>
-        <span className="text-sm text-blue-200">
-          {new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" })}
-        </span>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+    <div style={{ color: "#111827" }}>
+      <div className="max-w-7xl mx-auto space-y-6">
 
         {/* ─── フィルターバー ─────────────────────────────────── */}
         <div className="bg-white rounded-2xl shadow p-5 flex flex-wrap gap-4 items-end">
@@ -150,7 +141,7 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    {["No.", "時刻", "センター", "運送会社", "ドライバー名", "電話番号", "車番", "積載量(kg)"].map((h) => (
+                    {["No.", "時刻", "センター", "運送会社", "ドライバー名", "電話番号", "車番", "積載量(kg)", "予約"].map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                         {h}
                       </th>
@@ -186,6 +177,15 @@ export default function AdminPage() {
                       </td>
                       <td className="px-4 py-3 text-right text-gray-700 whitespace-nowrap">
                         {r.maxLoad ? Number(r.maxLoad).toLocaleString() : "—"}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {r.reservation ? (
+                          <span className="px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+                            {r.reservation.startTime}〜{r.reservation.endTime}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -229,15 +229,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* ─── リンク ───────────────────────────────────────────── */}
-        <div className="text-center">
-          <a
-            href="/kiosk"
-            className="text-blue-600 hover:underline text-sm"
-          >
-            ← キオスク画面に戻る
-          </a>
-        </div>
       </div>
     </div>
   );

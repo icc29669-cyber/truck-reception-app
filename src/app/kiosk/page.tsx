@@ -31,11 +31,14 @@ export default function KioskTop() {
   const dateStr = `${now.getMonth()+1}月${now.getDate()}日（${days[now.getDay()]}）`;
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-  // パステル中間色
-  const BG     = "#E4EDF8";          // 淡いスカイブルー
-  const BTN    = pressed ? "#3A6BB0" : "#4A7FC1";   // ミディアムブルー
-  const BTN_SH = "#2D5A94";          // ボタンの影色
-  const RING   = "#7AAEE0";          // パルスリングの色
+  // ティール繊細カラー
+  const BG     = "#E6F4F3";
+  const BTN    = pressed
+    ? "linear-gradient(135deg,#3ABAB4 0%,#1FA09A 100%)"
+    : "linear-gradient(135deg,#50C9C3 0%,#2BB5AF 55%,#1EA8A3 100%)";
+  const BTN_SH = "#178A87";
+  const RING   = "#6DCFCA";
+  const TEXT   = "#1A6B6A";
 
   return (
     <>
@@ -72,7 +75,7 @@ export default function KioskTop() {
         /* ── ボタンのふわふわ浮遊 ── */
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-10px); }
+          50%       { transform: translateY(-12px); }
         }
         .floating { animation: float 3.2s ease-in-out infinite; }
 
@@ -81,7 +84,7 @@ export default function KioskTop() {
           0%   { transform: translateX(-120%) skewX(-12deg); }
           100% { transform: translateX(220%)  skewX(-12deg); }
         }
-        .shimmer-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: 3vh; pointer-events: none; }
+        .shimmer-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: 32px; pointer-events: none; }
         .shimmer-line {
           position: absolute; top: 0; bottom: 0; width: 40%;
           background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
@@ -95,32 +98,34 @@ export default function KioskTop() {
         .fade-late { animation: fade-in 0.6s ease 0.5s both; }
       `}</style>
 
-      <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
-        style={{ background: BG }}>
+      <div className="w-screen h-screen overflow-hidden" style={{
+        display: "flex", flexDirection: "column",
+        userSelect: "none",
+        background: BG,
+      }}>
 
         {/* ── ヘッダー ── */}
-        <div
-          className="flex items-center justify-between flex-shrink-0 px-10"
-          style={{
-            height: "11vh",
-            background: "#fff",
-            borderBottom: "1.5px solid #D0DEF0",
-          }}
-        >
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          flexShrink: 0, padding: "0 48px",
+          height: 110,
+          background: "#fff",
+          borderBottom: "2px solid #C8E8E6",
+        }}>
           <div>
-            <div style={{ fontSize: "1.3vh", color: "#8FAAC8", letterSpacing: "0.15em", marginBottom: "0.3vh" }}>
+            <div style={{ fontSize: 16, color: "#8ABFBB", letterSpacing: "0.15em", marginBottom: 4 }}>
               日本セイフティー株式会社
             </div>
-            <div style={{ fontSize: "2.8vh", fontWeight: 900, color: "#2B4A7A", letterSpacing: "0.07em" }}>
+            <div style={{ fontSize: 34, fontWeight: 700, color: TEXT, letterSpacing: "0.07em" }}>
               {centerName}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "1.3vh", color: "#9BBAD4", marginBottom: "0.3vh" }}>
+            <div style={{ fontSize: 16, color: "#8ABFBB", marginBottom: 4 }}>
               {dateStr}
             </div>
             <div style={{
-              fontSize: "4.5vh", fontWeight: 900, color: "#2B4A7A",
+              fontSize: 52, fontWeight: 700, color: TEXT,
               lineHeight: 1, letterSpacing: "0.06em",
               fontVariantNumeric: "tabular-nums",
             }}>
@@ -130,48 +135,58 @@ export default function KioskTop() {
         </div>
 
         {/* ── メイン ── */}
-        <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+        <div style={{
+          flex: 1, position: "relative",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          overflow: "hidden",
+        }}>
 
           {/* 背景の淡い光彩 */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
-            background: "radial-gradient(ellipse 65% 55% at 50% 58%, rgba(100,160,230,0.18) 0%, transparent 70%)",
+            background: "radial-gradient(ellipse 65% 55% at 50% 58%, rgba(80,200,195,0.15) 0%, transparent 70%)",
           }} />
 
-          {/* あいさつ：上からバウンス */}
+          {/* あいさつ */}
           <div className="slide-down" style={{
-            fontSize: "5vh", fontWeight: 900,
-            color: "#2B4A7A",
+            fontSize: 60, fontWeight: 700,
+            color: TEXT,
             letterSpacing: "0.1em",
-            marginBottom: "5vh",
+            marginBottom: 48,
           }}>
             いらっしゃいませ
           </div>
 
           {/* ボタン：ポップ登場 → ふわふわ浮遊 */}
-          <div className="pop-in" style={{ width: "58vw", height: "52vh", position: "relative" }}>
+          <div className="pop-in" style={{ width: 900, height: 480, position: "relative" }}>
             <div className="floating" style={{ width: "100%", height: "100%", position: "relative" }}>
 
               {/* パルスリング */}
-              <div className="ring1 absolute inset-0 rounded-3xl"
-                style={{ border: `3px solid ${RING}` }} />
-              <div className="ring2 absolute inset-0 rounded-3xl"
-                style={{ border: `2px solid ${RING}` }} />
+              <div className="ring1" style={{
+                position: "absolute", inset: 0, borderRadius: 32,
+                border: `3px solid ${RING}`,
+              }} />
+              <div className="ring2" style={{
+                position: "absolute", inset: 0, borderRadius: 32,
+                border: `2px solid ${RING}`,
+              }} />
 
               {/* ボタン本体 */}
               <button
-                className="w-full h-full flex flex-col items-center justify-center relative"
                 style={{
-                  borderRadius: "3vh",
+                  width: "100%", height: "100%",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  position: "relative",
+                  borderRadius: 32,
                   background: BTN,
                   border: "none",
                   boxShadow: pressed
-                    ? `inset 0 6px 20px rgba(0,0,0,0.25)`
-                    : `0 10px 0 ${BTN_SH}, 0 16px 48px rgba(74,127,193,0.4)`,
+                    ? "inset 0 6px 20px rgba(0,0,0,0.2)"
+                    : `0 8px 0 ${BTN_SH}, 0 14px 48px rgba(43,181,175,0.38)`,
                   transform: pressed ? "scale(0.96)" : "scale(1)",
                   transition: "transform 0.08s cubic-bezier(.34,1.56,.64,1), box-shadow 0.08s",
                   cursor: "pointer",
-                  gap: "1.8vh",
+                  gap: 16,
                   overflow: "hidden",
                 }}
                 onPointerDown={() => { setPressed(true); start(); }}
@@ -184,7 +199,7 @@ export default function KioskTop() {
                 </div>
 
                 <div style={{
-                  fontSize: "5.5vh", fontWeight: 900, color: "#fff",
+                  fontSize: 72, fontWeight: 900, color: "#fff",
                   letterSpacing: "0.18em",
                   lineHeight: 1.45,
                   textAlign: "center",
@@ -193,7 +208,7 @@ export default function KioskTop() {
                   受付は<br/>こちらから
                 </div>
                 <div style={{
-                  fontSize: "2vh", color: "rgba(255,255,255,0.75)",
+                  fontSize: 26, color: "rgba(255,255,255,0.75)",
                   letterSpacing: "0.12em",
                   position: "relative",
                 }}>
@@ -205,9 +220,9 @@ export default function KioskTop() {
 
           {/* 安全注意 */}
           <div className="fade-late" style={{
-            position: "absolute", bottom: "3.5vh",
-            color: "#9BBAD4",
-            fontSize: "1.5vh",
+            position: "absolute", bottom: 36,
+            color: "#8ABFBB",
+            fontSize: 20,
             letterSpacing: "0.1em",
           }}>
             ⚠️　保護帽・安全靴を着用の上ご入場ください

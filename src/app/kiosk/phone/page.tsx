@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
-import { lookupByPhone } from "@/lib/api";
+import { lookupByPhone, lookupReservation } from "@/lib/api";
 
 function fmtPhone(d: string): string {
   if (!d) return "";
@@ -11,12 +11,70 @@ function fmtPhone(d: string): string {
   return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
 }
 
+/* ━━ ステップドット ━━ */
+function StepDots({ current }: { current: number }) {
+  const labels = ["電話番号", "お名前", "車　両", "最終確認"];
+  return (
+    <div className="flex items-center gap-4">
+      {labels.map((label, i) => {
+        const step = i + 1;
+        const done = step < current;
+        const active = step === current;
+        return (
+          <div key={i} className="flex items-center gap-4">
+            <div className="flex flex-col items-center" style={{ minWidth: 72 }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: "50%",
+                background: done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.25)",
+                border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 22, fontWeight: 900,
+                color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
+              }}>
+                {done ? "✓" : step}
+              </div>
+              <span style={{
+                fontSize: 15, fontWeight: 700, marginTop: 4,
+                color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.4)",
+                whiteSpace: "nowrap",
+              }}>{label}</span>
+            </div>
+            {i < labels.length - 1 && (
+              <div style={{
+                width: 56, height: 3,
+                background: done ? "#4ade80" : "rgba(255,255,255,0.2)",
+                borderRadius: 2,
+                marginBottom: 20,
+              }} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── レイアウト定数 ──
+const W        = 180;  // テンキーボタン幅
+const WP       = 165;  // プレフィックスボタン幅
+const WA       = 180;  // アクションボタン幅
+const H        = 120;  // ボタン高さ
+const GAP      = 24;   // ボタン間隔
+const FONT_NUM   = 52;
+const FONT_PRE   = 40;
+const FONT_INPUT = 72;
+
+const totalW = WP + GAP + (W * 3 + GAP * 2) + GAP + WA; // 981px
+
 export default function PhonePage() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fromFinal, setFromFinal] = useState(false);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setFromFinal(params.get("from") === "final-confirm");
     const s = getKioskSession();
     setPhone(s.phone ?? "");
   }, []);
@@ -27,7 +85,10 @@ export default function PhonePage() {
     const session = getKioskSession();
     setLoading(true);
     try {
-      const result = await lookupByPhone(p, session.centerId);
+      const [result, reservations] = await Promise.all([
+        lookupByPhone(p, session.centerId),
+        fromFinal ? Promise.resolve([]) : lookupReservation(p, session.centerId),
+      ]);
       setKioskSession({
         phone: p,
         driverInput: { ...session.driverInput, phone: p },
@@ -35,8 +96,16 @@ export default function PhonePage() {
         vehicleCandidates: result.vehicles,
         selectedDriver: null,
         selectedVehicle: null,
+        reservationCandidates: reservations,
+        selectedReservation: null,
       });
-      router.push("/kiosk/person");
+      if (fromFinal) {
+        router.push("/kiosk/final-confirm");
+      } else if (reservations.length > 0) {
+        router.push("/kiosk/reservation-select");
+      } else {
+        router.push("/kiosk/person");
+      }
     } finally {
       setLoading(false);
     }
@@ -59,15 +128,6 @@ export default function PhonePage() {
     submit(phone);
   }
 
-  const W   = 180;  // テンキーボタン幅
-  const WP  = 165;  // プレフィックスボタン幅
-  const WA  = 180;  // アクションボタン幅
-  const H   = 120;  // ボタン高さ
-  const GAP = 24;   // ボタン間隔
-
-  // 3カラム合計幅（プレフィックス列 + テンキー列 + アクション列）
-  const totalW = WP + GAP + (W * 3 + GAP * 2) + GAP + WA;
-
   const numBtn = `flex items-center justify-center font-black rounded-2xl bg-white border-2 border-gray-200
     text-gray-900 shadow-[0_5px_0_#CBD5E1] active:shadow-[0_1px_0_#CBD5E1] active:translate-y-[3px]
     select-none touch-none transition-all duration-75`;
@@ -77,57 +137,65 @@ export default function PhonePage() {
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
       style={{ background: "linear-gradient(160deg,#E8F4FD 0%,#D0E8FA 50%,#B8D8F6 100%)" }}
     >
-      {/* ヘッダー */}
+      {/* ── ヘッダー（戻るボタン＋タイトル＋入力欄を含む濃い青エリア）── */}
       <div
-        className="flex items-center px-8 flex-shrink-0"
-        style={{ background: "linear-gradient(90deg,#1a3a6b 0%,#1E5799 100%)", height: 80 }}
+        className="flex flex-col flex-shrink-0 items-center"
+        style={{
+          background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",
+          paddingBottom: 52,
+        }}
       >
-        <button
-          onPointerDown={() => router.push("/kiosk/caution")}
-          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800"
-          style={{ height: 56, width: 140, fontSize: 26 }}
-        >
-          戻る
-        </button>
-        <div style={{ flex: 1 }} />
-        <div style={{ width: 140 }} />
-      </div>
+        {/* 戻るボタン行 */}
+        <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
+          <button
+            onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/caution")}
+            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+            style={{ height: 60, width: 160, fontSize: 28 }}
+          >
+            ◀ 戻る
+          </button>
+          <div style={{ flex: 1 }} />
+          <StepDots current={1} />
+        </div>
 
-      {/* メインエリア */}
-      <div className="flex-1 flex flex-col items-center justify-center pb-6" style={{ gap: GAP + 8 }}>
-
-        {/* ── ラベル＋入力表示（同じ枠）── */}
-        <div
-          suppressHydrationWarning
-          className="rounded-2xl border-4 flex flex-col items-center justify-center transition-colors"
-          style={{
-            width: totalW,
-            borderColor: phone ? "#F59E0B" : "#93C5FD",
-            background: phone ? "#FFF9C4" : "rgba(255,255,255,0.72)",
-            paddingTop: 18,
-            paddingBottom: 18,
-            gap: 6,
-          }}
-        >
-          <div
+        {/* タイトル */}
+        <div style={{ marginBottom: 20 }}>
+          <span
             style={{
-              fontSize: 28,
+              fontSize: 48,
               fontWeight: 800,
-              color: phone ? "#92400E" : "#1a3a6b",
+              color: "#FFFFFF",
               letterSpacing: "0.12em",
             }}
           >
             電話番号を入力してください
-          </div>
+          </span>
+        </div>
+
+        {/* 入力表示ボックス */}
+        <div
+          suppressHydrationWarning
+          className="rounded-2xl border-4 flex items-center justify-center transition-colors"
+          style={{
+            width: totalW,
+            height: 110,
+            borderColor: phone ? "#F59E0B" : "rgba(255,255,255,0.55)",
+            background: "#FFFFFF",
+          }}
+        >
           <span
             className="font-black tracking-widest"
-            style={{ fontSize: 72, color: phone ? "#1a1a1a" : "#94a3b8" }}
+            style={{ fontSize: FONT_INPUT, color: phone ? "#1a1a1a" : "#94a3b8" }}
           >
             {phone ? fmtPhone(phone) : "090-0000-0000"}
           </span>
         </div>
+      </div>
 
-        {/* ── 3カラムレイアウト ── */}
+      {/* ── テンキーエリア ── */}
+      <div className="flex-1 flex flex-col items-center justify-center pb-6" style={{ gap: GAP + 8 }}>
+
+        {/* 3カラムレイアウト */}
         <div className="flex" style={{ gap: GAP }}>
 
           {/* 左列: 070 / 080 / 090 */}
@@ -139,7 +207,7 @@ export default function PhonePage() {
                 className="flex items-center justify-center font-bold rounded-2xl text-white
                   shadow-[0_5px_0_#1E40AF] active:shadow-[0_1px_0_#1E40AF] active:translate-y-[3px]
                   select-none touch-none transition-all duration-75"
-                style={{ width: WP, height: H, fontSize: 34, background: "#3B82F6" }}
+                style={{ width: WP, height: H, fontSize: FONT_PRE, background: "#3B82F6" }}
               >
                 {prefix}
               </button>
@@ -152,7 +220,7 @@ export default function PhonePage() {
               <div key={ri} className="flex" style={{ gap: GAP }}>
                 {row.map((k) => (
                   <button key={k} onPointerDown={() => press(k)}
-                    className={numBtn} style={{ width: W, height: H, fontSize: 52 }}>
+                    className={numBtn} style={{ width: W, height: H, fontSize: FONT_NUM }}>
                     {k}
                   </button>
                 ))}
@@ -161,7 +229,7 @@ export default function PhonePage() {
             <div className="flex" style={{ gap: GAP }}>
               <button onPointerDown={() => press("0")}
                 className={numBtn}
-                style={{ width: W * 3 + GAP * 2, height: H, fontSize: 52 }}>
+                style={{ width: W * 3 + GAP * 2, height: H, fontSize: FONT_NUM }}>
                 0
               </button>
             </div>
@@ -197,8 +265,10 @@ export default function PhonePage() {
                   : "opacity-40 cursor-not-allowed"
                 }`}
               style={{
-                fontSize: 52,
-                background: isValid && !loading ? "#22C55E" : "#9CA3AF",
+                fontSize: FONT_NUM,
+                background: isValid && !loading
+                  ? "linear-gradient(180deg,#22C55E,#16A34A)"
+                  : "#9CA3AF",
               }}
             >
               {loading ? "…" : "OK"}
