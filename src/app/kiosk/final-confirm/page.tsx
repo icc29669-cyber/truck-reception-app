@@ -455,11 +455,11 @@ export default function FinalConfirmPage() {
 
           {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            {/* ナンバー（各項目: ラベル + 値 + 修正ボタン） */}
+            {/* ナンバー（2×2カードグリッド） */}
             <div style={{
               display: "grid", gridTemplateColumns: "1fr 1fr",
-              padding: "12px 40px 12px 48px",
-              gap: "8px 24px", borderBottom: "1px solid #F0F3F7",
+              padding: "14px 60px 14px 48px",
+              gap: "10px 20px", borderBottom: "1px solid #F0F3F7",
             }}>
               {([
                 { label: "地名", value: plate.region, section: "region" },
@@ -467,38 +467,42 @@ export default function FinalConfirmPage() {
                 { label: "ひらがな", value: plate.hira, section: "hira" },
                 { label: "一連番号", value: plate.number, section: "number" },
               ] as const).map(({ label, value, section }) => (
-                <div key={section} style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  minHeight: 56,
-                }}>
+                <button
+                  key={section}
+                  onPointerDown={() => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
+                  className="select-none touch-none"
+                  style={{
+                    display: "flex", alignItems: "center",
+                    background: "#F1F5F9", borderRadius: 14,
+                    border: "1.5px solid #E2E8F0", cursor: "pointer",
+                    padding: "10px 16px", gap: 10,
+                    minHeight: 72,
+                  }}
+                >
                   <span style={{
-                    fontSize: 18, fontWeight: 600, color: "#94A3B8",
-                    flexShrink: 0, letterSpacing: "0.04em",
+                    fontSize: 16, fontWeight: 600, color: "#94A3B8",
+                    flexShrink: 0, width: 70,
                   }}>
                     {label}
                   </span>
                   <span style={{
-                    flex: 1, fontSize: 36, fontWeight: 800,
+                    flex: 1, fontSize: 40, fontWeight: 800,
                     color: value ? "#1E293B" : "#EF4444",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
                     {value || "未入力"}
                   </span>
-                  <button
-                    onPointerDown={() => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
-                    className="select-none touch-none"
-                    style={{
-                      height: 48, fontSize: 18, fontWeight: 700,
-                      background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                      color: "#fff", border: "none", borderRadius: 12,
-                      cursor: "pointer", boxShadow: "0 3px 0 #1d4ed8",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                      padding: "0 14px", whiteSpace: "nowrap", flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: 14 }}>✎</span> 修正
-                  </button>
-                </div>
+                  <span style={{
+                    height: 40, fontSize: 16, fontWeight: 700,
+                    background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+                    color: "#fff", borderRadius: 10,
+                    boxShadow: "0 2px 0 #1d4ed8",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
+                    padding: "0 12px", whiteSpace: "nowrap", flexShrink: 0,
+                  }}>
+                    <span style={{ fontSize: 13 }}>✎</span> 修正
+                  </span>
+                </button>
               ))}
             </div>
             <FieldRow
