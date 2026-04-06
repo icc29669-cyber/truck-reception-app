@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession, clearKioskSession } from "@/lib/kioskState";
@@ -7,11 +7,60 @@ import { formatPlate } from "@/types/reception";
 import { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
 import type { PlateInput } from "@/types/reception";
 
-function fmtPhone(d: string): string {
-  if (!d) return "";
-  if (d.length <= 3) return d;
-  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
-  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+const MOBILE_PREFIXES = ["070", "080", "090"];
+const JP_AREA: Record<string, number> = {
+  "0120": 2, "0570": 2, "0800": 2, "0990": 2,
+  "0494": 2, "0493": 2, "0492": 2, "0491": 2, "0490": 2,
+  "0480": 2, "0479": 2, "0478": 2, "0477": 2, "0476": 2,
+  "0475": 2, "0474": 2, "0472": 2, "0471": 2, "0470": 2,
+  "0467": 2, "0466": 2, "0465": 2, "0463": 2, "0460": 2,
+  "0439": 2, "0438": 2, "0436": 2, "0428": 2, "0426": 2,
+  "0267": 2, "0266": 2, "0265": 2, "0264": 2, "0263": 2,
+  "0261": 2, "0260": 2, "0259": 2, "0258": 2, "0257": 2,
+  "0256": 2, "0255": 2, "0254": 2, "0250": 2,
+  "0246": 2, "0244": 2, "0243": 2, "0242": 2, "0241": 2,
+  "0240": 2, "0237": 2, "0235": 2, "0234": 2, "0233": 2,
+  "0229": 2, "0228": 2, "0227": 2, "0226": 2, "0225": 2,
+  "0224": 2, "0223": 2, "0220": 2,
+  "0197": 2, "0195": 2, "0194": 2, "0193": 2, "0192": 2,
+  "0191": 2, "0187": 2, "0186": 2, "0185": 2, "0184": 2,
+  "0183": 2, "0182": 2, "0180": 2, "0179": 2, "0178": 2,
+  "0176": 2, "0175": 2, "0174": 2, "0173": 2, "0172": 2,
+  "0170": 2, "0167": 2, "0166": 2, "0165": 2, "0164": 2,
+  "0163": 2, "0162": 2, "0158": 2, "0157": 2, "0156": 2,
+  "0155": 2, "0154": 2, "0153": 2, "0152": 2, "0146": 2,
+  "0145": 2, "0144": 2, "0143": 2, "0142": 2, "0135": 2,
+  "0134": 2, "0133": 2, "0132": 2, "0125": 2, "0124": 2,
+  "0123": 2,
+  "011": 3, "012": 3, "013": 3, "014": 3, "015": 3, "016": 3, "017": 3, "018": 3, "019": 3,
+  "022": 3, "023": 3, "024": 3, "025": 3, "026": 3, "027": 3, "028": 3, "029": 3,
+  "042": 3, "043": 3, "044": 3, "045": 3, "046": 3, "047": 3, "048": 3, "049": 3,
+  "052": 3, "053": 3, "054": 3, "055": 3, "056": 3, "057": 3, "058": 3, "059": 3,
+  "072": 3, "073": 3, "074": 3, "075": 3, "076": 3, "077": 3, "078": 3, "079": 3,
+  "082": 3, "083": 3, "084": 3, "085": 3, "086": 3, "087": 3, "088": 3, "089": 3,
+  "092": 3, "093": 3, "094": 3, "095": 3, "096": 3, "097": 3, "098": 3, "099": 3,
+  "03": 4, "06": 4, "04": 4,
+};
+function fmtPhone(digits: string): string {
+  if (!digits) return "";
+  if (MOBILE_PREFIXES.some(p => digits.startsWith(p))) {
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+  }
+  for (const areaLen of [4, 3, 2]) {
+    const prefix = digits.slice(0, areaLen);
+    const midLen = JP_AREA[prefix];
+    if (midLen !== undefined) {
+      const midEnd = areaLen + midLen;
+      if (digits.length <= areaLen) return digits;
+      if (digits.length <= midEnd) return `${digits.slice(0, areaLen)}-${digits.slice(areaLen)}`;
+      return `${digits.slice(0, areaLen)}-${digits.slice(areaLen, midEnd)}-${digits.slice(midEnd, 10)}`;
+    }
+  }
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
 }
 
 /* ━━ ステップドット ━━ */
@@ -32,7 +81,7 @@ function StepDots({ current, completed }: { current: number; completed?: boolean
                 border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 22, fontWeight: 900,
-                color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
+                color: done ? "#0f766e" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
               }}>
                 {done ? "✓" : step}
               </div>
@@ -57,84 +106,85 @@ function StepDots({ current, completed }: { current: number; completed?: boolean
   );
 }
 
-/* ━━ インタラクティブプレート ━━ */
-type PlateSection = "region" | "classNum" | "hira" | "number";
+/* ━━ プレート内修正ボタン ━━ */
+function PlateEditBtn({ onClick, small }: { onClick: () => void; small?: boolean }) {
+  return (
+    <button
+      onPointerDown={onClick}
+      className="select-none touch-none"
+      style={{
+        height: small ? 28 : 32, fontSize: small ? 13 : 15, fontWeight: 700,
+        background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+        color: "#fff", border: "2px solid rgba(255,255,255,0.6)",
+        borderRadius: 8, cursor: "pointer",
+        boxShadow: "0 2px 0 #1d4ed8",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
+        padding: small ? "0 10px" : "0 12px", whiteSpace: "nowrap",
+      }}
+    >
+      ✎ 修正
+    </button>
+  );
+}
 
-function InteractivePlate({ plate, onTap }: {
+/* ━━ プレート（修正ボタン付き） ━━ */
+function EditablePlate({ plate, onEdit }: {
   plate: PlateInput;
-  onTap: (section: PlateSection) => void;
+  onEdit: (section: string) => void;
 }) {
   const color = detectPlateColor(plate.classNum, plate.hira);
   const { bg, text, dim, border } = COLOR_CONFIG[color];
   const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
   const len = plate.number.length;
 
-  const tapStyle = (hasVal: boolean): React.CSSProperties => ({
-    cursor: "pointer",
-    borderRadius: 8,
-    border: "3px solid transparent",
-    transition: "border-color 0.12s",
-    color: hasVal ? text : dim,
-    fontFamily: pf,
-    fontWeight: 900,
-    userSelect: "none",
-  });
-
   return (
     <div style={{
-      width: 500, height: 250, background: bg, border: `5px solid ${border}`,
+      width: 500, height: 270, background: bg, border: `5px solid ${border}`,
       borderRadius: 16, display: "flex", flexDirection: "column",
       padding: "8px 18px 10px", boxSizing: "border-box",
       boxShadow: "0 8px 30px rgba(0,0,0,0.28)", flexShrink: 0,
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-        <div
-          onPointerDown={() => onTap("region")}
-          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
-          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
-          style={{ ...tapStyle(!!plate.region), fontSize: 40, padding: "3px 10px" }}
-        >
-          {plate.region || "地名"}
+      {/* 上段: 地名 + 分類番号 + 各修正ボタン */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, paddingTop: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim }}>{plate.region || "地名"}</span>
+          <PlateEditBtn onClick={() => onEdit("region")} />
         </div>
-        <div
-          onPointerDown={() => onTap("classNum")}
-          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
-          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
-          style={{ ...tapStyle(!!plate.classNum), fontSize: 40, letterSpacing: 4, padding: "3px 10px" }}
-        >
-          {plate.classNum || "・・・"}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.classNum ? text : dim, letterSpacing: 4 }}>{plate.classNum || "・・・"}</span>
+          <PlateEditBtn onClick={() => onEdit("classNum")} />
         </div>
       </div>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", position: "relative" }}>
-        <div
-          onPointerDown={() => onTap("hira")}
-          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
-          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
-          style={{ ...tapStyle(!!plate.hira), position: "absolute", left: 0, fontSize: 64, lineHeight: 1, padding: "2px 6px" }}
-        >
-          {plate.hira || "あ"}
+
+      {/* 下段: ひらがな + 4桁番号 + 各修正ボタン */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
+        {/* ひらがな */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: 80, flexShrink: 0 }}>
+          <span style={{ fontSize: 58, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1 }}>{plate.hira || "あ"}</span>
+          <PlateEditBtn onClick={() => onEdit("hira")} small />
         </div>
-        <div
-          onPointerDown={() => onTap("number")}
-          onPointerEnter={e => (e.currentTarget.style.borderColor = "#FFE600")}
-          onPointerLeave={e => (e.currentTarget.style.borderColor = "transparent")}
-          style={{
-            ...tapStyle(!!plate.number),
-            flex: 1, marginLeft: 80, fontSize: 104,
+        {/* 4桁番号 */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, overflow: "hidden" }}>
+          <span style={{
+            fontSize: 96, fontWeight: 900, fontFamily: pf, color: plate.number ? text : dim,
             display: "flex", alignItems: "center", justifyContent: "center",
-            transform: "scaleX(0.85)", transformOrigin: "center", padding: "2px 0",
-          }}
-        >
-          {[0, 1, 2, 3].map(pos => {
-            const hasDigit = pos >= (4 - len);
-            const ch = hasDigit ? plate.number[pos - (4 - len)] : null;
-            return (
-              <span key={pos} style={{ display: "inline-flex", alignItems: "center" }}>
-                {pos === 2 && <span style={{ visibility: len >= 3 ? "visible" : "hidden" }}>-</span>}
-                {ch !== null ? <span>{ch}</span> : <span style={{ opacity: 0.35 }}>・</span>}
-              </span>
-            );
-          })}
+            transform: "scaleX(0.85)", transformOrigin: "center", lineHeight: 1,
+          }}>
+            {[0, 1, 2, 3].map(pos => {
+              const hasDigit = pos >= (4 - len);
+              const ch = hasDigit ? plate.number[pos - (4 - len)] : null;
+              return (
+                <span key={pos} style={{ display: "inline-flex", alignItems: "center" }}>
+                  {pos === 2 && <span style={{ visibility: len >= 3 ? "visible" : "hidden" }}>-</span>}
+                  {ch !== null
+                    ? <span style={{ display: "inline-block", width: "0.6em", textAlign: "center" }}>{ch}</span>
+                    : <span style={{ display: "inline-block", width: "0.6em", textAlign: "center", opacity: 0.35 }}>・</span>
+                  }
+                </span>
+              );
+            })}
+          </span>
+          <PlateEditBtn onClick={() => onEdit("number")} />
         </div>
       </div>
     </div>
@@ -210,7 +260,7 @@ function FieldRow({ label, value, onEdit, tall = false }: {
   return (
     <div style={{
       display: "flex", alignItems: "center",
-      padding: "0 36px 0 48px",
+      padding: "0 60px 0 48px",
       borderBottom: "1px solid #F0F3F7",
       minHeight: tall ? 120 : 100, gap: 0,
     }}>
@@ -261,7 +311,13 @@ export default function FinalConfirmPage() {
   useEffect(() => {
     if (initRef.current) return;
     initRef.current = true;
-    setSessionData(getKioskSession());
+    const s = getKioskSession();
+    if (!s.phone) {
+      router.replace("/kiosk");
+      return;
+    }
+    setSessionData(s);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleRegister() {
@@ -279,7 +335,17 @@ export default function FinalConfirmPage() {
       setKioskSession({ receptionResult: result });
       router.push("/kiosk/complete");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "エラーが発生しました");
+      const raw = e instanceof Error ? e.message : String(e);
+      // ユーザーフレンドリーなメッセージに変換
+      let friendly = "受付処理中にエラーが発生しました。もう一度お試しください。";
+      if (raw.includes("fetch") || raw.includes("network") || raw.includes("Network")) {
+        friendly = "通信エラーが発生しました。ネットワーク接続を確認して再試行してください。";
+      } else if (raw.includes("timeout") || raw.includes("Timeout")) {
+        friendly = "サーバーの応答がタイムアウトしました。しばらくお待ちいただき再試行してください。";
+      } else if (raw.includes("500") || raw.includes("server")) {
+        friendly = "サーバーエラーが発生しました。しばらくお待ちいただき再試行してください。";
+      }
+      setError(friendly);
       setLoading(false);
     }
   }
@@ -303,10 +369,10 @@ export default function FinalConfirmPage() {
         {/* ナビ行 */}
         <div className="flex items-center" style={{ height: 84 }}>
           <button
-            onPointerDown={() => router.push("/kiosk/vehicle")}
+            onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
             className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
-            style={{ height: 60, width: 160, fontSize: 28 }}
-          >◀ 戻る</button>
+            style={{ height: 60, width: 200, fontSize: 24, lineHeight: 1.3, textAlign: "center" }}
+          >🔄 最初から</button>
           <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
             <StepDots current={4} completed={[phoneComplete, personComplete, vehicleComplete, true]} />
           </div>
@@ -324,10 +390,11 @@ export default function FinalConfirmPage() {
       </div>
 
       {/* ━━ メインコンテンツ ━━ */}
-      <div className="flex-1 flex overflow-hidden" style={{ padding: "10px 40px 20px 56px", gap: 32 }}>
+      <div className="flex-1 flex items-center overflow-hidden" style={{ padding: "16px 40px 24px 56px" }}>
+        <div className="flex w-full" style={{ gap: 32 }}>
 
         {/* 左：セクションカード群 */}
-        <div className="flex flex-col flex-1" style={{ gap: 18, minHeight: 0, justifyContent: "center" }}>
+        <div className="flex flex-col flex-1" style={{ gap: 18 }}>
 
           {/* 連絡先 */}
           <SectionCard iconType="phone" title="連絡先">
@@ -353,73 +420,45 @@ export default function FinalConfirmPage() {
             />
           </SectionCard>
 
-          {/* 車両ナンバー＋最大積載 */}
+          {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            <div style={{ display: "flex", flexDirection: "column", padding: "18px 36px 22px 48px", gap: 14 }}>
-              {/* ヒント */}
-              <div>
-                <span style={{
-                  fontSize: 15, color: "#92400E", background: "#FEF3C7",
-                  borderRadius: 20, padding: "5px 18px", fontWeight: 700,
-                  letterSpacing: "0.05em", border: "1px solid #FDE68A",
-                }}>
-                  👆 ナンバーをタップして修正
-                </span>
-              </div>
-              {/* プレート（左）＋最大積載（右） */}
-              <div style={{ display: "flex", alignItems: "stretch", justifyContent: "space-between" }}>
-                <InteractivePlate
-                  plate={plate}
-                  onTap={(section) => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
-                />
-                {/* 最大積載量ボックス */}
-                <div style={{
-                  width: 360, flexShrink: 0, background: "#FFF7ED", borderRadius: 18,
-                  border: "2px solid #FED7AA", display: "flex", flexDirection: "column",
-                  alignItems: "center", justifyContent: "center",
-                  padding: "20px 24px", boxSizing: "border-box",
-                  gap: 12,
-                }}>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
-                    最大積載量
-                  </span>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{
-                      fontSize: driverInput.maxLoad ? 72 : 28, fontWeight: 900, lineHeight: 1,
-                      color: driverInput.maxLoad ? "#EA580C" : "#FCA5A5",
-                    }}>
-                      {driverInput.maxLoad ? Number(driverInput.maxLoad).toLocaleString() : "未入力"}
-                    </span>
-                    {driverInput.maxLoad && (
-                      <span style={{ fontSize: 26, fontWeight: 700, color: "#EA580C" }}>kg</span>
-                    )}
-                  </div>
-                  <button
-                    onPointerDown={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
-                    className="select-none touch-none"
-                    style={{
-                      width: 180, height: 72, fontSize: 22, fontWeight: 700,
-                      background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                      color: "#fff", border: "none",
-                      borderRadius: 14, cursor: "pointer",
-                      boxShadow: "0 4px 0 #1d4ed8",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                      marginTop: 4,
-                    }}
-                  >
-                    <span style={{ fontSize: 18 }}>✎</span> 修正
-                  </button>
-                </div>
-              </div>
+            {/* ナンバープレート（修正ボタン内蔵） */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 24px 12px", borderBottom: "1px solid #F0F3F7" }}>
+              <EditablePlate
+                plate={plate}
+                onEdit={(section) => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
+              />
             </div>
+            {/* 最大積載量 */}
+            <FieldRow
+              label="最大積載量"
+              value={driverInput.maxLoad ? `${Number(driverInput.maxLoad).toLocaleString()} kg` : ""}
+              onEdit={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
+            />
           </SectionCard>
 
           {error && (
             <div style={{
               background: "#FEF2F2", border: "2px solid #FCA5A5",
-              borderRadius: 12, padding: "14px 20px",
+              borderRadius: 16, padding: "20px 28px",
+              display: "flex", alignItems: "center", gap: 20,
             }}>
-              <p style={{ fontSize: 24, fontWeight: 700, color: "#DC2626" }}>{error}</p>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 24, fontWeight: 700, color: "#DC2626", margin: 0 }}>⚠ {error}</p>
+              </div>
+              <button
+                onPointerDown={handleRegister}
+                className="select-none touch-none"
+                style={{
+                  flexShrink: 0, width: 180, height: 64, fontSize: 24, fontWeight: 800,
+                  background: "linear-gradient(180deg, #EF4444, #DC2626)",
+                  color: "#fff", border: "none", borderRadius: 14, cursor: "pointer",
+                  boxShadow: "0 4px 0 #991B1B",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                }}
+              >
+                🔄 再試行
+              </button>
             </div>
           )}
         </div>
@@ -444,12 +483,12 @@ export default function FinalConfirmPage() {
               <div style={{
                 position: "absolute", top: -30, right: -30,
                 width: 120, height: 120, borderRadius: "50%",
-                background: "rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.12)", pointerEvents: "none",
               }} />
               <div style={{
                 position: "absolute", bottom: -20, left: -20,
                 width: 80, height: 80, borderRadius: "50%",
-                background: "rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.08)", pointerEvents: "none",
               }} />
               {/* ラベル */}
               <span style={{
@@ -494,10 +533,10 @@ export default function FinalConfirmPage() {
               borderRadius: 28, border: "none",
               background: (loading || !isComplete)
                 ? "linear-gradient(180deg,#9CA3AF,#6B7280)"
-                : "linear-gradient(180deg,#22C55E 0%,#16A34A 100%)",
+                : "linear-gradient(180deg,#2DD4BF 0%,#0D9488 100%)",
               boxShadow: (loading || !isComplete)
                 ? "0 6px 0 #4B5563"
-                : "0 8px 0 #14532d, 0 14px 48px rgba(22,163,74,0.4)",
+                : "0 8px 0 #0f766e, 0 14px 48px rgba(13,148,136,0.4)",
               cursor: (loading || !isComplete) ? "not-allowed" : "pointer",
               gap: selectedReservation ? 8 : 14,
             }}
@@ -523,7 +562,33 @@ export default function FinalConfirmPage() {
             )}
           </button>
         </div>
+        </div>
       </div>
+
+      {/* ━━ 送信中オーバーレイ ━━ */}
+      {loading && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.45)",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          gap: 24, pointerEvents: "all",
+        }}>
+          <div style={{
+            width: 120, height: 120, borderRadius: "50%",
+            border: "6px solid rgba(255,255,255,0.2)",
+            borderTopColor: "#2DD4BF",
+            animation: "spin 1s linear infinite",
+          }} />
+          <span style={{ fontSize: 36, fontWeight: 800, color: "#fff", letterSpacing: "0.08em" }}>
+            受付処理中...
+          </span>
+          <span style={{ fontSize: 20, color: "rgba(255,255,255,0.6)" }}>
+            しばらくお待ちください
+          </span>
+          <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+        </div>
+      )}
 
       {/* ━━ 下部注意文言 ━━ */}
       <div style={{
@@ -532,7 +597,7 @@ export default function FinalConfirmPage() {
         flexShrink: 0,
       }}>
         <span style={{ fontSize: 20, color: "#92400E", fontWeight: 600, letterSpacing: "0.03em" }}>
-          ⚠ 修正したい項目をタップすると各項目の入力画面に戻ります。修正後、自動的にこの確認画面に戻ります。
+          ⚠ 各項目の「修正」ボタンをタップすると入力画面に戻ります。修正後、自動的にこの確認画面に戻ります。
         </span>
       </div>
     </div>
