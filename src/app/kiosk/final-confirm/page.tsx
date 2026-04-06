@@ -106,28 +106,7 @@ function StepDots({ current, completed }: { current: number; completed?: boolean
   );
 }
 
-/* ━━ プレート内修正ボタン ━━ */
-function PlateEditBtn({ onClick, small }: { onClick: () => void; small?: boolean }) {
-  return (
-    <button
-      onPointerDown={onClick}
-      className="select-none touch-none"
-      style={{
-        height: small ? 28 : 32, fontSize: small ? 13 : 15, fontWeight: 700,
-        background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-        color: "#fff", border: "2px solid rgba(255,255,255,0.6)",
-        borderRadius: 8, cursor: "pointer",
-        boxShadow: "0 2px 0 #1d4ed8",
-        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
-        padding: small ? "0 10px" : "0 12px", whiteSpace: "nowrap",
-      }}
-    >
-      ✎ 修正
-    </button>
-  );
-}
-
-/* ━━ プレート（修正ボタン付き） ━━ */
+/* ━━ プレート（枠付き・修正ボタン右下） ━━ */
 function EditablePlate({ plate, onEdit }: {
   plate: PlateInput;
   onEdit: (section: string) => void;
@@ -136,35 +115,87 @@ function EditablePlate({ plate, onEdit }: {
   const { bg, text, dim, border } = COLOR_CONFIG[color];
   const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
   const len = plate.number.length;
+  const isDark = color === "green" || color === "black";
+  const secBorder = isDark ? "2px dashed rgba(255,255,255,0.35)" : "2px dashed rgba(0,0,0,0.13)";
+  const editColor = isDark ? "rgba(255,255,255,0.7)" : "rgba(59,130,246,0.85)";
+
+  const editIcon = (onClick: () => void) => (
+    <span
+      onPointerDown={(e) => { e.stopPropagation(); onClick(); }}
+      className="select-none touch-none"
+      style={{
+        position: "absolute" as const, bottom: 3, right: 5,
+        fontSize: 11, fontWeight: 800, color: editColor,
+        cursor: "pointer", letterSpacing: 1,
+      }}
+    >✎修正</span>
+  );
 
   return (
     <div style={{
-      width: 500, height: 270, background: bg, border: `5px solid ${border}`,
+      width: 500, height: 280, background: bg, border: `5px solid ${border}`,
       borderRadius: 16, display: "flex", flexDirection: "column",
-      padding: "8px 18px 10px", boxSizing: "border-box",
+      padding: "10px 14px 10px", boxSizing: "border-box",
       boxShadow: "0 8px 30px rgba(0,0,0,0.28)", flexShrink: 0,
+      gap: 8,
     }}>
-      {/* 上段: 地名 + 分類番号 + 各修正ボタン */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, paddingTop: 4 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim }}>{plate.region || "地名"}</span>
-          <PlateEditBtn onClick={() => onEdit("region")} />
+      {/* 上段: 地名 + 分類番号 */}
+      <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+        {/* 地名 */}
+        <div
+          onPointerDown={() => onEdit("region")}
+          style={{
+            position: "relative", border: secBorder, borderRadius: 10,
+            padding: "4px 14px 22px", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim }}>
+            {plate.region || "地名"}
+          </span>
+          {editIcon(() => onEdit("region"))}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.classNum ? text : dim, letterSpacing: 4 }}>{plate.classNum || "・・・"}</span>
-          <PlateEditBtn onClick={() => onEdit("classNum")} />
+        {/* 分類番号 */}
+        <div
+          onPointerDown={() => onEdit("classNum")}
+          style={{
+            position: "relative", border: secBorder, borderRadius: 10,
+            padding: "4px 14px 22px", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.classNum ? text : dim, letterSpacing: 4 }}>
+            {plate.classNum || "・・・"}
+          </span>
+          {editIcon(() => onEdit("classNum"))}
         </div>
       </div>
 
-      {/* 下段: ひらがな + 4桁番号 + 各修正ボタン */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
+      {/* 下段: ひらがな + 4桁番号 */}
+      <div style={{ flex: 1, display: "flex", gap: 10 }}>
         {/* ひらがな */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: 80, flexShrink: 0 }}>
-          <span style={{ fontSize: 58, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1 }}>{plate.hira || "あ"}</span>
-          <PlateEditBtn onClick={() => onEdit("hira")} small />
+        <div
+          onPointerDown={() => onEdit("hira")}
+          style={{
+            position: "relative", border: secBorder, borderRadius: 10,
+            width: 72, flexShrink: 0, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <span style={{ fontSize: 58, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1 }}>
+            {plate.hira || "あ"}
+          </span>
+          {editIcon(() => onEdit("hira"))}
         </div>
         {/* 4桁番号 */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, overflow: "hidden" }}>
+        <div
+          onPointerDown={() => onEdit("number")}
+          style={{
+            position: "relative", border: secBorder, borderRadius: 10,
+            flex: 1, cursor: "pointer", overflow: "hidden",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
           <span style={{
             fontSize: 96, fontWeight: 900, fontFamily: pf, color: plate.number ? text : dim,
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -184,7 +215,7 @@ function EditablePlate({ plate, onEdit }: {
               );
             })}
           </span>
-          <PlateEditBtn onClick={() => onEdit("number")} />
+          {editIcon(() => onEdit("number"))}
         </div>
       </div>
     </div>
@@ -430,37 +461,37 @@ export default function FinalConfirmPage() {
               />
               {/* 最大積載量ボックス */}
               <div style={{
-                flex: 1, background: "#FFF7ED", borderRadius: 18,
+                width: 220, background: "#FFF7ED", borderRadius: 16,
                 border: "2px solid #FED7AA", display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
-                padding: "20px 24px", boxSizing: "border-box",
-                gap: 8, alignSelf: "stretch",
+                padding: "14px 18px 12px", boxSizing: "border-box",
+                gap: 6, flexShrink: 0, alignSelf: "center",
               }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
                   最大積載量
                 </span>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                   <span style={{
-                    fontSize: driverInput.maxLoad ? 72 : 28, fontWeight: 900, lineHeight: 1,
+                    fontSize: driverInput.maxLoad ? 48 : 22, fontWeight: 900, lineHeight: 1,
                     color: driverInput.maxLoad ? "#EA580C" : "#FCA5A5",
                   }}>
                     {driverInput.maxLoad ? Number(driverInput.maxLoad).toLocaleString() : "未入力"}
                   </span>
-                  {driverInput.maxLoad && <span style={{ fontSize: 26, fontWeight: 700, color: "#EA580C" }}>kg</span>}
+                  {driverInput.maxLoad && <span style={{ fontSize: 20, fontWeight: 700, color: "#EA580C" }}>kg</span>}
                 </div>
                 <button
                   onPointerDown={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
                   className="select-none touch-none"
                   style={{
-                    width: 160, height: 72, fontSize: 24, fontWeight: 700,
+                    height: 40, fontSize: 18, fontWeight: 700,
                     background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                    color: "#fff", border: "none", borderRadius: 14, cursor: "pointer",
-                    boxShadow: "0 4px 0 #1d4ed8",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    marginTop: "auto", alignSelf: "flex-end",
+                    color: "#fff", border: "none", borderRadius: 10, cursor: "pointer",
+                    boxShadow: "0 3px 0 #1d4ed8",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    padding: "0 16px", alignSelf: "flex-end",
                   }}
                 >
-                  <span style={{ fontSize: 20 }}>✎</span> 修正
+                  <span style={{ fontSize: 15 }}>✎</span> 修正
                 </button>
               </div>
             </div>
