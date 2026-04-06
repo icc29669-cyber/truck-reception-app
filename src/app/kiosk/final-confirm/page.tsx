@@ -427,7 +427,7 @@ export default function FinalConfirmPage() {
         <div className="flex w-full" style={{ gap: 32 }}>
 
         {/* 左：セクションカード群 */}
-        <div className="flex flex-col flex-1" style={{ gap: 12 }}>
+        <div className="flex flex-col flex-1" style={{ gap: 20 }}>
 
           {/* 連絡先 */}
           <SectionCard iconType="phone" title="連絡先">
