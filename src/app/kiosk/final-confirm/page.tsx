@@ -115,8 +115,7 @@ function EditablePlate({ plate, onEdit }: {
   const { bg, text, dim, border } = COLOR_CONFIG[color];
   const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
   const len = plate.number.length;
-  const isDark = color === "green" || color === "black";
-  const secBorder = isDark ? "2px dashed rgba(255,255,255,0.35)" : "2px dashed rgba(0,0,0,0.13)";
+  const secBorder = "2px dashed #F59E0B";
 
   const editBtn = (onClick: () => void) => (
     <button
@@ -456,7 +455,7 @@ export default function FinalConfirmPage() {
 
           {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            <div style={{ display: "flex", padding: "18px 36px 22px 48px", gap: 24, alignItems: "center" }}>
+            <div style={{ display: "flex", padding: "18px 36px 22px 48px", gap: 24, alignItems: "flex-start" }}>
               {/* ナンバープレート（修正ボタン内蔵） */}
               <EditablePlate
                 plate={plate}
@@ -468,7 +467,7 @@ export default function FinalConfirmPage() {
                 border: "2px solid #FED7AA", display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
                 padding: "14px 18px 12px", boxSizing: "border-box",
-                gap: 6, flexShrink: 0, alignSelf: "center",
+                gap: 6, flexShrink: 0, marginTop: 8,
               }}>
                 <span style={{ fontSize: 15, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
                   最大積載量
