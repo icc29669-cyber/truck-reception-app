@@ -117,18 +117,21 @@ function EditablePlate({ plate, onEdit }: {
   const len = plate.number.length;
   const isDark = color === "green" || color === "black";
   const secBorder = isDark ? "2px dashed rgba(255,255,255,0.35)" : "2px dashed rgba(0,0,0,0.13)";
-  const editColor = isDark ? "rgba(255,255,255,0.7)" : "rgba(59,130,246,0.85)";
 
-  const editIcon = (onClick: () => void) => (
-    <span
+  const editBtn = (onClick: () => void) => (
+    <button
       onPointerDown={(e) => { e.stopPropagation(); onClick(); }}
       className="select-none touch-none"
       style={{
-        position: "absolute" as const, bottom: 3, right: 5,
-        fontSize: 11, fontWeight: 800, color: editColor,
-        cursor: "pointer", letterSpacing: 1,
+        position: "absolute" as const, bottom: 4, right: 4,
+        height: 26, fontSize: 11, fontWeight: 700,
+        background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+        color: "#fff", border: "none", borderRadius: 7,
+        boxShadow: "0 2px 0 #1d4ed8", cursor: "pointer",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 3,
+        padding: "0 9px", whiteSpace: "nowrap" as const,
       }}
-    >✎修正</span>
+    ><span style={{ fontSize: 10 }}>✎</span> 修正</button>
   );
 
   return (
@@ -153,7 +156,7 @@ function EditablePlate({ plate, onEdit }: {
           <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim }}>
             {plate.region || "地名"}
           </span>
-          {editIcon(() => onEdit("region"))}
+          {editBtn(() => onEdit("region"))}
         </div>
         {/* 分類番号 */}
         <div
@@ -167,7 +170,7 @@ function EditablePlate({ plate, onEdit }: {
           <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.classNum ? text : dim, letterSpacing: 4 }}>
             {plate.classNum || "・・・"}
           </span>
-          {editIcon(() => onEdit("classNum"))}
+          {editBtn(() => onEdit("classNum"))}
         </div>
       </div>
 
@@ -185,7 +188,7 @@ function EditablePlate({ plate, onEdit }: {
           <span style={{ fontSize: 58, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1 }}>
             {plate.hira || "あ"}
           </span>
-          {editIcon(() => onEdit("hira"))}
+          {editBtn(() => onEdit("hira"))}
         </div>
         {/* 4桁番号 */}
         <div
@@ -215,7 +218,7 @@ function EditablePlate({ plate, onEdit }: {
               );
             })}
           </span>
-          {editIcon(() => onEdit("number"))}
+          {editBtn(() => onEdit("number"))}
         </div>
       </div>
     </div>
