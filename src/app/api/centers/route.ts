@@ -5,8 +5,8 @@ export async function GET() {
   try {
     const centers = await prisma.center.findMany({
       where: { isActive: true },
-      select: { id: true, name: true },
-      orderBy: { id: "asc" },
+      select: { id: true, code: true, name: true },
+      orderBy: { code: "asc" },
     });
     return NextResponse.json(centers);
   } catch (e) {

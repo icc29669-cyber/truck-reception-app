@@ -118,8 +118,8 @@ function BigPlate({
                 <span style={{ visibility: len >= 3 ? "visible" : "hidden" }}>-</span>
               )}
               {ch !== null
-                ? <span>{ch}</span>
-                : <span style={{ opacity: 0.35 }}>・</span>
+                ? <span style={{ display: "inline-block", width: "0.6em", textAlign: "center" }}>{ch}</span>
+                : <span style={{ display: "inline-block", width: "0.6em", textAlign: "center", opacity: 0.35 }}>・</span>
               }
             </span>
           );

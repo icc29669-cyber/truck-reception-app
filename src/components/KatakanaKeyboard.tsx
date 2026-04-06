@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 
 interface Props {
@@ -70,6 +70,23 @@ const LW = 136;  // 左列幅
 const AW = 168;  // 操作列幅
 const TOTAL_H = 5*H + 4*G; // 682px（5行分）
 
+// ━━ 行カラー（列インデックス: 0=ワ行 … 9=ア行）━━
+// 淡いパステルで品よく色分け
+const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
+  { bg: "#F8FAFC", border: "#CBD5E1", shadow: "#94A3B8" },  // ワ行
+  { bg: "#EEF2FF", border: "#C7D2FE", shadow: "#A5B4FC" },  // ラ行
+  { bg: "#F7FEE7", border: "#D9F99D", shadow: "#BEF264" },  // ヤ行
+  { bg: "#F0FDFA", border: "#C2F5E9", shadow: "#99F6E4" },  // マ行
+  { bg: "#FAF5FF", border: "#E4D5F7", shadow: "#C4B5FD" },  // ハ行
+  { bg: "#FDF2F8", border: "#F5D0E0", shadow: "#F0ABCF" },  // ナ行
+  { bg: "#FFF7ED", border: "#FDE0C2", shadow: "#FDBA74" },  // タ行
+  { bg: "#FFFBEB", border: "#FDE68A", shadow: "#FCD34D" },  // サ行
+  { bg: "#F0FDF4", border: "#C6F6D5", shadow: "#A7F3D0" },  // カ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ア行
+];
+// 行ラベル（上段ボタンに小さく表示）
+const COL_LABELS = ["ワ", "ラ", "ヤ", "マ", "ハ", "ナ", "タ", "サ", "カ", "ア"];
+
 export default function KatakanaKeyboard({ value, onChange, onComplete }: Props) {
   const [mode, setMode] = useState<"kata"|"alpha">("kata");
 
@@ -138,16 +155,40 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
       <div className="flex flex-col flex-shrink-0" style={{ gap:G }}>
         {(mode==="kata" ? KATA_ROWS : ALPHA_ROWS).map((row, ri) => (
           <div key={ri} className="flex" style={{ gap:G }}>
-            {row.map((ch, ci) =>
-              ch === null
-                ? <div key={ci} style={cell} />
-                : <button
-                    key={ci}
-                    onPointerDown={() => onChange(value + ch)}
-                    className={btnBase}
-                    style={{ ...cell, fontSize: mode==="kata" ? 42 : 34 }}
-                  >{ch}</button>
-            )}
+            {row.map((ch, ci) => {
+              if (ch === null) return <div key={ci} style={cell} />;
+              const isKata = mode === "kata";
+              const col = isKata ? COL_COLORS[ci] : null;
+              const isTopRow = ri === 0 && isKata;
+              return (
+                <button
+                  key={ci}
+                  onPointerDown={() => onChange(value + ch)}
+                  className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all duration-75 active:translate-y-1"
+                  style={{
+                    ...cell,
+                    fontSize: isKata ? 42 : 34,
+                    background: col ? col.bg : "#fff",
+                    borderColor: col ? col.border : "#D1D5DB",
+                    color: "#1a1a1a",
+                    boxShadow: `0 5px 0 ${col ? col.shadow : "#9E9E9E"}`,
+                    fontWeight: isTopRow ? 900 : 700,
+                    position: isTopRow ? "relative" as const : undefined,
+                  }}
+                >
+                  {ch}
+                  {isTopRow && (
+                    <span style={{
+                      position: "absolute", top: 4, left: 6,
+                      fontSize: 11, fontWeight: 800, color: "#9CA3AF",
+                      lineHeight: 1, letterSpacing: "0.02em",
+                    }}>
+                      {COL_LABELS[ci]}行
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         ))}
       </div>
@@ -210,7 +251,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
           disabled={!value.trim()}
           className={`flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all ${
             value.trim()
-              ? "border-green-700 bg-green-600 text-white active:bg-green-700 shadow-[0_5px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-1"
+              ? "border-teal-700 bg-teal-600 text-white active:bg-teal-700 shadow-[0_5px_0_#0F766E] active:shadow-[0_1px_0_#0F766E] active:translate-y-1"
               : "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
           style={{ width:AW, height: H, fontSize:36 }}

@@ -1,28 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyKioskSecret } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
+  const authError = verifyKioskSecret(req);
+  if (authError) return authError;
+
   const phone = req.nextUrl.searchParams.get("phone") ?? "";
   const centerId = Number(req.nextUrl.searchParams.get("centerId") ?? "0");
 
-  if (!phone) {
+  if (!phone || !/^\d{10,11}$/.test(phone)) {
     return NextResponse.json({ error: "電話番号が必要です" }, { status: 400 });
   }
 
   try {
-    // 同じ電話番号のドライバー候補（最近の受付順）
-    const drivers = await prisma.driver.findMany({
-      where: { phone },
-      orderBy: { updatedAt: "desc" },
-      take: 10,
-    });
-
-    // 同じ電話番号に紐づく車両候補（最近の更新順）
-    const vehicles = await prisma.vehicle.findMany({
-      where: { phone },
-      orderBy: { updatedAt: "desc" },
-      take: 10,
-    });
+    // 同じ電話番号のドライバー候補・車両候補を並列取得
+    const [drivers, vehicles] = await Promise.all([
+      prisma.driver.findMany({
+        where: { phone },
+        orderBy: { updatedAt: "desc" },
+        take: 10,
+      }),
+      prisma.vehicle.findMany({
+        where: { phone },
+        orderBy: { updatedAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
     return NextResponse.json({
       drivers: drivers.map((d) => ({

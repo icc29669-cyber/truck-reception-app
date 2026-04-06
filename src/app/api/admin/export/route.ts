@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+/** CSV数式インジェクション対策: =, +, -, @, \t, \r で始まるセルを無害化 */
+function sanitizeCSVCell(val: string): string {
+  if (/^[=+\-@\t\r]/.test(val)) {
+    return "'" + val;          // 先頭にシングルクォートを付与（Excelでは非表示）
+  }
+  return val;
+}
+
 function toCSV(rows: Record<string, string | number>[]): string {
   if (rows.length === 0) return "";
   const headers = Object.keys(rows[0]);
   const lines = [
     headers.join(","),
     ...rows.map((row) =>
-      headers.map((h) => `"${String(row[h] ?? "").replace(/"/g, '""')}"`).join(",")
+      headers.map((h) => {
+        const raw = String(row[h] ?? "");
+        const safe = sanitizeCSVCell(raw);
+        return `"${safe.replace(/"/g, '""')}"`;
+      }).join(",")
     ),
   ];
   // BOM付きUTF-8 (Excelで文字化けしないように)
@@ -56,6 +68,10 @@ export async function GET(req: NextRequest) {
       ドライバー名: r.driverName,
       電話番号: r.phone,
       車番: r.vehicleNumber,
+      地名: r.plateRegion,
+      分類番号: r.plateClassNum,
+      ひらがな: r.plateHira,
+      番号: r.plateNumber,
       最大積載量kg: r.maxLoad,
     }));
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
@@ -76,7 +76,7 @@ export default function VehicleSelectPage() {
             <p className="text-4xl text-gray-500">車両が見つかりませんでした</p>
             <button
               onPointerDown={notFound}
-              className="flex items-center justify-center min-h-[100px] px-12 rounded-2xl bg-[#2E7D32] text-white text-3xl font-bold active:bg-green-700"
+              className="flex items-center justify-center min-h-[100px] px-12 rounded-2xl bg-[#0D9488] text-white text-3xl font-bold active:bg-teal-700"
             >
               新しい車両を入力する
             </button>

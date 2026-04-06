@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
@@ -26,7 +26,7 @@ function StepDots({ current }: { current: number }) {
                 border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 22, fontWeight: 900,
-                color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
+                color: done ? "#0f766e" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
               }}>
                 {done ? "✓" : step}
               </div>
@@ -71,7 +71,7 @@ function CandidateCard({
         background: pressed ? "#EFF6FF" : "#fff",
         border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
         boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
-        borderLeft: isFirst ? "6px solid #16a34a" : undefined,
+        borderLeft: isFirst ? "6px solid #0d9488" : undefined,
         paddingLeft: isFirst ? 26 : 32,
         paddingRight: 28,
         overflow: "hidden",
@@ -98,7 +98,7 @@ function CandidateCard({
       {isFirst && (
         <span style={{
           fontSize: 20, fontWeight: 800, background: "#dcfce7",
-          color: "#166534", borderRadius: 8, padding: "4px 14px",
+          color: "#0f766e", borderRadius: 8, padding: "4px 14px",
           marginRight: 20, flexShrink: 0,
         }}>最近</span>
       )}
@@ -135,6 +135,11 @@ export default function PersonPage() {
     setFromFinal(isFromFinal);
 
     const s = getKioskSession();
+    // セッションに電話番号がなければトップに戻す
+    if (!s.phone && !isFromFinal) {
+      router.replace("/kiosk");
+      return;
+    }
     setCandidates(s.driverCandidates ?? []);
     // 既存入力値を復元
     setCompany(s.driverInput?.companyName ?? "");
@@ -190,6 +195,28 @@ export default function PersonPage() {
     setKioskSession({ driverInput: { ...s.driverInput, driverName: v } });
   }
 
+  /* 入力完了ハンドラ（会社名・名前共通） */
+  function handleInputComplete() {
+    if (inputField === "company") {
+      if (fromFinal) {
+        const s = getKioskSession();
+        setKioskSession({ driverInput: { ...s.driverInput, companyName: company, driverName: name } });
+        router.push("/kiosk/final-confirm");
+      } else {
+        setInputField("name");
+      }
+    } else {
+      if (!name.trim()) return;
+      if (fromFinal) {
+        const s = getKioskSession();
+        setKioskSession({ driverInput: { ...s.driverInput, companyName: company, driverName: name } });
+        router.push("/kiosk/final-confirm");
+      } else {
+        submitInput();
+      }
+    }
+  }
+
   const bgStyle = "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)";
 
   if (!mounted) return <div className="w-screen h-screen" style={{ background: "#1e3a5f" }} />;
@@ -201,7 +228,7 @@ export default function PersonPage() {
       <div className="flex flex-col flex-shrink-0 items-center"
         style={{
           background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",
-          paddingBottom: mode === "input" ? 52 : 24,
+          paddingBottom: mode === "input" ? 16 : 24,
         }}>
         <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
           <button
@@ -212,35 +239,78 @@ export default function PersonPage() {
           <div style={{ flex: 1 }} />
           <StepDots current={2} />
         </div>
-        <div style={{ marginBottom: mode === "input" ? 20 : 0 }}>
-          <span style={{ fontSize: 48, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
+
+        {/* タイトル */}
+        <div style={{ marginBottom: mode === "input" ? 14 : 0 }}>
+          <span style={{ fontSize: 52, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
             {mode === "select" ? "お名前を選んでください" :
              mode === "confirm" ? "ご本人の確認" :
              inputField === "company" ? "運送会社名を入力してください" :
              "お名前を入力してください"}
           </span>
         </div>
-        {/* 入力モードのみ：入力表示ボックスをヘッダー内に表示 */}
+
+        {/* 入力モードのみ：会社名 + お名前 を並べて表示 */}
         {mode === "input" && (
-          <div
-            suppressHydrationWarning
-            className="rounded-2xl border-4 flex items-center px-8 transition-colors"
-            style={{
-              width: 1200,
-              height: 110,
-              borderColor: (inputField === "company" ? company : name) ? "#F59E0B" : "rgba(255,255,255,0.55)",
-              background: "#FFFFFF",
-            }}
-          >
-            <span style={{
-              fontSize: 64, fontWeight: 900,
-              color: (inputField === "company" ? company : name) ? "#111827" : "#94a3b8",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {inputField === "company"
-                ? (company || "（運送会社名を入力してください）")
-                : (name || "（お名前を入力してください）")}
-            </span>
+          <div suppressHydrationWarning style={{
+            width: 1200, display: "flex", alignItems: "center", gap: 12,
+          }}>
+            {/* ① 運送会社名フィールド */}
+            <div
+              onPointerDown={() => setInputField("company")}
+              style={{
+                flex: 1, borderRadius: 14, height: 96,
+                background: "#fff",
+                border: `3px solid ${inputField === "company" ? "#F59E0B" : "rgba(255,255,255,0.22)"}`,
+                display: "flex", flexDirection: "column", justifyContent: "center",
+                padding: "0 22px", cursor: "pointer",
+                opacity: inputField === "company" ? 1 : 0.6,
+              }}
+            >
+              <div style={{
+                fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", marginBottom: 4,
+                color: inputField === "company" ? "#D97706" : "#94A3B8",
+              }}>
+                ① 運送会社名
+              </div>
+              <div style={{
+                fontSize: 36, fontWeight: 900, lineHeight: 1,
+                color: company ? "#111827" : "#CBD5E1",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {company || "－"}
+              </div>
+            </div>
+
+            {/* 矢印 */}
+            <div style={{ fontSize: 28, color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>▶</div>
+
+            {/* ② お名前フィールド */}
+            <div
+              onPointerDown={() => { if (company.trim()) setInputField("name"); }}
+              style={{
+                flex: 1, borderRadius: 14, height: 96,
+                background: "#fff",
+                border: `3px solid ${inputField === "name" ? "#F59E0B" : "rgba(255,255,255,0.22)"}`,
+                display: "flex", flexDirection: "column", justifyContent: "center",
+                padding: "0 22px", cursor: company.trim() ? "pointer" : "default",
+                opacity: inputField === "name" ? 1 : company.trim() ? 0.6 : 0.3,
+              }}
+            >
+              <div style={{
+                fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", marginBottom: 4,
+                color: inputField === "name" ? "#D97706" : "#94A3B8",
+              }}>
+                ② お名前
+              </div>
+              <div style={{
+                fontSize: 36, fontWeight: 900, lineHeight: 1,
+                color: name ? "#111827" : "#CBD5E1",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {name || "－"}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -250,35 +320,35 @@ export default function PersonPage() {
 
         {/* ── 選択モード ── */}
         {mode === "select" && (
-          <div className="h-full flex flex-col px-10 pt-8 pb-6 gap-4">
+          <div className="h-full flex flex-col px-10 pt-6 pb-6 gap-4">
             <p style={{ fontSize: 28, fontWeight: 600, color: "#374151", flexShrink: 0 }}>
               以前ご来場時の記録が見つかりました。ご自身をタップしてください。
             </p>
-            {/* 候補カード（最大4件） */}
-            <div className="flex flex-col gap-4 flex-shrink-0">
-              {candidates.slice(0, 4).map((c, i) => (
-                <CandidateCard
-                  key={c.id}
-                  candidate={c}
-                  isFirst={i === 0}
-                  onSelect={() => selectCandidate(c)}
-                />
-              ))}
+            {/* 候補カード（全件・スクロール対応） */}
+            <div className="flex-1 overflow-y-auto" style={{ paddingRight: 4 }}>
+              <div className="flex flex-col gap-4">
+                {candidates.map((c, i) => (
+                  <CandidateCard
+                    key={c.id}
+                    candidate={c}
+                    isFirst={i === 0}
+                    onSelect={() => selectCandidate(c)}
+                  />
+                ))}
+              </div>
             </div>
-            {/* 新しく入力するボタン */}
-            <div className="flex-1 flex items-end">
-              <button
-                onPointerDown={() => { setCompany(""); setName(""); setMode("input"); }}
-                className="w-full flex items-center justify-center gap-3 font-bold rounded-2xl active:bg-blue-50 transition-all select-none touch-none"
-                style={{
-                  height: 100, border: "2px dashed #1565C0",
-                  background: "rgba(255,255,255,0.7)", color: "#1565C0", fontSize: 32,
-                }}
-              >
-                <span style={{ fontSize: 40 }}>＋</span>
-                一覧にない場合は新しく入力する
-              </button>
-            </div>
+            {/* 新しく入力するボタン（常に下部表示） */}
+            <button
+              onPointerDown={() => { setCompany(""); setName(""); setMode("input"); }}
+              className="w-full flex items-center justify-center gap-3 font-bold rounded-2xl active:bg-blue-50 transition-all select-none touch-none flex-shrink-0"
+              style={{
+                height: 100, border: "2px dashed #1565C0",
+                background: "rgba(255,255,255,0.7)", color: "#1565C0", fontSize: 32,
+              }}
+            >
+              <span style={{ fontSize: 40 }}>＋</span>
+              一覧にない場合は新しく入力する
+            </button>
           </div>
         )}
 
@@ -288,14 +358,14 @@ export default function PersonPage() {
             {/* 確認カード */}
             <div style={{
               width: 1200, borderRadius: 22,
-              border: "3px solid #16a34a",
+              border: "3px solid #0d9488",
               background: "#fff",
               boxShadow: "0 12px 48px rgba(0,0,0,0.14)",
               overflow: "hidden",
             }}>
               {/* カードヘッダー */}
               <div style={{
-                background: "linear-gradient(90deg,#166534,#16a34a)",
+                background: "linear-gradient(90deg,#0f766e,#0d9488)",
                 padding: "20px 40px", display: "flex", alignItems: "center", gap: 16,
               }}>
                 <span style={{ fontSize: 36, color: "#fff" }}>✓</span>
@@ -306,7 +376,7 @@ export default function PersonPage() {
               {/* カードボディ */}
               <div style={{ padding: "36px 56px", display: "flex", flexDirection: "column", gap: 20 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                  <span style={{ fontSize: 24, fontWeight: 600, color: "#9CA3AF", width: 200, flexShrink: 0 }}>
+                  <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200, flexShrink: 0 }}>
                     運送会社名
                   </span>
                   <span style={{ fontSize: 36, fontWeight: 700, color: "#111827" }}>
@@ -315,7 +385,7 @@ export default function PersonPage() {
                 </div>
                 <div style={{ height: 1, background: "#E5E7EB" }} />
                 <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                  <span style={{ fontSize: 24, fontWeight: 600, color: "#9CA3AF", width: 200, flexShrink: 0 }}>
+                  <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200, flexShrink: 0 }}>
                     お名前
                   </span>
                   <span style={{ fontSize: 52, fontWeight: 900, color: "#111827", letterSpacing: "0.06em" }}>
@@ -332,8 +402,8 @@ export default function PersonPage() {
                 className="flex-1 flex items-center justify-center gap-4 font-black rounded-2xl text-white active:brightness-90 select-none touch-none transition-all"
                 style={{
                   height: 132, fontSize: 44,
-                  background: "linear-gradient(180deg,#22C55E,#16A34A)",
-                  boxShadow: "0 6px 0 #14532d, 0 8px 24px rgba(22,163,74,0.4)",
+                  background: "linear-gradient(180deg,#2DD4BF,#0D9488)",
+                  boxShadow: "0 6px 0 #0f766e, 0 8px 24px rgba(13,148,136,0.4)",
                 }}
               >
                 <span style={{ fontSize: 48 }}>✓</span>
@@ -354,52 +424,34 @@ export default function PersonPage() {
           </div>
         )}
 
-        {/* ── 入力モード：運送会社名 ── */}
-        {mode === "input" && inputField === "company" && (
-          <div className="h-full flex flex-col items-center justify-center px-10 py-6 gap-4">
-            <div className="flex-1 flex items-center justify-center overflow-hidden py-8">
+        {/* ── 入力モード：会社名・名前 共通レイアウト ── */}
+        {mode === "input" && (
+          <div className="h-full flex flex-col items-center px-10 py-4 gap-2">
+            <div className="flex-1 flex items-center justify-center overflow-hidden py-4">
               <KatakanaKeyboard
-                value={company}
-                onChange={saveCompany}
-                onComplete={() => setInputField("name")}
+                value={inputField === "company" ? company : name}
+                onChange={inputField === "company" ? saveCompany : saveName}
+                onComplete={handleInputComplete}
               />
             </div>
-            {candidates.length > 0 && (
-              <button
-                onPointerDown={() => setMode("select")}
-                style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline", flexShrink: 0 }}
-              >
-                ← 一覧から選ぶに戻る
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ── 入力モード：お名前 ── */}
-        {mode === "input" && inputField === "name" && (
-          <div className="h-full flex flex-col items-center justify-center px-10 py-6 gap-4">
-            <div className="flex-1 flex items-center justify-center overflow-hidden py-8">
-              <KatakanaKeyboard
-                value={name}
-                onChange={saveName}
-                onComplete={() => {
-                  if (!name.trim()) return;
-                  if (fromFinal) {
-                    const s = getKioskSession();
-                    setKioskSession({ driverInput: { ...s.driverInput, companyName: company, driverName: name } });
-                    router.push("/kiosk/final-confirm");
-                  } else {
-                    submitInput();
-                  }
-                }}
-              />
+            {/* バックリンク：常に同じ高さで確保してレイアウトを固定 */}
+            <div style={{ height: 40, flexShrink: 0, display: "flex", alignItems: "center" }}>
+              {inputField === "name" ? (
+                <button
+                  onPointerDown={() => setInputField("company")}
+                  style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline" }}
+                >
+                  ← 運送会社名の入力に戻る
+                </button>
+              ) : candidates.length > 0 ? (
+                <button
+                  onPointerDown={() => setMode("select")}
+                  style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline" }}
+                >
+                  ← 一覧から選ぶに戻る
+                </button>
+              ) : null}
             </div>
-            <button
-              onPointerDown={() => setInputField("company")}
-              style={{ fontSize: 24, color: "#6B7280", textDecoration: "underline", flexShrink: 0 }}
-            >
-              ← 運送会社名の入力に戻る
-            </button>
           </div>
         )}
 

@@ -38,13 +38,22 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { name, companyName, phone, companyId } = body;
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return NextResponse.json({ error: "名前は必須です" }, { status: 400 });
+    }
+    if (name.length > 50) {
+      return NextResponse.json({ error: "名前は50文字以内にしてください" }, { status: 400 });
+    }
+    if (companyName && companyName.length > 100) {
+      return NextResponse.json({ error: "会社名は100文字以内にしてください" }, { status: 400 });
+    }
+    if (phone && !/^[\d\-]{0,15}$/.test(phone)) {
+      return NextResponse.json({ error: "電話番号の形式が不正です" }, { status: 400 });
     }
 
     const driver = await prisma.driver.create({
       data: {
-        name,
+        name: name.trim(),
         companyName: companyName || "",
         phone: phone || "",
         ...(companyId ? { companyId: Number(companyId) } : {}),

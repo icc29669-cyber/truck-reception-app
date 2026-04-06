@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,6 +15,10 @@ const NAV_ITEMS = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [dateStr, setDateStr] = useState("");
+  useEffect(() => {
+    setDateStr(new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" }));
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
@@ -76,12 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {"\u{1F69B}"} トラック受付　管理画面
           </h1>
           <span className="text-sm text-blue-200">
-            {new Date().toLocaleDateString("ja-JP", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              weekday: "short",
-            })}
+            {dateStr}
           </span>
         </header>
 

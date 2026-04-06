@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyKioskSecret } from "@/lib/auth";
+
+const BERTH_API_URL = process.env.BERTH_API_URL || "";
+const BERTH_KIOSK_SECRET = process.env.BERTH_KIOSK_SECRET || "";
 
 function formatPlate(p: {
   region: string;
@@ -12,6 +16,9 @@ function formatPlate(p: {
 }
 
 export async function POST(req: NextRequest) {
+  const authError = verifyKioskSecret(req);
+  if (authError) return authError;
+
   try {
     const body = await req.json();
     const {
@@ -28,8 +35,21 @@ export async function POST(req: NextRequest) {
       reservationId?: number;
     };
 
-    if (!phone || !centerId) {
-      return NextResponse.json({ error: "電話番号・センターIDが必要です" }, { status: 400 });
+    if (!phone || !/^\d{10,11}$/.test(phone)) {
+      return NextResponse.json({ error: "正しい電話番号が必要です" }, { status: 400 });
+    }
+    if (!centerId || isNaN(centerId) || centerId <= 0) {
+      return NextResponse.json({ error: "センターIDが必要です" }, { status: 400 });
+    }
+    // 入力文字数制限（XSS/インジェクション対策）
+    if (driverInput.driverName && driverInput.driverName.length > 50) {
+      return NextResponse.json({ error: "名前が長すぎます" }, { status: 400 });
+    }
+    if (driverInput.companyName && driverInput.companyName.length > 100) {
+      return NextResponse.json({ error: "会社名が長すぎます" }, { status: 400 });
+    }
+    if (plate.number && !/^\d{0,4}$/.test(plate.number)) {
+      return NextResponse.json({ error: "車両番号が不正です" }, { status: 400 });
     }
 
     const vehicleNumber = formatPlate(plate);
@@ -103,29 +123,7 @@ export async function POST(req: NextRequest) {
       });
       const centerDailyNo = todayCount + 1;
 
-      // 4. 予約がある場合、ステータスを checked_in に更新（楽観ロック）
-      let reservationData = null;
-      if (reservationId) {
-        const reservation = await tx.reservation.findUnique({
-          where: { id: reservationId },
-        });
-        if (!reservation) {
-          throw new Error("予約が見つかりません");
-        }
-        if (reservation.status !== "pending") {
-          throw new Error(
-            reservation.status === "checked_in"
-              ? "この予約は既に受付済みです。他の方が先に受付した可能性があります。"
-              : `この予約は現在「${reservation.status}」のため受付できません。`
-          );
-        }
-        reservationData = await tx.reservation.update({
-          where: { id: reservationId },
-          data: { status: "checked_in" },
-        });
-      }
-
-      // 5. 受付記録を作成
+      // 4. 受付記録を作成（予約は berth-app 側で管理）
       const reception = await tx.reception.create({
         data: {
           centerId,
@@ -141,12 +139,12 @@ export async function POST(req: NextRequest) {
           maxLoad: driverInput.maxLoad ?? "",
           driverId: driver.id,
           vehicleId: vehicle?.id ?? null,
-          reservationId: reservationId ?? null,
+          reservationId: null, // 予約は berth-app 側で管理
         },
         include: { center: true },
       });
 
-      return { reception, centerDailyNo, reservationData };
+      return { reception, centerDailyNo };
     });
 
     // 現在の待機台数（本日受付済み件数）
@@ -173,11 +171,16 @@ export async function POST(req: NextRequest) {
       barcodeValue: `RC-${result.reception.id}-${result.centerDailyNo}`,
     };
 
-    if (result.reservationData) {
-      responseData.reservation = {
-        startTime: result.reservationData.startTime,
-        endTime: result.reservationData.endTime,
-      };
+    // ── berth-app に予約チェックインを通知（非同期・失敗しても受付は完了） ──
+    if (reservationId && BERTH_API_URL && BERTH_KIOSK_SECRET) {
+      fetch(`${BERTH_API_URL}/api/reception/checkin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Kiosk-Secret": BERTH_KIOSK_SECRET,
+        },
+        body: JSON.stringify({ reservationId }),
+      }).catch((e) => console.error("berth-app checkin notification failed:", e));
     }
 
     return NextResponse.json(responseData);

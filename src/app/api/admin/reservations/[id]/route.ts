@@ -7,6 +7,9 @@ export async function PUT(
 ) {
   try {
     const id = Number(params.id);
+    if (isNaN(id) || id <= 0) {
+      return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
+    }
     const body = await req.json();
     const {
       centerId, phone, driverName, companyName,
@@ -14,6 +17,25 @@ export async function PUT(
       vehicleNumber, maxLoad,
       reservationDate, startTime, endTime, status, notes,
     } = body;
+
+    // 入力バリデーション
+    const timeRe = /^\d{2}:\d{2}$/;
+    if (startTime !== undefined && !timeRe.test(startTime)) {
+      return NextResponse.json({ error: "開始時刻の形式が不正です (HH:mm)" }, { status: 400 });
+    }
+    if (endTime !== undefined && !timeRe.test(endTime)) {
+      return NextResponse.json({ error: "終了時刻の形式が不正です (HH:mm)" }, { status: 400 });
+    }
+    if (startTime && endTime && startTime >= endTime) {
+      return NextResponse.json({ error: "終了時刻は開始時刻より後にしてください" }, { status: 400 });
+    }
+    if (reservationDate !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(reservationDate)) {
+      return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
+    }
+    const validStatuses = ["pending", "checked_in", "completed", "cancelled", "no_show"];
+    if (status !== undefined && !validStatuses.includes(status)) {
+      return NextResponse.json({ error: "無効なステータスです" }, { status: 400 });
+    }
 
     const reservation = await prisma.reservation.update({
       where: { id },

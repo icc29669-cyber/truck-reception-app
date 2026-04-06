@@ -51,8 +51,8 @@ function formatNum4(num4: string): React.ReactElement {
               <span style={{ fontFamily: pf, fontWeight: 900, lineHeight: 1, visibility: num4.length >= 3 ? "visible" : "hidden" }}>-</span>
             )}
             {ch !== null
-              ? <span style={{ fontFamily: pf, fontWeight: 900, lineHeight: 1 }}>{ch}</span>
-              : <span style={{ fontFamily: pf, fontWeight: 900, opacity: 0.35, lineHeight: 1 }}>・</span>
+              ? <span style={{ display: "inline-block", width: "0.6em", textAlign: "center", fontFamily: pf, fontWeight: 900, lineHeight: 1 }}>{ch}</span>
+              : <span style={{ display: "inline-block", width: "0.6em", textAlign: "center", fontFamily: pf, fontWeight: 900, opacity: 0.35, lineHeight: 1 }}>・</span>
             }
           </span>
         );

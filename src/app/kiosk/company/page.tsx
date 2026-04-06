@@ -29,7 +29,7 @@ export default function CompanyPage() {
       {/* ── 濃い青ヘッダー（タイトル＋入力表示） ── */}
       <div
         className="flex flex-col flex-shrink-0 items-center"
-        style={{ background: "linear-gradient(90deg,#1a3a6b 0%,#1E5799 100%)", paddingBottom: 52 }}
+        style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)", paddingBottom: 52 }}
       >
         <div className="flex items-center px-8 w-full" style={{ height: 80 }}>
           <button

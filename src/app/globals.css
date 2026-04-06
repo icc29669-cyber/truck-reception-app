@@ -14,6 +14,25 @@ html, body {
 /* 管理画面はスクロール可能 */
 .admin-page html, .admin-page body { overflow: auto; }
 
+/* キオスクボタン押下フィードバック */
+@keyframes btn-flash {
+  0%   { filter: brightness(1); }
+  40%  { filter: brightness(0.72); }
+  100% { filter: brightness(1); }
+}
+.btn-flash {
+  animation: btn-flash 0.18s ease-out !important;
+}
+
+/* アクセシビリティ：動きを減らす設定のサポート */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* 印刷時：受付票だけ表示 */
 @media print {
   body > * { display: none !important; }

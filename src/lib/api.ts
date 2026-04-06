@@ -141,7 +141,8 @@ export async function lookupByPhone(
 // ─── 予約検索 ──────────────────────────────────────────
 export async function lookupReservation(
   phone: string,
-  centerId: number
+  centerId: number,
+  centerName?: string
 ): Promise<ReservationCandidate[]> {
   if (USE_MOCK) {
     await delay(400);
@@ -179,8 +180,9 @@ export async function lookupReservation(
     }
     return [];
   }
+  const nameParam = centerName ? `&centerName=${encodeURIComponent(centerName)}` : "";
   const res = await fetch(
-    `${BASE}/api/reception/lookup-reservation?phone=${encodeURIComponent(phone)}&centerId=${centerId}`,
+    `${BASE}/api/reception/lookup-reservation?phone=${encodeURIComponent(phone)}&centerId=${centerId}${nameParam}`,
     { headers: headers() }
   );
   if (!res.ok) return [];

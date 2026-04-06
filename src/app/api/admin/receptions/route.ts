@@ -41,6 +41,10 @@ export async function GET(req: NextRequest) {
         driverName: r.driverName,
         phone: r.phone,
         vehicleNumber: r.vehicleNumber,
+        plateRegion: r.plateRegion,
+        plateClassNum: r.plateClassNum,
+        plateHira: r.plateHira,
+        plateNumber: r.plateNumber,
         maxLoad: r.maxLoad,
         reservation: r.reservation
           ? { id: r.reservation.id, startTime: r.reservation.startTime, endTime: r.reservation.endTime, status: r.reservation.status }

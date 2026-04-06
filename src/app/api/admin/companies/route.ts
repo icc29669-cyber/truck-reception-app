@@ -29,12 +29,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { name, phone } = body;
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return NextResponse.json({ error: "会社名は必須です" }, { status: 400 });
+    }
+    if (name.length > 100) {
+      return NextResponse.json({ error: "会社名は100文字以内にしてください" }, { status: 400 });
+    }
+    if (phone && !/^[\d\-]{0,15}$/.test(phone)) {
+      return NextResponse.json({ error: "電話番号の形式が不正です" }, { status: 400 });
     }
 
     const company = await prisma.company.create({
-      data: { name, phone: phone || "" },
+      data: { name: name.trim(), phone: phone || "" },
     });
 
     return NextResponse.json(company, { status: 201 });

@@ -10,6 +10,7 @@ datasource db {
 // ─── センター（拠点）───────────────────────────────────────
 model Center {
   id        Int      @id @default(autoincrement())
+  code      String   @default("")   // 4桁センターコード 例: "3101"
   name      String
   secretKey String   @default("")
   isActive  Boolean  @default(true)
@@ -17,6 +18,12 @@ model Center {
 
   receptions   Reception[]
   reservations Reservation[]
+}
+
+// ─── システム設定 ─────────────────────────────────────────
+model Setting {
+  key   String @id
+  value String @default("")
 }
 
 // ─── 運送会社 ──────────────────────────────────────────────

@@ -3,8 +3,7 @@ import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import PlateDisplay from "@/components/PlateDisplay";
 
-// カーナビ方式: 右から左へ（あ行が右端、わ行が左端）
-// 使用不可: し、へ、ん、お
+// カーナビ方式: 右から左（あ行→右端、わ行→左端）
 const HIRA_ROWS: (string | null)[][] = [
   ["わ", "ら", "や", "ま", "は", "な", "た", "さ", "か", "あ"],
   ["を", "り",  null, "み", "ひ", "に", "ち", "し", "き", "い"],
@@ -13,20 +12,48 @@ const HIRA_ROWS: (string | null)[][] = [
   [null, "ろ", "よ", "も", "ほ", "の", "と", "そ", "こ", "お"],
 ];
 
+// ナンバープレートで使用不可の文字
 const UNUSABLE = new Set(["し", "へ", "ん", "お"]);
 
+// 事業用（緑ナンバー）英字
 const ALPHA_KEYS = ["A", "C", "F", "H", "K", "L", "M", "P", "X", "Y"];
 
-const BTN_SIZE = 150;
-const GAP = 10;
+// カタカナキーボードと同じ列カラー（左=わ行 → 右=あ行）
+const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
+  { bg: "#F8FAFC", border: "#CBD5E1", shadow: "#94A3B8" }, // わ行
+  { bg: "#EEF2FF", border: "#C7D2FE", shadow: "#A5B4FC" }, // ら行
+  { bg: "#F7FEE7", border: "#D9F99D", shadow: "#BEF264" }, // や行
+  { bg: "#F0FDFA", border: "#C2F5E9", shadow: "#99F6E4" }, // ま行
+  { bg: "#FAF5FF", border: "#E4D5F7", shadow: "#C4B5FD" }, // は行
+  { bg: "#FDF2F8", border: "#F5D0E0", shadow: "#F0ABCF" }, // な行
+  { bg: "#FFF7ED", border: "#FDE0C2", shadow: "#FDBA74" }, // た行
+  { bg: "#FFFBEB", border: "#FDE68A", shadow: "#FCD34D" }, // さ行
+  { bg: "#F0FDF4", border: "#C6F6D5", shadow: "#A7F3D0" }, // か行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // あ行
+];
+
+const COL_LABELS = ["わ", "ら", "や", "ま", "は", "な", "た", "さ", "か", "あ"];
+
+// ヒント用の地名例
+const HINTS = [
+  { place: "所沢", hira: "と" },
+  { place: "横浜", hira: "よ" },
+  { place: "神戸", hira: "こ" },
+  { place: "名古屋", hira: "な" },
+  { place: "浦和", hira: "う" },
+];
+
+const BTN_W = 126;
+const BTN_H = 104;
+const GAP = 9;
 
 export default function HiraPage() {
   const router = useRouter();
   const session = getKioskSession();
 
-  function select(hira: string) {
-    if (!hira || UNUSABLE.has(hira)) return;
-    setKioskSession({ plate: { ...session.plate, hira } });
+  function select(ch: string) {
+    if (!ch || UNUSABLE.has(ch)) return;
+    setKioskSession({ plate: { ...session.plate, hira: ch } });
     router.push("/kiosk/plate/number");
   }
 
@@ -35,50 +62,102 @@ export default function HiraPage() {
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
       style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
     >
-      {/* ヘッダー */}
+      {/* ━━ ヘッダー ━━ */}
       <div
         className="flex items-center justify-between px-8 py-3 flex-shrink-0"
         style={{ background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)" }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/plate/classnum")}
-          className="min-h-[56px] px-8 rounded-xl border-2 text-2xl font-bold active:opacity-80 transition-opacity"
-          style={{ borderColor: "white", color: "white", background: "transparent" }}
+          className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+          style={{ height: 62, width: 160, fontSize: 28 }}
         >
           戻る
         </button>
-        <PlateDisplay plate={session.plate} highlight="hira" size="sm" />
-        <div style={{ width: 120 }} />
+        <h1 className="flex-1 text-center text-white font-bold" style={{ fontSize: 38 }}>
+          地名のひらがなを選んでください
+        </h1>
+        {/* PlateDisplay + ヒント（右側） */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+          <PlateDisplay plate={session.plate} highlight="hira" size="sm" />
+          {/* ヒントカード（小） */}
+          <div style={{
+            background: "rgba(255,251,235,0.18)",
+            border: "1.5px solid rgba(253,230,138,0.5)",
+            borderRadius: 10,
+            padding: "10px 14px",
+            minWidth: 170,
+          }}>
+            <div style={{ fontSize: 14, color: "#FDE68A", fontWeight: 800, marginBottom: 6, letterSpacing: "0.04em" }}>
+              💡 地名の最初の文字
+            </div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.88)", lineHeight: 1.9 }}>
+              {HINTS.map(h => (
+                <span key={h.place} style={{ display: "block" }}>
+                  {h.place} →{" "}
+                  <span style={{ fontWeight: 900, color: "#FDE68A" }}>「{h.hira}」</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center px-8 pt-4 pb-2 gap-4 overflow-y-auto">
-        <p className="font-bold text-gray-800 text-center text-5xl flex-shrink-0">
-          該当するひらがなをタッチしてください
-        </p>
+      {/* ━━ コンテンツ ━━ */}
+      <div className="flex-1 flex flex-col items-center px-8 pt-3 pb-3 gap-3 overflow-hidden">
 
-        <div className="flex gap-8">
-          {/* ひらがなグリッド（カーナビ方式） */}
-          <div className="flex flex-col flex-shrink-0" style={{ gap: GAP }}>
+        {/* ── グリッド + 英字 ── */}
+        <div style={{ display: "flex", gap: 20, flexShrink: 0 }}>
+
+          {/* ひらがなグリッド */}
+          <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
             {HIRA_ROWS.map((row, ri) => (
-              <div key={ri} className="flex" style={{ gap: GAP }}>
+              <div key={ri} style={{ display: "flex", gap: GAP }}>
                 {row.map((ch, ci) => {
                   if (ch === null) {
-                    return <div key={ci} style={{ width: BTN_SIZE, height: 90 }} />;
+                    return <div key={ci} style={{ width: BTN_W, height: BTN_H }} />;
                   }
-                  const isUnavailable = UNUSABLE.has(ch);
+                  // 使用不可文字は空白スペースとして非表示（タップ不可）
+                  if (UNUSABLE.has(ch)) {
+                    return <div key={ci} style={{ width: BTN_W, height: BTN_H }} />;
+                  }
+                  const col = COL_COLORS[ci];
+                  const isTopRow = ri === 0;
                   return (
                     <button
                       key={ci}
-                      onPointerDown={() => !isUnavailable ? select(ch) : undefined}
-                      disabled={isUnavailable}
-                      className={`rounded-2xl font-bold flex items-center justify-center transition-all duration-75
-                        ${isUnavailable
-                          ? "bg-gray-200 text-gray-400 border-2 border-gray-200 shadow-none pointer-events-none"
-                          : "bg-white border-2 border-gray-300 text-gray-900 shadow-[0_4px_0_#9E9E9E] active:shadow-[0_1px_0_#9E9E9E] active:translate-y-[3px]"
-                        }`}
-                      style={{ width: 130, height: 90, fontSize: 36 }}
+                      onPointerDown={() => select(ch)}
+                      className="active:translate-y-[4px]"
+                      style={{
+                        width: BTN_W,
+                        height: BTN_H,
+                        fontSize: 44,
+                        fontWeight: isTopRow ? 900 : 700,
+                        borderRadius: 14,
+                        border: `2px solid ${col.border}`,
+                        background: col.bg,
+                        color: "#111827",
+                        boxShadow: `0 5px 0 ${col.shadow}`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        position: "relative",
+                        transition: "transform 75ms",
+                        userSelect: "none",
+                      }}
                     >
                       {ch}
+                      {/* 行ラベル（先頭行） */}
+                      {isTopRow && (
+                        <span style={{
+                          position: "absolute", top: 4, left: 6,
+                          fontSize: 11, fontWeight: 800, color: "#9CA3AF",
+                          lineHeight: 1, letterSpacing: "0.02em",
+                        }}>
+                          {COL_LABELS[ci]}行
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -86,19 +165,40 @@ export default function HiraPage() {
             ))}
           </div>
 
-          {/* 英字（事業用） */}
-          <div className="flex flex-col gap-3 flex-shrink-0" style={{ width: 320 }}>
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-2 text-center">
-              <p className="text-3xl font-bold text-blue-700">事業用（緑ナンバー）</p>
+          {/* ── 事業用（英字） ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, width: 306, flexShrink: 0 }}>
+            {/* ラベル */}
+            <div style={{
+              background: "#EFF6FF", border: "2px solid #BFDBFE",
+              borderRadius: 12, padding: "10px 16px", textAlign: "center",
+            }}>
+              <p style={{ fontSize: 24, fontWeight: 800, color: "#1E40AF", margin: 0 }}>
+                事業用（緑ナンバー）
+              </p>
             </div>
-            <div className="grid grid-cols-2" style={{ gap: GAP }}>
+            {/* 英字ボタン 2列 */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: GAP }}>
               {ALPHA_KEYS.map((k) => (
                 <button
                   key={k}
                   onPointerDown={() => select(k)}
-                  className="rounded-2xl font-bold flex items-center justify-center bg-blue-50 border-2 border-blue-300 text-blue-800
-                             shadow-[0_4px_0_#93C5FD] active:shadow-[0_1px_0_#93C5FD] active:translate-y-[3px] transition-all duration-75"
-                  style={{ width: 130, height: 90, fontSize: 28 }}
+                  className="active:translate-y-[4px]"
+                  style={{
+                    height: BTN_H,
+                    fontSize: 34,
+                    fontWeight: 800,
+                    borderRadius: 14,
+                    border: "2px solid #BFDBFE",
+                    background: "#EFF6FF",
+                    color: "#1E40AF",
+                    boxShadow: "0 5px 0 #93C5FD",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    transition: "transform 75ms",
+                    userSelect: "none",
+                  }}
                 >
                   {k}
                 </button>

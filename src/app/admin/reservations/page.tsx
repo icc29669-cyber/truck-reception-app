@@ -97,7 +97,7 @@ export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [centers, setCenters] = useState<Center[]>([]);
   const [loading, setLoading] = useState(false);
-  const [date, setDate] = useState(fmtDate(new Date()));
+  const [date, setDate] = useState("");
   const [filterCenterId, setFilterCenterId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -117,7 +117,12 @@ export default function ReservationsPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    setDate(fmtDate(new Date()));
+  }, []);
+
   const fetchData = useCallback(async () => {
+    if (!date) return;
     setLoading(true);
     try {
       const params = new URLSearchParams();

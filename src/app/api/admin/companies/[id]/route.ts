@@ -7,8 +7,18 @@ export async function PUT(
 ) {
   try {
     const id = Number(params.id);
+    if (isNaN(id) || id <= 0) {
+      return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
+    }
     const body = await req.json();
     const { name, phone, isActive } = body;
+
+    if (name !== undefined && (!name.trim() || name.length > 100)) {
+      return NextResponse.json({ error: "会社名は1〜100文字で入力してください" }, { status: 400 });
+    }
+    if (phone !== undefined && phone && !/^[\d\-]{0,15}$/.test(phone)) {
+      return NextResponse.json({ error: "電話番号の形式が不正です" }, { status: 400 });
+    }
 
     const company = await prisma.company.update({
       where: { id },

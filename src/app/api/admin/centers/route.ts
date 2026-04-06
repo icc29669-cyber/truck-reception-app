@@ -4,9 +4,8 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const centers = await prisma.center.findMany({
-      orderBy: { id: "asc" },
+      orderBy: { code: "asc" },
     });
-
     return NextResponse.json(centers);
   } catch (e) {
     console.error(e);
@@ -17,14 +16,24 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, secretKey } = body;
+    const { code, name, secretKey } = body;
 
-    if (!name) {
-      return NextResponse.json({ error: "センター名は必須です" }, { status: 400 });
+    if (!code || !name) {
+      return NextResponse.json({ error: "センターコードとセンター名は必須です" }, { status: 400 });
+    }
+    if (!/^\d{4}$/.test(code)) {
+      return NextResponse.json({ error: "センターコードは4桁の数字で入力してください" }, { status: 400 });
+    }
+
+    // コード重複チェック
+    const existing = await prisma.center.findFirst({ where: { code } });
+    if (existing) {
+      return NextResponse.json({ error: "このセンターコードは既に使用されています" }, { status: 400 });
     }
 
     const center = await prisma.center.create({
       data: {
+        code,
         name,
         secretKey: secretKey || "",
       },

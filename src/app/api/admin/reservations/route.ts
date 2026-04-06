@@ -52,6 +52,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
     }
 
+    // 入力バリデーション
+    const timeRe = /^\d{2}:\d{2}$/;
+    if (!timeRe.test(startTime) || !timeRe.test(endTime)) {
+      return NextResponse.json({ error: "時刻の形式が不正です (HH:mm)" }, { status: 400 });
+    }
+    if (startTime >= endTime) {
+      return NextResponse.json({ error: "終了時刻は開始時刻より後にしてください" }, { status: 400 });
+    }
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRe.test(reservationDate)) {
+      return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
+    }
+    if (phone && !/^\d{0,15}$/.test(phone)) {
+      return NextResponse.json({ error: "電話番号の形式が不正です" }, { status: 400 });
+    }
+
     const reservation = await prisma.reservation.create({
       data: {
         centerId: Number(centerId),

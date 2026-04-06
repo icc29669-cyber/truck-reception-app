@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
@@ -173,8 +173,8 @@ export default function ClassNumPage() {
               <button
                 onPointerDown={handleOK}
                 disabled={!value}
-                className={`flex items-center justify-center font-black rounded-2xl border-2 touch-none shadow-[0_5px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-1 transition-all duration-75 ${
-                  value ? "border-green-700 bg-green-600 text-white active:bg-green-700" : "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
+                className={`flex items-center justify-center font-black rounded-2xl border-2 touch-none shadow-[0_5px_0_#0F766E] active:shadow-[0_1px_0_#0F766E] active:translate-y-1 transition-all duration-75 ${
+                  value ? "border-teal-700 bg-teal-600 text-white active:bg-teal-700" : "border-gray-300 bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
                 style={{ width: 220, height: BTN_H * 2 + 12, fontSize: 44 }}
               >
@@ -214,7 +214,7 @@ export default function ClassNumPage() {
               </button>
               <button
                 onPointerDown={handleOK}
-                className="flex items-center justify-center font-black rounded-2xl border-2 border-green-700 bg-green-600 text-white text-4xl active:bg-green-700 touch-none shadow-[0_5px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-1 transition-all duration-75"
+                className="flex items-center justify-center font-black rounded-2xl border-2 border-teal-700 bg-teal-600 text-white text-4xl active:bg-teal-700 touch-none shadow-[0_5px_0_#0F766E] active:shadow-[0_1px_0_#0F766E] active:translate-y-1 transition-all duration-75"
                 style={{ width: 200, height: 90 }}
               >
                 OK

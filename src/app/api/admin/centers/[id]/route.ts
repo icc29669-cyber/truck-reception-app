@@ -7,12 +7,29 @@ export async function PUT(
 ) {
   try {
     const id = Number(params.id);
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
+    }
     const body = await req.json();
-    const { name, secretKey, isActive } = body;
+    const { code, name, secretKey, isActive } = body;
+
+    // コード形式チェック
+    if (code !== undefined && !/^\d{4}$/.test(code)) {
+      return NextResponse.json({ error: "センターコードは4桁の数字で入力してください" }, { status: 400 });
+    }
+
+    // コード重複チェック
+    if (code !== undefined) {
+      const existing = await prisma.center.findFirst({ where: { code, NOT: { id } } });
+      if (existing) {
+        return NextResponse.json({ error: "このセンターコードは既に使用されています" }, { status: 400 });
+      }
+    }
 
     const center = await prisma.center.update({
       where: { id },
       data: {
+        ...(code !== undefined && { code }),
         ...(name !== undefined && { name }),
         ...(secretKey !== undefined && { secretKey }),
         ...(isActive !== undefined && { isActive }),

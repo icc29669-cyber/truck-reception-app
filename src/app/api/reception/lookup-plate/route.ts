@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyKioskSecret } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
+  const authError = verifyKioskSecret(req);
+  if (authError) return authError;
   const plate = req.nextUrl.searchParams.get("plate") ?? "";
 
   if (!plate) {

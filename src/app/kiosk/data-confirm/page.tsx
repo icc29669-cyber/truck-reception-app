@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
@@ -106,7 +106,7 @@ function MiniPlate({ plate }: { plate: PlateInput }) {
         const hasDigit = pos>=(4-len); const ch=hasDigit?plate.number[pos-(4-len)]:null;
         return <span key={pos} style={{display:"inline-flex",alignItems:"center"}}>
           {pos===2&&<span style={{visibility:len>=3?"visible":"hidden"}}>-</span>}
-          {ch!==null?<span>{ch}</span>:<span style={{opacity:0.35}}>・</span>}
+          {ch!==null?<span style={{display:"inline-block",width:"0.6em",textAlign:"center"}}>{ch}</span>:<span style={{display:"inline-block",width:"0.6em",textAlign:"center",opacity:0.35}}>・</span>}
         </span>;
       })}
     </span>
@@ -155,7 +155,7 @@ function PlatePanel({ plate, onChange }: {
         const hasDigit=pos>=(4-len); const ch=hasDigit?plate.number[pos-(4-len)]:null;
         return <span key={pos} style={{display:"inline-flex",alignItems:"center"}}>
           {pos===2&&<span style={{visibility:len>=3?"visible":"hidden"}}>-</span>}
-          {ch!==null?<span>{ch}</span>:<span style={{opacity:0.35}}>・</span>}
+          {ch!==null?<span style={{display:"inline-block",width:"0.6em",textAlign:"center"}}>{ch}</span>:<span style={{display:"inline-block",width:"0.6em",textAlign:"center",opacity:0.35}}>・</span>}
         </span>;
       })}
     </span>
@@ -416,7 +416,7 @@ export default function DataConfirmPage() {
     { id:"company",  icon:"🏢", label:"運送会社名",   value:company,  accent:"#1E5799" },
     { id:"name",     icon:"👤", label:"お名前",        value:name,     accent:"#7c3aed" },
     { id:"maxLoad",  icon:"⚖️", label:"最大積載量",    value:maxLoad?`${Number(maxLoad).toLocaleString()} kg`:"", accent:"#0369a1" },
-    { id:"plate",    icon:"🚛", label:"車両ナンバー",  value:plateStr, accent:"#16a34a" },
+    { id:"plate",    icon:"🚛", label:"車両ナンバー",  value:plateStr, accent:"#0d9488" },
   ];
 
   return (
@@ -425,7 +425,7 @@ export default function DataConfirmPage() {
 
       {/* ━━ ヘッダー ━━ */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0"
-        style={{background:"linear-gradient(90deg,#1a3a6b 0%,#1E5799 100%)",height:88}}>
+        style={{background:"linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",height:88}}>
         <button onPointerDown={()=>router.push("/kiosk/phone")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
           style={{height:68,width:160,fontSize:28}}>◀ 戻る</button>
@@ -555,7 +555,7 @@ export default function DataConfirmPage() {
                   className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_4px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none"
                   style={{width:172,height:122,fontSize:22,textAlign:"center",lineHeight:1.3}}>1文字<br/>消す</button>
                 <button onPointerDown={()=>{if(maxLoad)setActive("plate");}}
-                  className="flex items-center justify-center font-black rounded-xl border-2 border-green-700 bg-green-600 text-white active:bg-green-700 shadow-[0_4px_0_#14532D] active:shadow-[0_1px_0_#14532D] active:translate-y-[3px] transition-all select-none touch-none"
+                  className="flex items-center justify-center font-black rounded-xl border-2 border-teal-700 bg-teal-600 text-white active:bg-teal-700 shadow-[0_4px_0_#0F766E] active:shadow-[0_1px_0_#0F766E] active:translate-y-[3px] transition-all select-none touch-none"
                   style={{width:172,height:252,fontSize:40}}>OK</button>
               </div>
             </div>
