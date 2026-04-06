@@ -455,48 +455,31 @@ export default function FinalConfirmPage() {
 
           {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            <div style={{ display: "flex", padding: "18px 60px 22px 48px", gap: 24 }}>
-              {/* ナンバープレート（修正ボタン内蔵） */}
-              <EditablePlate
-                plate={plate}
-                onEdit={(section) => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
-              />
-              {/* 最大積載量ボックス */}
-              <div style={{
-                flex: 1, background: "#FFF7ED", borderRadius: 18,
-                border: "2px solid #FED7AA", display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                padding: "20px 24px", boxSizing: "border-box",
-                gap: 8, alignSelf: "stretch",
-              }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
-                  最大積載量
-                </span>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{
-                    fontSize: driverInput.maxLoad ? 72 : 28, fontWeight: 900, lineHeight: 1,
-                    color: driverInput.maxLoad ? "#EA580C" : "#FCA5A5",
-                  }}>
-                    {driverInput.maxLoad ? Number(driverInput.maxLoad).toLocaleString() : "未入力"}
-                  </span>
-                  {driverInput.maxLoad && <span style={{ fontSize: 26, fontWeight: 700, color: "#EA580C" }}>kg</span>}
-                </div>
-                <button
-                  onPointerDown={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
-                  className="select-none touch-none"
-                  style={{
-                    width: 160, height: 72, fontSize: 24, fontWeight: 700,
-                    background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                    color: "#fff", border: "none", borderRadius: 14, cursor: "pointer",
-                    boxShadow: "0 4px 0 #1d4ed8",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    marginTop: "auto", alignSelf: "flex-end",
-                  }}
-                >
-                  <span style={{ fontSize: 20 }}>✎</span> 修正
-                </button>
-              </div>
-            </div>
+            <FieldRow
+              label="地名"
+              value={plate.region || ""}
+              onEdit={() => router.push("/kiosk/vehicle?section=region&from=final-confirm")}
+            />
+            <FieldRow
+              label="分類番号"
+              value={plate.classNum || ""}
+              onEdit={() => router.push("/kiosk/vehicle?section=classNum&from=final-confirm")}
+            />
+            <FieldRow
+              label="ひらがな"
+              value={plate.hira || ""}
+              onEdit={() => router.push("/kiosk/vehicle?section=hira&from=final-confirm")}
+            />
+            <FieldRow
+              label="一連番号"
+              value={plate.number || ""}
+              onEdit={() => router.push("/kiosk/vehicle?section=number&from=final-confirm")}
+            />
+            <FieldRow
+              label="最大積載量"
+              value={driverInput.maxLoad ? `${Number(driverInput.maxLoad).toLocaleString()} kg` : ""}
+              onEdit={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
+            />
           </SectionCard>
 
           {error && (
