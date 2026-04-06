@@ -295,7 +295,7 @@ function FieldRow({ label, value, onEdit, tall = false }: {
       display: "flex", alignItems: "center",
       padding: "0 60px 0 48px",
       borderBottom: "1px solid #F0F3F7",
-      minHeight: tall ? 120 : 100, gap: 0,
+      minHeight: tall ? 90 : 76, gap: 0,
     }}>
       {/* ラベル */}
       <span style={{
@@ -306,7 +306,7 @@ function FieldRow({ label, value, onEdit, tall = false }: {
       </span>
       {/* 値 */}
       <span style={{
-        flex: 1, fontSize: 56, fontWeight: 800,
+        flex: 1, fontSize: 46, fontWeight: 800,
         color: value ? "#1E293B" : "#EF4444",
         letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         lineHeight: 1.2,
@@ -318,13 +318,13 @@ function FieldRow({ label, value, onEdit, tall = false }: {
         onPointerDown={onEdit}
         className="select-none touch-none"
         style={{
-          width: 160, height: 72, fontSize: 24, fontWeight: 700,
+          width: 140, height: 56, fontSize: 22, fontWeight: 700,
           background: "linear-gradient(180deg, #3B82F6, #2563EB)",
           color: "#fff", border: "none",
-          borderRadius: 14, flexShrink: 0, cursor: "pointer",
-          boxShadow: "0 4px 0 #1d4ed8",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          marginLeft: 20,
+          borderRadius: 12, flexShrink: 0, cursor: "pointer",
+          boxShadow: "0 3px 0 #1d4ed8",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          marginLeft: 16,
         }}
       >
         <span style={{ fontSize: 20 }}>✎</span> 修正
@@ -398,7 +398,7 @@ export default function FinalConfirmPage() {
       style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)" }}>
 
       {/* ━━ ヘッダー ━━ */}
-      <div className="flex flex-col flex-shrink-0" style={{ padding: "0 56px 16px" }}>
+      <div className="flex flex-col flex-shrink-0" style={{ padding: "0 56px 8px" }}>
         {/* ナビ行 */}
         <div className="flex items-center" style={{ height: 84 }}>
           <button
@@ -416,18 +416,18 @@ export default function FinalConfirmPage() {
           <div style={{ fontSize: 52, fontWeight: 800, color: "#fff", letterSpacing: "0.1em" }}>
             内容をご確認ください
           </div>
-          <div style={{ fontSize: 22, color: "rgba(255,255,255,0.6)", marginTop: 6, letterSpacing: "0.08em" }}>
+          <div style={{ fontSize: 20, color: "rgba(255,255,255,0.6)", marginTop: 2, letterSpacing: "0.08em" }}>
             修正したい項目をタップしてください
           </div>
         </div>
       </div>
 
       {/* ━━ メインコンテンツ ━━ */}
-      <div className="flex-1 flex items-center overflow-hidden" style={{ padding: "16px 40px 24px 56px" }}>
+      <div className="flex-1 flex items-center overflow-hidden" style={{ padding: "8px 40px 12px 56px" }}>
         <div className="flex w-full" style={{ gap: 32 }}>
 
         {/* 左：セクションカード群 */}
-        <div className="flex flex-col flex-1" style={{ gap: 18 }}>
+        <div className="flex flex-col flex-1" style={{ gap: 12 }}>
 
           {/* 連絡先 */}
           <SectionCard iconType="phone" title="連絡先">
