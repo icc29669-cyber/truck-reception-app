@@ -398,7 +398,7 @@ export default function FinalConfirmPage() {
       style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)" }}>
 
       {/* ━━ ヘッダー ━━ */}
-      <div className="flex flex-col flex-shrink-0" style={{ padding: "0 56px 8px" }}>
+      <div className="flex flex-col flex-shrink-0" style={{ padding: "0 56px 20px" }}>
         {/* ナビ行 */}
         <div className="flex items-center" style={{ height: 84 }}>
           <button
