@@ -423,8 +423,8 @@ export default function FinalConfirmPage() {
       </div>
 
       {/* ━━ メインコンテンツ ━━ */}
-      <div className="flex-1 flex items-center overflow-hidden" style={{ padding: "8px 40px 12px 56px" }}>
-        <div className="flex w-full" style={{ gap: 32 }}>
+      <div className="flex-1 flex items-center overflow-hidden" style={{ padding: "8px 56px 12px 72px" }}>
+        <div className="flex w-full" style={{ gap: 36 }}>
 
         {/* 左：セクションカード群 */}
         <div className="flex flex-col flex-1" style={{ gap: 20 }}>
@@ -539,7 +539,7 @@ export default function FinalConfirmPage() {
         </div>
 
         {/* 右：予約バナー＋受付ボタン */}
-        <div className="flex flex-col flex-shrink-0" style={{ width: 320, gap: selectedReservation ? 20 : 0 }}>
+        <div className="flex flex-col flex-shrink-0" style={{ width: 360, gap: selectedReservation ? 20 : 0 }}>
           {/* 予約時間バナー（予約ありの場合のみ） */}
           {selectedReservation && (
             <div style={{
