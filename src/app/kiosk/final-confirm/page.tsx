@@ -455,26 +455,55 @@ export default function FinalConfirmPage() {
 
           {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            <FieldRow
-              label="地名"
-              value={plate.region || ""}
-              onEdit={() => router.push("/kiosk/vehicle?section=region&from=final-confirm")}
-            />
-            <FieldRow
-              label="分類番号"
-              value={plate.classNum || ""}
-              onEdit={() => router.push("/kiosk/vehicle?section=classNum&from=final-confirm")}
-            />
-            <FieldRow
-              label="ひらがな"
-              value={plate.hira || ""}
-              onEdit={() => router.push("/kiosk/vehicle?section=hira&from=final-confirm")}
-            />
-            <FieldRow
-              label="一連番号"
-              value={plate.number || ""}
-              onEdit={() => router.push("/kiosk/vehicle?section=number&from=final-confirm")}
-            />
+            {/* ナンバー（1行表示 + 各項目修正ボタン） */}
+            <div style={{
+              display: "flex", alignItems: "center",
+              padding: "0 60px 0 48px",
+              borderBottom: "1px solid #F0F3F7",
+              minHeight: 120, gap: 0,
+            }}>
+              <span style={{
+                fontSize: 22, fontWeight: 600, color: "#94A3B8",
+                width: 150, flexShrink: 0, letterSpacing: "0.04em",
+              }}>
+                ナンバー
+              </span>
+              <span style={{
+                flex: 1, fontSize: 44, fontWeight: 800,
+                color: plateStr ? "#1E293B" : "#EF4444",
+                letterSpacing: "0.06em", lineHeight: 1.2,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {plateStr || "未入力"}
+              </span>
+              <div style={{
+                display: "grid", gridTemplateColumns: "1fr 1fr",
+                gap: 6, flexShrink: 0, marginLeft: 16,
+              }}>
+                {([
+                  { label: "地名", section: "region" },
+                  { label: "分類番号", section: "classNum" },
+                  { label: "ひらがな", section: "hira" },
+                  { label: "一連番号", section: "number" },
+                ] as const).map(({ label, section }) => (
+                  <button
+                    key={section}
+                    onPointerDown={() => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
+                    className="select-none touch-none"
+                    style={{
+                      height: 44, fontSize: 16, fontWeight: 700,
+                      background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+                      color: "#fff", border: "none", borderRadius: 10,
+                      cursor: "pointer", boxShadow: "0 3px 0 #1d4ed8",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                      padding: "0 14px", whiteSpace: "nowrap",
+                    }}
+                  >
+                    <span style={{ fontSize: 13 }}>✎</span> {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <FieldRow
               label="最大積載量"
               value={driverInput.maxLoad ? `${Number(driverInput.maxLoad).toLocaleString()} kg` : ""}
