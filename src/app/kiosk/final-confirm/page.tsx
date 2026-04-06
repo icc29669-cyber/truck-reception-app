@@ -455,7 +455,7 @@ export default function FinalConfirmPage() {
 
           {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            <div style={{ display: "flex", padding: "18px 36px 22px 48px", gap: 24, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", padding: "18px 60px 22px 48px", gap: 24 }}>
               {/* ナンバープレート（修正ボタン内蔵） */}
               <EditablePlate
                 plate={plate}
@@ -463,37 +463,37 @@ export default function FinalConfirmPage() {
               />
               {/* 最大積載量ボックス */}
               <div style={{
-                width: 220, background: "#FFF7ED", borderRadius: 16,
+                flex: 1, background: "#FFF7ED", borderRadius: 18,
                 border: "2px solid #FED7AA", display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
-                padding: "14px 18px 12px", boxSizing: "border-box",
-                gap: 6, flexShrink: 0, marginTop: 8,
+                padding: "20px 24px", boxSizing: "border-box",
+                gap: 8, alignSelf: "stretch",
               }}>
-                <span style={{ fontSize: 15, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: "#D97706", letterSpacing: "0.08em" }}>
                   最大積載量
                 </span>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                   <span style={{
-                    fontSize: driverInput.maxLoad ? 48 : 22, fontWeight: 900, lineHeight: 1,
+                    fontSize: driverInput.maxLoad ? 72 : 28, fontWeight: 900, lineHeight: 1,
                     color: driverInput.maxLoad ? "#EA580C" : "#FCA5A5",
                   }}>
                     {driverInput.maxLoad ? Number(driverInput.maxLoad).toLocaleString() : "未入力"}
                   </span>
-                  {driverInput.maxLoad && <span style={{ fontSize: 20, fontWeight: 700, color: "#EA580C" }}>kg</span>}
+                  {driverInput.maxLoad && <span style={{ fontSize: 26, fontWeight: 700, color: "#EA580C" }}>kg</span>}
                 </div>
                 <button
                   onPointerDown={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
                   className="select-none touch-none"
                   style={{
-                    height: 40, fontSize: 18, fontWeight: 700,
+                    width: 160, height: 72, fontSize: 24, fontWeight: 700,
                     background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                    color: "#fff", border: "none", borderRadius: 10, cursor: "pointer",
-                    boxShadow: "0 3px 0 #1d4ed8",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                    padding: "0 16px", alignSelf: "flex-end",
+                    color: "#fff", border: "none", borderRadius: 14, cursor: "pointer",
+                    boxShadow: "0 4px 0 #1d4ed8",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    marginTop: "auto", alignSelf: "flex-end",
                   }}
                 >
-                  <span style={{ fontSize: 15 }}>✎</span> 修正
+                  <span style={{ fontSize: 20 }}>✎</span> 修正
                 </button>
               </div>
             </div>
