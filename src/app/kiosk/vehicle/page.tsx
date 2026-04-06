@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
@@ -27,7 +27,7 @@ function StepDots({ current }: { current: number }) {
                 border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 22, fontWeight: 900,
-                color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
+                color: done ? "#0f766e" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
               }}>
                 {done ? "✓" : step}
               </div>
@@ -92,7 +92,7 @@ function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "m
             return (
               <span key={pos} style={{ display: "inline-flex", alignItems: "center" }}>
                 {pos === 2 && <span style={{ visibility: len >= 3 ? "visible" : "hidden" }}>-</span>}
-                {ch !== null ? <span>{ch}</span> : <span style={{ opacity: 0.35 }}>・</span>}
+                {ch !== null ? <span style={{ display: "inline-block", width: "0.6em", textAlign: "center" }}>{ch}</span> : <span style={{ display: "inline-block", width: "0.6em", textAlign: "center", opacity: 0.35 }}>・</span>}
               </span>
             );
           })}
@@ -122,7 +122,7 @@ function VehicleCard({
         background: pressed ? "#EFF6FF" : "#fff",
         border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
         boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
-        borderLeft: isFirst ? "6px solid #16a34a" : undefined,
+        borderLeft: isFirst ? "6px solid #0d9488" : undefined,
         paddingLeft: isFirst ? 26 : 32,
         paddingRight: 28,
       }}
@@ -146,7 +146,7 @@ function VehicleCard({
       {isFirst && (
         <span style={{
           fontSize: 20, fontWeight: 800, background: "#dcfce7",
-          color: "#166534", borderRadius: 8, padding: "4px 14px",
+          color: "#0f766e", borderRadius: 8, padding: "4px 14px",
           marginRight: 20, flexShrink: 0,
         }}>最近</span>
       )}
@@ -197,6 +197,31 @@ const HIRA_JIGYOYO = new Set(["あ","い","う","え","か","き","く","け","�
 const HIRA_RENTAL  = new Set(["わ","れ"]);
 const ALPHA_KEYS   = ["A","C","F","H","K","L","M","P","X","Y"];
 
+// ひらがな列カラー（KatakanaKeyboard と同じ配色）
+const HIRA_COL_COLORS = [
+  { bg: "#F8FAFC", border: "#CBD5E1", shadow: "#94A3B8" }, // わ行
+  { bg: "#EEF2FF", border: "#C7D2FE", shadow: "#A5B4FC" }, // ら行
+  { bg: "#F7FEE7", border: "#D9F99D", shadow: "#BEF264" }, // や行
+  { bg: "#F0FDFA", border: "#C2F5E9", shadow: "#99F6E4" }, // ま行
+  { bg: "#FAF5FF", border: "#E4D5F7", shadow: "#C4B5FD" }, // は行
+  { bg: "#FDF2F8", border: "#F5D0E0", shadow: "#F0ABCF" }, // な行
+  { bg: "#FFF7ED", border: "#FDE0C2", shadow: "#FDBA74" }, // た行
+  { bg: "#FFFBEB", border: "#FDE68A", shadow: "#FCD34D" }, // さ行
+  { bg: "#F0FDF4", border: "#C6F6D5", shadow: "#A7F3D0" }, // か行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // あ行
+];
+const HIRA_COL_LABELS = ["わ","ら","や","ま","は","な","た","さ","か","あ"];
+const HIRA_HINTS = [
+  { place: "所沢", hira: "と" },
+  { place: "横浜", hira: "よ" },
+  { place: "神戸", hira: "こ" },
+  { place: "名古屋", hira: "な" },
+  { place: "浦和", hira: "う" },
+  { place: "大阪", hira: "お" },
+  { place: "品川", hira: "し" },
+  { place: "多摩", hira: "た" },
+];
+
 /* ━━ メインページ ━━ */
 export default function VehiclePage() {
   const router = useRouter();
@@ -230,6 +255,11 @@ export default function VehiclePage() {
     setFromFinal(isFromFinal);
 
     const s = getKioskSession();
+    // セッションに電話番号がなければトップに戻す
+    if (!s.phone && !isFromFinal) {
+      router.replace("/kiosk");
+      return;
+    }
     setCandidates(s.vehicleCandidates ?? []);
     const p = s.plate ?? { region: "", classNum: "", hira: "", number: "" };
     setPlate(p);
@@ -243,6 +273,16 @@ export default function VehiclePage() {
       } else if (["region", "classNum", "hira", "number"].includes(sectionParam)) {
         setInputStep("plate");
         setPlateSection(sectionParam as PlateSection);
+        // 分類番号・車番は打ち替え（既存値クリア）
+        if (sectionParam === "classNum") {
+          p.classNum = "";
+          setPlate({ ...p });
+          setKioskSession({ plate: { ...p } });
+        } else if (sectionParam === "number") {
+          p.number = "";
+          setPlate({ ...p });
+          setKioskSession({ plate: { ...p } });
+        }
       } else {
         setPlateSection(!p.region ? "region" : !p.classNum ? "classNum" : !p.hira ? "hira" : "number");
       }
@@ -303,7 +343,7 @@ export default function VehiclePage() {
 
       {/* ━━ 濃い青ヘッダー ━━ */}
       <div className="flex flex-col flex-shrink-0 items-center"
-        style={{ background: "linear-gradient(90deg,#1a3a6b 0%,#1E5799 100%)", paddingBottom: (mode === "input" && inputStep === "plate") ? 16 : 32 }}>
+        style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)", paddingBottom: (mode === "input" && inputStep === "plate") ? 16 : 32 }}>
 
         {/* ナビ行 */}
         <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
@@ -318,7 +358,7 @@ export default function VehiclePage() {
 
         {/* タイトル */}
         <div style={{ marginBottom: (mode === "input" && inputStep === "plate") ? 10 : 0 }}>
-          <span style={{ fontSize: 44, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
+          <span style={{ fontSize: 52, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
             {mode === "select" ? "ご使用の車両を選んでください" :
              mode === "confirm" ? "車両の確認" :
              inputStep === "plate" ? "車両ナンバーを入力" : "最大積載量を入力"}
@@ -331,22 +371,19 @@ export default function VehiclePage() {
           const { bg, text, dim, border } = COLOR_CONFIG[color];
           const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
           const len = plate.number.length;
-          const plateFilled = !!(plate.region && plate.classNum && plate.hira && plate.number.length === 4);
+          const plateFilled = !!(plate.region && plate.classNum && plate.hira && plate.number.length >= 1);
           const hl = (s: PlateSection): React.CSSProperties => plateSection === s
-            ? { outline: "4px solid #FFE600", outlineOffset: 2, borderRadius: 8, background: "rgba(255,230,0,0.15)", cursor: "pointer" }
+            ? { boxShadow: "inset 0 0 0 3px #FFE600, 0 0 8px 2px rgba(255,230,0,0.3)", borderRadius: 8, background: "rgba(255,230,0,0.15)", cursor: "pointer" }
             : { borderRadius: 6, cursor: "pointer" };
           return (
-            <div className="flex items-center justify-center" style={{ gap: 32 }}>
-              {/* 左スペーサー（プレートを中央に保つ） */}
-              <div style={{ width: 320 }} />
-
+            <div style={{ position: "relative", display: "flex", justifyContent: "center" }}>
               {/* プレート */}
               <div style={{ width: 520, height: 230, background: bg, border: `5px solid ${border}`, borderRadius: 14, display: "flex", flexDirection: "column", padding: "8px 18px 10px", boxSizing: "border-box", boxShadow: "0 6px 24px rgba(0,0,0,0.35)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                   <div onPointerDown={() => handleSectionChange("region")} style={hl("region")}>
                     <span style={{ fontSize: 42, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim, padding: "0 6px", display: "block" }}>{plate.region || "地名"}</span>
                   </div>
-                  <div onPointerDown={() => handleSectionChange("classNum")} style={hl("classNum")}>
+                  <div onPointerDown={() => handleSectionChange("classNum")} style={{ minWidth: 132, textAlign: "center", ...hl("classNum") }}>
                     <span style={{ fontSize: 42, fontWeight: 900, fontFamily: pf, letterSpacing: 3, color: plate.classNum ? text : dim, padding: "0 6px", display: "block" }}>{plate.classNum || "・・・"}</span>
                   </div>
                 </div>
@@ -354,15 +391,15 @@ export default function VehiclePage() {
                   <div onPointerDown={() => handleSectionChange("hira")} style={{ position: "absolute", left: 4, ...hl("hira") }}>
                     <span style={{ fontSize: 62, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1, display: "block" }}>{plate.hira || "あ"}</span>
                   </div>
-                  <div onPointerDown={() => handleSectionChange("number")} style={{ flex: 1, marginLeft: 72, display: "flex", alignItems: "center", justifyContent: "center", transform: "scaleX(0.85)", transformOrigin: "center", ...hl("number") }}>
-                    <span style={{ fontSize: 112, color: plate.number ? text : dim, fontFamily: pf, fontWeight: 900, display: "flex", alignItems: "center" }}>
+                  <div onPointerDown={() => handleSectionChange("number")} style={{ flex: 1, marginLeft: 72, display: "flex", alignItems: "center", justifyContent: "center", transform: "scaleX(0.85)", transformOrigin: "center", alignSelf: "center", overflow: "hidden", ...hl("number") }}>
+                    <span style={{ fontSize: 112, color: plate.number ? text : dim, fontFamily: pf, fontWeight: 900, display: "flex", alignItems: "center", lineHeight: 1 }}>
                       {[0,1,2,3].map(pos => {
                         const hasDigit = pos >= (4 - len);
                         const ch = hasDigit ? plate.number[pos - (4 - len)] : null;
                         return (
                           <span key={pos} style={{ display: "inline-flex", alignItems: "center" }}>
                             {pos === 2 && <span style={{ visibility: len >= 3 ? "visible" : "hidden" }}>-</span>}
-                            {ch !== null ? <span>{ch}</span> : <span style={{ opacity: 0.35 }}>・</span>}
+                            {ch !== null ? <span style={{ display: "inline-block", width: "0.6em", textAlign: "center" }}>{ch}</span> : <span style={{ display: "inline-block", width: "0.6em", textAlign: "center", opacity: 0.35 }}>・</span>}
                           </span>
                         );
                       })}
@@ -371,12 +408,56 @@ export default function VehiclePage() {
                 </div>
               </div>
 
-              {/* 右：「この車番で次へ」ボタン */}
-              <div style={{ width: 320, display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-                {plateFilled && (
-                  <button onPointerDown={() => setInputStep("maxload")} className="flex items-center justify-center font-black rounded-2xl text-white select-none touch-none active:brightness-90" style={{ height: 86, width: 310, fontSize: 28, background: "linear-gradient(180deg,#16a34a,#166534)", boxShadow: "0 6px 0 #14532d, 0 8px 24px rgba(22,163,74,0.4)" }}>この車番で次へ ▶</button>
-                )}
-              </div>
+              {/* 右：ヒントカード（地名・ひらがなセクション時） — absoluteでレイアウトに影響しない */}
+              {(plateSection === "hira" || plateSection === "region") && (
+                <div style={{
+                  position: "absolute",
+                  left: "calc(50% + 280px)",
+                  top: -20,
+                  width: 340,
+                  background: "linear-gradient(160deg, rgba(255,251,235,0.18) 0%, rgba(253,230,138,0.10) 100%)",
+                  border: "2px solid rgba(253,230,138,0.5)",
+                  borderRadius: 16,
+                  padding: "14px 18px",
+                  display: "flex", flexDirection: "column", gap: 6,
+                  boxShadow: "0 4px 20px rgba(253,230,138,0.12)",
+                  pointerEvents: "none",
+                }}>
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    background: "rgba(253,230,138,0.18)", borderRadius: 8,
+                    padding: "5px 10px",
+                  }}>
+                    <span style={{ fontSize: 22 }}>💡</span>
+                    <span style={{ fontSize: 16, color: "#FDE68A", fontWeight: 800, letterSpacing: "0.04em" }}>
+                      地名の最初の文字を選ぶ
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {HIRA_HINTS.map(h => (
+                      <div key={h.place} style={{
+                        display: "flex", alignItems: "center", gap: 6,
+                        padding: "3px 8px", borderRadius: 6,
+                        background: "rgba(255,255,255,0.06)",
+                        width: "calc(50% - 2px)",
+                        boxSizing: "border-box",
+                      }}>
+                        <span style={{ fontSize: 17, color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                          {h.place}
+                        </span>
+                        <span style={{ fontSize: 14, color: "rgba(255,255,255,0.35)" }}>→</span>
+                        <span style={{
+                          fontSize: 22, fontWeight: 900, color: "#FDE68A",
+                          background: "rgba(253,230,138,0.15)", borderRadius: 6,
+                          padding: "1px 8px", minWidth: 32, textAlign: "center",
+                        }}>
+                          {h.hira}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
@@ -427,11 +508,11 @@ export default function VehiclePage() {
           <div className="h-full flex flex-col items-center justify-center px-10 gap-8">
             <div style={{
               width: 1200, borderRadius: 22,
-              border: "3px solid #16a34a", background: "#fff",
+              border: "3px solid #0d9488", background: "#fff",
               boxShadow: "0 12px 48px rgba(0,0,0,0.14)", overflow: "hidden",
             }}>
               <div style={{
-                background: "linear-gradient(90deg,#166534,#16a34a)",
+                background: "linear-gradient(90deg,#0f766e,#0d9488)",
                 padding: "20px 40px", display: "flex", alignItems: "center", gap: 16,
               }}>
                 <span style={{ fontSize: 36, color: "#fff" }}>✓</span>
@@ -443,14 +524,14 @@ export default function VehiclePage() {
                 <MiniPlate plate={confirmTarget.plate} size="md" />
                 <div className="flex flex-col gap-4">
                   <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                    <span style={{ fontSize: 24, fontWeight: 600, color: "#9CA3AF", width: 200 }}>車番</span>
+                    <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200 }}>車番</span>
                     <span style={{ fontSize: 40, fontWeight: 900, color: "#111827" }}>
                       {formatPlate(confirmTarget.plate) || confirmTarget.vehicleNumber}
                     </span>
                   </div>
                   <div style={{ height: 1, background: "#E5E7EB" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                    <span style={{ fontSize: 24, fontWeight: 600, color: "#9CA3AF", width: 200 }}>最大積載量</span>
+                    <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200 }}>最大積載量</span>
                     <span style={{ fontSize: 40, fontWeight: 900, color: "#111827" }}>
                       {confirmTarget.maxLoad ? Number(confirmTarget.maxLoad).toLocaleString() + " kg" : "未登録"}
                     </span>
@@ -465,8 +546,8 @@ export default function VehiclePage() {
                 className="flex-1 flex items-center justify-center gap-4 font-black rounded-2xl text-white active:brightness-90 select-none touch-none"
                 style={{
                   height: 120, fontSize: 42,
-                  background: "linear-gradient(180deg,#16a34a,#166534)",
-                  boxShadow: "0 6px 0 #14532d, 0 8px 24px rgba(22,163,74,0.4)",
+                  background: "linear-gradient(180deg,#0d9488,#0f766e)",
+                  boxShadow: "0 6px 0 #0f766e, 0 8px 24px rgba(13,148,136,0.4)",
                 }}
               >
                 <span style={{ fontSize: 46 }}>✓</span>
@@ -489,6 +570,7 @@ export default function VehiclePage() {
           const sectionLabels: Record<PlateSection, string> = { region: "① 地名", classNum: "② 分類番号", hira: "③ ひらがな", number: "④ 4桁番号" };
           const sectionColors: Record<PlateSection, string> = { region: "#1565C0", classNum: "#BF360C", hira: "#4A148C", number: "#1B5E20" };
           const numBtnStyle = "flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-gray-100 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] transition-all duration-75 select-none touch-none";
+          const plateFilled = !!(plate.region && plate.classNum && plate.hira && plate.number.length >= 1);
           return (
             <div className="h-full flex flex-col overflow-hidden">
               {/* Colored section banner */}
@@ -509,10 +591,36 @@ export default function VehiclePage() {
                     <div className="flex flex-col" style={{ gap: 8 }}>
                       {KANA_ROWS.map((row, ri) => (
                         <div key={ri} className="flex" style={{ gap: 8 }}>
-                          {row.map((k, ci) => k === null
-                            ? <div key={ci} style={{ width: 180, height: 100, flexShrink: 0 }} />
-                            : <button key={ci} onPointerDown={() => setKanaFilter(k)} className="flex items-center justify-center font-bold rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_4px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, height: 100, fontSize: 42, flexShrink: 0, color: "#1e293b" }}>{k}</button>
-                          )}
+                          {row.map((k, ci) => {
+                            if (k === null) return <div key={ci} style={{ width: 180, height: 100, flexShrink: 0 }} />;
+                            const col = HIRA_COL_COLORS[ci];
+                            const isTopRow = ri === 0;
+                            return (
+                              <button
+                                key={ci}
+                                onPointerDown={() => setKanaFilter(k)}
+                                className="flex items-center justify-center font-bold rounded-xl border-2 transition-all active:translate-y-[3px] select-none touch-none"
+                                style={{
+                                  width: 180, height: 100, fontSize: 42, flexShrink: 0,
+                                  background: col.bg,
+                                  borderColor: col.border,
+                                  boxShadow: `0 4px 0 ${col.shadow}`,
+                                  color: "#1e293b",
+                                  fontWeight: isTopRow ? 900 : 700,
+                                  position: "relative",
+                                }}
+                              >
+                                {k}
+                                {isTopRow && (
+                                  <span style={{
+                                    position: "absolute", top: 3, left: 5,
+                                    fontSize: 11, fontWeight: 800, color: "#9CA3AF",
+                                    lineHeight: 1, letterSpacing: "0.02em",
+                                  }}>{HIRA_COL_LABELS[ci]}行</span>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
                       ))}
                     </div>
@@ -525,7 +633,7 @@ export default function VehiclePage() {
                     </div>
                     <div className="flex flex-wrap" style={{ gap: 14 }}>
                       {(REGION_MAP[kanaFilter] || []).map(r => (
-                        <button key={r} onPointerDown={() => { savePlate({ region: r }); setKanaFilter(null); setTimeout(() => handleSectionChange("classNum"), 100); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_5px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-none" style={{ height: 120, padding: "0 36px", fontSize: 44, minWidth: 190, color: "#111827" }}>{r}</button>
+                        <button key={r} onPointerDown={() => { savePlate({ region: r }); setKanaFilter(null); setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("classNum"), 100); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_5px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-none" style={{ height: 120, padding: "0 36px", fontSize: 44, minWidth: 190, color: "#111827" }}>{r}</button>
                       ))}
                     </div>
                   </div>
@@ -540,10 +648,10 @@ export default function VehiclePage() {
                         <div className="flex flex-col" style={{ gap: 16 }}>
                           {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
                             <div key={ri} className="flex" style={{ gap: 16 }}>{row.map(k => (
-                              <button key={k} onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) setTimeout(() => handleSectionChange("hira"), 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
+                              <button key={k} onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("hira"), 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
                             ))}</div>
                           ))}
-                          <button onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + "0"; savePlate({ classNum: n }); if (n.length === 3) setTimeout(() => handleSectionChange("hira"), 150); } }} className={numBtnStyle} style={{ width: 572, height: 130, fontSize: 56 }}>0</button>
+                          <button onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + "0"; savePlate({ classNum: n }); if (n.length === 3) setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("hira"), 150); } }} className={numBtnStyle} style={{ width: 572, height: 130, fontSize: 56 }}>0</button>
                         </div>
                         {/* 操作ボタン */}
                         <div className="flex flex-col" style={{ gap: 16 }}>
@@ -556,7 +664,7 @@ export default function VehiclePage() {
                       <div className="flex items-stretch" style={{ gap: 20 }}>
                         <div className="flex flex-wrap" style={{ gap: 16, maxWidth: 940 }}>
                           {ALPHA_KEYS.map(k => (
-                            <button key={k} onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) setTimeout(() => handleSectionChange("hira"), 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56, background: "#fefce8", borderColor: "#fde047" }}>{k}</button>
+                            <button key={k} onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("hira"), 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56, background: "#fefce8", borderColor: "#fde047" }}>{k}</button>
                           ))}
                         </div>
                         <div className="flex flex-col" style={{ gap: 16 }}>
@@ -574,17 +682,48 @@ export default function VehiclePage() {
                     <div className="flex gap-6 mb-3 flex-wrap" style={{ fontSize: 20, fontWeight: 700 }}>
                       <span style={{ color: "#2563eb" }}>■ 事業用（緑ナンバー）</span>
                       <span style={{ color: "#ea580c" }}>■ レンタカー</span>
-                      <span style={{ color: "#94a3b8" }}>■ 使用不可</span>
                     </div>
                     <div className="flex flex-col" style={{ gap: 8 }}>
                       {KANA_ROWS.map((row, ri) => (
                         <div key={ri} className="flex" style={{ gap: 8 }}>
-                          {row.map((k, ci) => k === null ? <div key={ci} style={{ width: 180, height: 100, flexShrink: 0 }} /> : (() => {
-                            const unusable = HIRA_UNUSABLE.has(k);
+                          {row.map((k, ci) => {
+                            if (k === null || HIRA_UNUSABLE.has(k)) {
+                              return <div key={ci} style={{ width: 180, height: 100, flexShrink: 0 }} />;
+                            }
                             const jigyoyo = HIRA_JIGYOYO.has(k);
                             const rental = HIRA_RENTAL.has(k);
-                            return <button key={ci} disabled={unusable} onPointerDown={() => { if (!unusable) { savePlate({ hira: k }); setTimeout(() => handleSectionChange("number"), 120); } }} className="flex items-center justify-center font-bold rounded-xl border-2 transition-all shadow-[0_4px_0_#BDBDBD] active:translate-y-[3px] select-none touch-none" style={{ width: 180, height: 100, fontSize: 42, flexShrink: 0, background: unusable ? "#e2e8f0" : jigyoyo ? "#dbeafe" : rental ? "#ffedd5" : "white", borderColor: unusable ? "#cbd5e1" : jigyoyo ? "#93c5fd" : rental ? "#fb923c" : "#e2e8f0", color: unusable ? "#94a3b8" : jigyoyo ? "#1d4ed8" : rental ? "#ea580c" : "#1e293b", opacity: unusable ? 0.4 : 1 }}>{k}</button>;
-                          })())}
+                            const col = HIRA_COL_COLORS[ci];
+                            const isTopRow = ri === 0;
+                            const bg = jigyoyo ? "#dbeafe" : rental ? "#ffedd5" : col.bg;
+                            const borderColor = jigyoyo ? "#93c5fd" : rental ? "#fb923c" : col.border;
+                            const shadow = jigyoyo ? "#93c5fd" : rental ? "#fb923c" : col.shadow;
+                            const color = jigyoyo ? "#1d4ed8" : rental ? "#ea580c" : "#1e293b";
+                            return (
+                              <button
+                                key={ci}
+                                onPointerDown={() => { savePlate({ hira: k }); setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("number"), 120); }}
+                                className="flex items-center justify-center font-bold rounded-xl border-2 transition-all active:translate-y-[3px] select-none touch-none"
+                                style={{
+                                  width: 180, height: 100, fontSize: 42, flexShrink: 0,
+                                  background: bg,
+                                  borderColor: borderColor,
+                                  boxShadow: `0 4px 0 ${shadow}`,
+                                  color: color,
+                                  fontWeight: isTopRow ? 900 : 700,
+                                  position: "relative",
+                                }}
+                              >
+                                {k}
+                                {isTopRow && (
+                                  <span style={{
+                                    position: "absolute", top: 3, left: 5,
+                                    fontSize: 11, fontWeight: 800, color: "#9CA3AF",
+                                    lineHeight: 1, letterSpacing: "0.02em",
+                                  }}>{HIRA_COL_LABELS[ci]}行</span>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
                       ))}
                     </div>
@@ -606,8 +745,20 @@ export default function VehiclePage() {
                       </div>
                       {/* 操作ボタン */}
                       <div className="flex flex-col" style={{ gap: 16 }}>
-                        <button onPointerDown={() => savePlate({ number: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, flex: 1, fontSize: 28 }}>全消し</button>
-                        <button onPointerDown={() => savePlate({ number: plate.number.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, flex: 1, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
+                        <button onPointerDown={() => savePlate({ number: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 200, flex: 1, fontSize: 28 }}>全消し</button>
+                        <button onPointerDown={() => savePlate({ number: plate.number.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 200, flex: 1, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
+                        <button
+                          onPointerDown={() => { if (plateFilled) { if (fromFinal) { router.push("/kiosk/final-confirm"); } else { setInputStep("maxload"); } } }}
+                          className="flex items-center justify-center font-black rounded-2xl text-white select-none touch-none active:brightness-90"
+                          style={{
+                            width: 200, flex: 1.5, fontSize: 28,
+                            background: plateFilled ? "linear-gradient(180deg,#0d9488,#0f766e)" : "#9CA3AF",
+                            boxShadow: plateFilled ? "0 6px 0 #0f766e, 0 8px 24px rgba(13,148,136,0.4)" : "0 4px 0 #6B7280",
+                            opacity: plateFilled ? 1 : 0.5,
+                            transition: "all 0.2s",
+                            textAlign: "center", lineHeight: 1.3,
+                          }}
+                        >{fromFinal ? <>確定して<br/>戻る ▶</> : <>この車番で<br/>次へ ▶</>}</button>
                       </div>
                     </div>
                   </div>
@@ -631,7 +782,7 @@ export default function VehiclePage() {
             <div className="flex flex-col gap-4 flex-shrink-0">
               <button onPointerDown={() => saveMaxLoad("")} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 200, height: 144, fontSize: 28, textAlign: "center", lineHeight: 1.3 }}>すべて<br/>消す</button>
               <button onPointerDown={() => saveMaxLoad(maxLoad.slice(0, -1))} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 200, height: 144, fontSize: 28, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
-              <button onPointerDown={() => { if (maxLoad) submitInput(); }} className="flex items-center justify-center font-black rounded-2xl text-white active:brightness-90 select-none touch-none" style={{ width: 220, height: 308, fontSize: 52, background: maxLoad ? "linear-gradient(180deg,#16a34a,#166534)" : "#9CA3AF", boxShadow: maxLoad ? "0 6px 0 #14532d, 0 8px 24px rgba(22,163,74,0.4)" : "0 4px 0 #6B7280", opacity: maxLoad ? 1 : 0.6, transition: "all 0.2s" }}>次へ<br/>▶</button>
+              <button onPointerDown={() => { if (maxLoad) submitInput(); }} className="flex items-center justify-center font-black rounded-2xl text-white active:brightness-90 select-none touch-none" style={{ width: 220, height: 308, fontSize: 52, background: maxLoad ? "linear-gradient(180deg,#0d9488,#0f766e)" : "#9CA3AF", boxShadow: maxLoad ? "0 6px 0 #0f766e, 0 8px 24px rgba(13,148,136,0.4)" : "0 4px 0 #6B7280", opacity: maxLoad ? 1 : 0.6, transition: "all 0.2s" }}>次へ<br/>▶</button>
             </div>
           </div>
         )}
