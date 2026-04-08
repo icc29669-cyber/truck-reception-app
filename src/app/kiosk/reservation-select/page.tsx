@@ -86,10 +86,10 @@ export default function ReservationSelectPage() {
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)" }}
+      style={{ background: "#F5F0E8" }}
     >
       {/* ヘッダー */}
-      <div className="flex items-center px-8 gap-6 flex-shrink-0" style={{ height: 84 }}>
+      <div className="flex items-center px-8 gap-6 flex-shrink-0" style={{ background: "#1a3a6b", height: 84 }}>
         <button
           onPointerDown={() => router.push("/kiosk/phone")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
@@ -103,10 +103,10 @@ export default function ReservationSelectPage() {
 
       {/* タイトル */}
       <div className="flex flex-col items-center flex-shrink-0" style={{ marginTop: 8, marginBottom: 24 }}>
-        <span style={{ fontSize: 44, fontWeight: 800, color: "#fff", letterSpacing: "0.08em" }}>
+        <span style={{ fontSize: 44, fontWeight: 800, color: "#1E293B", letterSpacing: "0.08em" }}>
           予約が見つかりました
         </span>
-        <span style={{ fontSize: 24, color: "rgba(255,255,255,0.7)", marginTop: 8 }}>
+        <span style={{ fontSize: 24, color: "#64748B", marginTop: 8 }}>
           該当する予約を選択してください
         </span>
       </div>
@@ -186,9 +186,9 @@ export default function ReservationSelectPage() {
             width: 600,
             height: 100,
             fontSize: 34,
-            color: "#fff",
-            background: "rgba(255,255,255,0.15)",
-            border: "3px solid rgba(255,255,255,0.4)",
+            color: "#64748B",
+            background: "rgba(0,0,0,0.05)",
+            border: "3px solid #CBD5E1",
             borderRadius: 20,
           }}
         >

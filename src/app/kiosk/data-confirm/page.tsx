@@ -406,7 +406,7 @@ export default function DataConfirmPage() {
   const plateStr = formatPlate(plate);
   const isComplete = !!company && !!name && !!maxLoad && !!plateStr;
 
-  if (!mounted) return <div className="w-screen h-screen" style={{background:"#1e3a5f"}}/>;
+  if (!mounted) return <div className="w-screen h-screen" style={{background:"#F5F0E8"}}/>;
 
   // 数字パネル用
   const numBtnBase = "flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] transition-all duration-75 select-none touch-none";
@@ -421,11 +421,11 @@ export default function DataConfirmPage() {
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{background:"linear-gradient(160deg,#E8F4FD 0%,#D0E8FA 50%,#B8D8F6 100%)"}}>
+      style={{background:"#F5F0E8"}}>
 
       {/* ━━ ヘッダー ━━ */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0"
-        style={{background:"linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",height:88}}>
+        style={{background:"#1a3a6b",height:88}}>
         <button onPointerDown={()=>router.push("/kiosk/phone")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
           style={{height:68,width:160,fontSize:28}}>◀ 戻る</button>

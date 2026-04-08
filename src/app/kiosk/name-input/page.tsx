@@ -24,12 +24,12 @@ export default function NameInputPage() {
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
+      style={{ background: "#F5F0E8" }}
     >
       {/* ヘッダー */}
       <div
         className="flex items-center px-10 py-5"
-        style={{ background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)" }}
+        style={{ background: "#1a3a6b" }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/data-confirm")}

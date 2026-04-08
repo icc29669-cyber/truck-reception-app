@@ -81,7 +81,7 @@ export default function CautionPage() {
       {/* ── ヘッダー（戻るボタン） ── */}
       <div
         style={{
-          background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",
+          background: "#1a3a6b",
           height: 84, flexShrink: 0,
           display: "flex", alignItems: "center", padding: "0 32px",
         }}

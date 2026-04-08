@@ -286,7 +286,7 @@ export default function FinalConfirmBPage() {
     }
   }
 
-  if (!sessionData) return <div className="w-screen h-screen" style={{ background: "#1e3a5f" }} />;
+  if (!sessionData) return <div className="w-screen h-screen" style={{ background: "#F5F0E8" }} />;
 
   const { driverInput, plate, phone, selectedReservation } = sessionData;
   const plateStr = formatPlate(plate);
@@ -297,10 +297,10 @@ export default function FinalConfirmBPage() {
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)" }}>
+      style={{ background: "#F5F0E8" }}>
 
       {/* ヘッダー */}
-      <div className="flex flex-col flex-shrink-0" style={{ padding: "0 56px 16px" }}>
+      <div className="flex flex-col flex-shrink-0" style={{ background: "#1a3a6b", padding: "0 56px 16px" }}>
         <div className="flex items-center" style={{ height: 84 }}>
           <button
             onPointerDown={() => router.push("/kiosk/vehicle")}

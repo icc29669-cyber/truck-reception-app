@@ -282,7 +282,7 @@ export default function FinalConfirmPage() {
     }
   }
 
-  if (!sessionData) return <div className="w-screen h-screen" style={{ background: "#1e3a5f" }} />;
+  if (!sessionData) return <div className="w-screen h-screen" style={{ background: "#F5F0E8" }} />;
 
   const { driverInput, plate, phone } = sessionData;
   const plateStr = formatPlate(plate);
@@ -290,10 +290,10 @@ export default function FinalConfirmPage() {
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)" }}>
+      style={{ background: "#F5F0E8" }}>
 
       {/* ━━ ヘッダー ━━ */}
-      <div className="flex flex-col flex-shrink-0" style={{ padding: "0 40px 10px" }}>
+      <div className="flex flex-col flex-shrink-0" style={{ background: "#1a3a6b", padding: "0 40px 10px" }}>
         {/* ナビ行 */}
         <div className="flex items-center" style={{ height: 76 }}>
           <button

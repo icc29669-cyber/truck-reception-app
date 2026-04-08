@@ -33,12 +33,12 @@ export default function PlateNumberPage() {
   return (
     <div
       className="w-screen h-screen flex flex-col select-none"
-      style={{ background: "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)" }}
+      style={{ background: "#F5F0E8" }}
     >
       {/* ヘッダー */}
       <div
         className="flex items-center justify-between px-8 flex-shrink-0"
-        style={{ background: "linear-gradient(90deg, #1a3a6b 0%, #1E5799 100%)", height: 100 }}
+        style={{ background: "#1a3a6b", height: 100 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/plate/hira")}

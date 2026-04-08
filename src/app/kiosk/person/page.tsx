@@ -223,9 +223,9 @@ export default function PersonPage() {
     }
   }
 
-  const bgStyle = "linear-gradient(160deg, #E8F4FD 0%, #D0E8FA 50%, #B8D8F6 100%)";
+  const bgStyle = "#F5F0E8";
 
-  if (!mounted) return <div className="w-screen h-screen" style={{ background: "#1e3a5f" }} />;
+  if (!mounted) return <div className="w-screen h-screen" style={{ background: "#F5F0E8" }} />;
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden" style={{ background: bgStyle }}>
@@ -233,7 +233,7 @@ export default function PersonPage() {
       {/* ━━ ヘッダー ━━ */}
       <div className="flex flex-col flex-shrink-0 items-center"
         style={{
-          background: "linear-gradient(160deg,#1a3a6b 0%,#1E5799 100%)",
+          background: "#1a3a6b",
           paddingBottom: mode === "input" ? 16 : 24,
         }}>
         <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
