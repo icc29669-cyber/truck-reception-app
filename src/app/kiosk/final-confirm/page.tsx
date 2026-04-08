@@ -397,28 +397,26 @@ export default function FinalConfirmPage() {
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
       style={{ background: "#F5F0E8" }}>
 
-      {/* ━━ ヘッダー ━━ */}
-      <div className="flex flex-col flex-shrink-0" style={{ background: "#1a3a6b", padding: "0 56px 20px" }}>
-        {/* ナビ行 */}
-        <div className="flex items-center" style={{ height: 84 }}>
-          <button
-            onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
-            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
-            style={{ height: 60, width: 200, fontSize: 24, lineHeight: 1.3, textAlign: "center" }}
-          >🔄 最初から</button>
-          <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-            <StepDots current={4} completed={[phoneComplete, personComplete, vehicleComplete, true]} />
-          </div>
-          <div style={{ width: 160 }} />
+      {/* ━━ ヘッダー（TOP同様の薄いバー）━━ */}
+      <div className="flex items-center flex-shrink-0 px-14"
+        style={{ background: "#1a3a6b", height: 88 }}>
+        <button
+          onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
+          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
+          style={{ height: 60, width: 200, fontSize: 24, lineHeight: 1.3, textAlign: "center" }}
+        >🔄 最初から</button>
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <StepDots current={4} completed={[phoneComplete, personComplete, vehicleComplete, true]} />
         </div>
-        {/* タイトル */}
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 52, fontWeight: 800, color: "#fff", letterSpacing: "0.1em" }}>
-            内容をご確認ください
-          </div>
-          <div style={{ fontSize: 20, color: "rgba(255,255,255,0.6)", marginTop: 2, letterSpacing: "0.08em" }}>
-            修正したい項目をタップしてください
-          </div>
+        <div style={{ width: 160 }} />
+      </div>
+      {/* タイトル（ベージュ背景上）*/}
+      <div style={{ textAlign: "center", padding: "16px 0 10px" }}>
+        <div style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.1em" }}>
+          内容をご確認ください
+        </div>
+        <div style={{ fontSize: 20, color: "#64748B", marginTop: 2, letterSpacing: "0.08em" }}>
+          修正したい項目をタップしてください
         </div>
       </div>
 

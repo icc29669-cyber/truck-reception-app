@@ -212,49 +212,36 @@ export default function PhonePage() {
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
       style={{ background: "#F5F0E8" }}
     >
-      {/* ── ヘッダー（戻るボタン＋タイトル＋入力欄を含む濃い青エリア）── */}
+      {/* ── ヘッダー（TOP同様の薄いバー）── */}
       <div
-        className="flex flex-col flex-shrink-0 items-center"
-        style={{
-          background: "#1a3a6b",
-          paddingBottom: 52,
-        }}
+        className="flex items-center px-8 gap-6 flex-shrink-0"
+        style={{ background: "#1a3a6b", height: 88 }}
       >
-        {/* 戻るボタン行 */}
-        <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
-          <button
-            onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/caution")}
-            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-            style={{ height: 60, width: 160, fontSize: 28 }}
-          >
-            ◀ 戻る
-          </button>
-          <div style={{ flex: 1 }} />
-          <StepDots current={1} />
-        </div>
+        <button
+          onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/caution")}
+          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+          style={{ height: 60, width: 160, fontSize: 28 }}
+        >
+          ◀ 戻る
+        </button>
+        <div style={{ flex: 1 }} />
+        <StepDots current={1} />
+      </div>
 
-        {/* タイトル */}
+      {/* ── タイトル＋入力欄（ベージュ背景上）── */}
+      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: "24px 0 20px" }}>
         <div style={{ marginBottom: 20 }}>
-          <span
-            style={{
-              fontSize: 52,
-              fontWeight: 800,
-              color: "#FFFFFF",
-              letterSpacing: "0.1em",
-            }}
-          >
+          <span style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.1em" }}>
             電話番号を入力してください
           </span>
         </div>
-
-        {/* 入力表示ボックス */}
         <div
           suppressHydrationWarning
           className="rounded-2xl border-4 flex items-center justify-center transition-colors"
           style={{
             width: totalW,
             height: 110,
-            borderColor: phone ? "#F59E0B" : "rgba(255,255,255,0.55)",
+            borderColor: phone ? "#F59E0B" : "#CBD5E1",
             background: "#FFFFFF",
           }}
         >
@@ -265,15 +252,14 @@ export default function PhonePage() {
             {phone ? fmtPhone(phone) : "090-0000-0000"}
           </span>
         </div>
-        {/* エラーメッセージ */}
         {phoneError && (
           <div style={{
             marginTop: 10, padding: "8px 24px",
-            background: "rgba(239,68,68,0.15)", borderRadius: 12,
+            background: "rgba(239,68,68,0.12)", borderRadius: 12,
             display: "flex", alignItems: "center", gap: 10,
           }}>
-            <span style={{ fontSize: 24, color: "#FCA5A5" }}>⚠</span>
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#FCA5A5" }}>{phoneError}</span>
+            <span style={{ fontSize: 24, color: "#DC2626" }}>⚠</span>
+            <span style={{ fontSize: 22, fontWeight: 700, color: "#DC2626" }}>{phoneError}</span>
           </div>
         )}
       </div>

@@ -230,31 +230,26 @@ export default function PersonPage() {
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden" style={{ background: bgStyle }}>
 
-      {/* ━━ ヘッダー ━━ */}
-      <div className="flex flex-col flex-shrink-0 items-center"
-        style={{
-          background: "#1a3a6b",
-          paddingBottom: mode === "input" ? 16 : 24,
-        }}>
-        <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
-          <button
-            onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/phone")}
-            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-            style={{ height: 60, width: 160, fontSize: 28 }}
-          >◀ 戻る</button>
-          <div style={{ flex: 1 }} />
-          <StepDots current={2} />
-        </div>
+      {/* ━━ ヘッダー（TOP同様の薄いバー）━━ */}
+      <div className="flex items-center px-8 gap-6 flex-shrink-0"
+        style={{ background: "#1a3a6b", height: 88 }}>
+        <button
+          onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/phone")}
+          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+          style={{ height: 60, width: 160, fontSize: 28 }}
+        >◀ 戻る</button>
+        <div style={{ flex: 1 }} />
+        <StepDots current={2} />
+      </div>
 
-        {/* タイトル */}
-        <div style={{ marginBottom: mode === "input" ? 14 : 0 }}>
-          <span style={{ fontSize: 52, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
-            {mode === "select" ? "お名前を選んでください" :
-             mode === "confirm" ? "ご本人の確認" :
-             inputField === "company" ? "運送会社名を入力してください" :
-             "お名前を入力してください"}
-          </span>
-        </div>
+      {/* タイトル（ベージュ背景上）*/}
+      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: mode === "input" ? "16px 0 10px" : "20px 0 16px" }}>
+        <span style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.12em" }}>
+          {mode === "select" ? "お名前を選んでください" :
+           mode === "confirm" ? "ご本人の確認" :
+           inputField === "company" ? "運送会社名を入力してください" :
+           "お名前を入力してください"}
+        </span>
 
         {/* 入力モードのみ：会社名 + お名前 を並べて表示 */}
         {mode === "input" && (
@@ -267,7 +262,7 @@ export default function PersonPage() {
               style={{
                 flex: 1, borderRadius: 14, height: 96,
                 background: "#fff",
-                border: `3px solid ${inputField === "company" ? "#F59E0B" : "rgba(255,255,255,0.22)"}`,
+                border: `3px solid ${inputField === "company" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
                 padding: "0 22px", cursor: "pointer",
                 opacity: inputField === "company" ? 1 : 0.6,
@@ -289,7 +284,7 @@ export default function PersonPage() {
             </div>
 
             {/* 矢印 */}
-            <div style={{ fontSize: 28, color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>▶</div>
+            <div style={{ fontSize: 28, color: "#94A3B8", flexShrink: 0 }}>▶</div>
 
             {/* ② お名前フィールド */}
             <div
@@ -297,7 +292,7 @@ export default function PersonPage() {
               style={{
                 flex: 1, borderRadius: 14, height: 96,
                 background: "#fff",
-                border: `3px solid ${inputField === "name" ? "#F59E0B" : "rgba(255,255,255,0.22)"}`,
+                border: `3px solid ${inputField === "name" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
                 padding: "0 22px", cursor: company.trim() ? "pointer" : "default",
                 opacity: inputField === "name" ? 1 : company.trim() ? 0.6 : 0.3,

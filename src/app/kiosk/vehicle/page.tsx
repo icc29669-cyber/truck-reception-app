@@ -348,29 +348,25 @@ export default function VehiclePage() {
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden" style={{ background: bgStyle }}>
 
-      {/* ━━ 濃い青ヘッダー ━━ */}
-      <div className="flex flex-col flex-shrink-0 items-center"
-        style={{ background: "#1a3a6b", paddingBottom: (mode === "input" && inputStep === "plate") ? 16 : 32 }}>
+      {/* ━━ ヘッダー（TOP同様の薄いバー）━━ */}
+      <div className="flex items-center px-8 gap-6 flex-shrink-0"
+        style={{ background: "#1a3a6b", height: 88 }}>
+        <button
+          onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/person")}
+          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+          style={{ height: 60, width: 160, fontSize: 28 }}
+        >◀ 戻る</button>
+        <div style={{ flex: 1 }} />
+        <StepDots current={3} />
+      </div>
 
-        {/* ナビ行 */}
-        <div className="flex items-center px-8 gap-6 w-full" style={{ height: 84 }}>
-          <button
-            onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/person")}
-            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-            style={{ height: 60, width: 160, fontSize: 28 }}
-          >◀ 戻る</button>
-          <div style={{ flex: 1 }} />
-          <StepDots current={3} />
-        </div>
-
-        {/* タイトル */}
-        <div style={{ marginBottom: (mode === "input" && inputStep === "plate") ? 10 : 0 }}>
-          <span style={{ fontSize: 52, fontWeight: 800, color: "#FFFFFF", letterSpacing: "0.12em" }}>
-            {mode === "select" ? "ご使用の車両を選んでください" :
-             mode === "confirm" ? "車両の確認" :
-             inputStep === "plate" ? "車両ナンバーを入力" : "最大積載量を入力"}
-          </span>
-        </div>
+      {/* タイトル（ベージュ背景上）*/}
+      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: (mode === "input" && inputStep === "plate") ? "12px 0 8px" : "20px 0 16px" }}>
+        <span style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.12em" }}>
+          {mode === "select" ? "ご使用の車両を選んでください" :
+           mode === "confirm" ? "車両の確認" :
+           inputStep === "plate" ? "車両ナンバーを入力" : "最大積載量を入力"}
+        </span>
 
         {/* 車番プレート（入力モード・plate ステップ時） */}
         {mode === "input" && inputStep === "plate" && (() => {
