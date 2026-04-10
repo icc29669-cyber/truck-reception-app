@@ -76,7 +76,17 @@ export async function GET(req: NextRequest) {
         status: string;
       }[];
 
-      // ReservationCandidate 型に変換（車番を分解）
+      // 車番から reception-app の Vehicle テーブルで maxLoad を検索
+      const vehicleNumbers = berthReservations.map((r) => r.vehicleNumber).filter(Boolean);
+      const vehicles = vehicleNumbers.length > 0
+        ? await prisma.vehicle.findMany({
+            where: { vehicleNumber: { in: vehicleNumbers }, isActive: true },
+            select: { vehicleNumber: true, maxLoad: true },
+          })
+        : [];
+      const maxLoadMap = new Map(vehicles.map((v) => [v.vehicleNumber, v.maxLoad]));
+
+      // ReservationCandidate 型に変換（車番を分解 + maxLoad 補完）
       return NextResponse.json(
         berthReservations.map((r) => {
           const plate = parseVehicleNumber(r.vehicleNumber);
@@ -87,7 +97,7 @@ export async function GET(req: NextRequest) {
             driverName: r.driverName,
             companyName: r.companyName,
             vehicleNumber: r.vehicleNumber,
-            maxLoad: "",
+            maxLoad: maxLoadMap.get(r.vehicleNumber) ?? "",
             plateRegion: plate.region,
             plateClassNum: plate.classNum,
             plateHira: plate.hira,

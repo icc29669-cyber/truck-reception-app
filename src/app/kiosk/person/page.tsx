@@ -53,59 +53,75 @@ function StepDots({ current }: { current: number }) {
 
 /* ━━ 候補選択カード ━━ */
 function CandidateCard({
-  candidate, isFirst, onSelect,
+  candidate, isFirst, onSelect, onDelete,
 }: {
   candidate: DriverCandidate;
   isFirst: boolean;
   onSelect: () => void;
+  onDelete: () => void;
 }) {
   const [pressed, setPressed] = useState(false);
   return (
-    <button
-      onPointerDown={() => { setPressed(true); onSelect(); }}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
-      className="w-full flex items-center text-left select-none touch-none transition-all duration-75"
-      style={{
-        height: 152, borderRadius: 22,
-        background: pressed ? "#EFF6FF" : "#fff",
-        border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
-        boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
-        borderLeft: isFirst ? "6px solid #0d9488" : undefined,
-        paddingLeft: isFirst ? 26 : 32,
-        paddingRight: 28,
-        overflow: "hidden",
-      }}
-    >
-      {/* 人アイコン */}
-      <div style={{
-        width: 64, height: 64, borderRadius: "50%",
-        background: "#EFF6FF", display: "flex", alignItems: "center",
-        justifyContent: "center", fontSize: 32, flexShrink: 0, marginRight: 24,
-      }}>👤</div>
+    <div className="w-full flex items-center gap-3">
+      <button
+        onPointerDown={() => { setPressed(true); onSelect(); }}
+        onPointerUp={() => setPressed(false)}
+        onPointerLeave={() => setPressed(false)}
+        className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75"
+        style={{
+          height: 152, borderRadius: 22,
+          background: pressed ? "#EFF6FF" : "#fff",
+          border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
+          boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
+          borderLeft: isFirst ? "6px solid #0d9488" : undefined,
+          paddingLeft: isFirst ? 26 : 32,
+          paddingRight: 28,
+          overflow: "hidden",
+        }}
+      >
+        {/* 人アイコン */}
+        <div style={{
+          width: 64, height: 64, borderRadius: "50%",
+          background: "#EFF6FF", display: "flex", alignItems: "center",
+          justifyContent: "center", fontSize: 32, flexShrink: 0, marginRight: 24,
+        }}>👤</div>
 
-      {/* テキスト */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", lineHeight: 1.3 }}>
-          {candidate.companyName || "（会社名なし）"}
-        </span>
-        <span style={{ fontSize: 40, fontWeight: 900, color: "#111827", lineHeight: 1.2, letterSpacing: "0.04em" }}>
-          {candidate.name || "（名前なし）"}
-        </span>
-      </div>
+        {/* テキスト */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", lineHeight: 1.3 }}>
+            {candidate.companyName || "（会社名なし）"}
+          </span>
+          <span style={{ fontSize: 40, fontWeight: 900, color: "#111827", lineHeight: 1.2, letterSpacing: "0.04em" }}>
+            {candidate.name || "（名前なし）"}
+          </span>
+        </div>
 
-      {/* 最近バッジ */}
-      {isFirst && (
-        <span style={{
-          fontSize: 20, fontWeight: 800, background: "#dcfce7",
-          color: "#0f766e", borderRadius: 8, padding: "4px 14px",
-          marginRight: 20, flexShrink: 0,
-        }}>最近</span>
-      )}
+        {/* 最近バッジ */}
+        {isFirst && (
+          <span style={{
+            fontSize: 20, fontWeight: 800, background: "#dcfce7",
+            color: "#0f766e", borderRadius: 8, padding: "4px 14px",
+            marginRight: 20, flexShrink: 0,
+          }}>最近</span>
+        )}
 
-      {/* 矢印 */}
-      <span style={{ fontSize: 36, color: "#9CA3AF", flexShrink: 0 }}>▶</span>
-    </button>
+        {/* 矢印 */}
+        <span style={{ fontSize: 36, color: "#9CA3AF", flexShrink: 0 }}>▶</span>
+      </button>
+
+      {/* 削除ボタン */}
+      <button
+        onPointerDown={(e) => { e.stopPropagation(); onDelete(); }}
+        className="flex items-center justify-center select-none touch-none active:scale-95 transition-transform flex-shrink-0"
+        style={{
+          width: 80, height: 80, borderRadius: 16,
+          background: "#FEE2E2", border: "2px solid #FECACA",
+          color: "#DC2626", fontSize: 32, fontWeight: 900,
+        }}
+      >
+        ✕
+      </button>
+    </div>
   );
 }
 
@@ -187,6 +203,16 @@ export default function PersonPage() {
       driverInput: { ...s.driverInput, companyName: company, driverName: name },
     });
     router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/vehicle");
+  }
+
+  /* 候補を削除 */
+  function deleteCandidate(id: number) {
+    const updated = candidates.filter((c) => c.id !== id);
+    setCandidates(updated);
+    setKioskSession({ driverCandidates: updated });
+    if (updated.length === 0) {
+      setMode("input");
+    }
   }
 
   /* companyとnameをセッションに保存 */
@@ -334,6 +360,7 @@ export default function PersonPage() {
                     candidate={c}
                     isFirst={i === 0}
                     onSelect={() => selectCandidate(c)}
+                    onDelete={() => deleteCandidate(c.id)}
                   />
                 ))}
               </div>

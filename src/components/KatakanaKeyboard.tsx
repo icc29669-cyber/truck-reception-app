@@ -73,15 +73,15 @@ const TOTAL_H = 5*H + 4*G; // 682px（5行分）
 // ━━ 行カラー（列インデックス: 0=ワ行 … 9=ア行）━━
 // 淡いパステルで品よく色分け
 const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
-  { bg: "#F8FAFC", border: "#CBD5E1", shadow: "#94A3B8" },  // ワ行
-  { bg: "#EEF2FF", border: "#C7D2FE", shadow: "#A5B4FC" },  // ラ行
-  { bg: "#F7FEE7", border: "#D9F99D", shadow: "#BEF264" },  // ヤ行
-  { bg: "#F0FDFA", border: "#C2F5E9", shadow: "#99F6E4" },  // マ行
-  { bg: "#FAF5FF", border: "#E4D5F7", shadow: "#C4B5FD" },  // ハ行
-  { bg: "#FDF2F8", border: "#F5D0E0", shadow: "#F0ABCF" },  // ナ行
-  { bg: "#FFF7ED", border: "#FDE0C2", shadow: "#FDBA74" },  // タ行
-  { bg: "#FFFBEB", border: "#FDE68A", shadow: "#FCD34D" },  // サ行
-  { bg: "#F0FDF4", border: "#C6F6D5", shadow: "#A7F3D0" },  // カ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ワ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ラ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ヤ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // マ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ハ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ナ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // タ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // サ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // カ行
   { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ア行
 ];
 // 行ラベル（上段ボタンに小さく表示）

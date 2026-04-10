@@ -53,7 +53,11 @@ export default function ReservationSelectPage() {
 
   useEffect(() => {
     const s = getKioskSession();
-    setReservations(s.reservationCandidates ?? []);
+    // 受付登録済（checked_in / completed）の予約は非表示
+    const active = (s.reservationCandidates ?? []).filter(
+      (r) => r.status !== "checked_in" && r.status !== "completed"
+    );
+    setReservations(active);
   }, []);
 
   function selectReservation(r: ReservationCandidate) {
@@ -111,8 +115,8 @@ export default function ReservationSelectPage() {
         </span>
       </div>
 
-      {/* 予約カード一覧 */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-12" style={{ overflow: "auto" }}>
+      {/* 予約カード一覧 + 予約なしボタン */}
+      <div className="flex-1 flex flex-col items-center gap-4 px-12 py-4" style={{ overflow: "auto" }}>
         {reservations.map((r) => (
           <button
             key={r.id}
@@ -121,78 +125,78 @@ export default function ReservationSelectPage() {
             style={{
               maxWidth: 1200,
               background: "#fff",
-              padding: "28px 40px",
-              gap: 40,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+              padding: "14px 28px",
+              gap: 24,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
             }}
           >
             {/* 時間 */}
-            <div className="flex flex-col items-center flex-shrink-0" style={{ minWidth: 220 }}>
-              <div style={{
-                fontSize: 20, fontWeight: 700, color: "#1a3a6b",
-                background: "#E0EDFF", borderRadius: 12, padding: "6px 20px",
-                marginBottom: 8,
-              }}>
-                予約時間
-              </div>
-              <div style={{ fontSize: 52, fontWeight: 900, color: "#1a3a6b", lineHeight: 1.1 }}>
+            <div className="flex items-center flex-shrink-0 gap-2" style={{ minWidth: 180 }}>
+              <span style={{ fontSize: 38, fontWeight: 900, color: "#1a3a6b", lineHeight: 1 }}>
                 {r.startTime}
-              </div>
-              <div style={{ fontSize: 24, color: "#64748b", margin: "4px 0" }}>〜</div>
-              <div style={{ fontSize: 52, fontWeight: 900, color: "#1a3a6b", lineHeight: 1.1 }}>
+              </span>
+              <span style={{ fontSize: 20, color: "#94A3B8", fontWeight: 700 }}>〜</span>
+              <span style={{ fontSize: 38, fontWeight: 900, color: "#1a3a6b", lineHeight: 1 }}>
                 {r.endTime}
-              </div>
+              </span>
             </div>
 
             {/* 区切り線 */}
-            <div style={{ width: 3, alignSelf: "stretch", background: "#E2E8F0", borderRadius: 2 }} />
+            <div style={{ width: 2, alignSelf: "stretch", background: "#E2E8F0", borderRadius: 2 }} />
 
             {/* 情報 */}
-            <div className="flex-1 flex flex-col gap-3">
-              <div className="flex items-center gap-4">
-                <span style={{ fontSize: 20, color: "#64748b", minWidth: 100 }}>会社名</span>
-                <span style={{ fontSize: 32, fontWeight: 800, color: "#1e293b" }}>{r.companyName}</span>
+            <div className="flex-1 flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: 16, color: "#94A3B8", flexShrink: 0 }}>会社名</span>
+                <span style={{ fontSize: 28, fontWeight: 800, color: "#1e293b" }}>{r.companyName}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span style={{ fontSize: 20, color: "#64748b", minWidth: 100 }}>ドライバー</span>
-                <span style={{ fontSize: 32, fontWeight: 800, color: "#1e293b" }}>{r.driverName}</span>
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: 16, color: "#94A3B8", flexShrink: 0 }}>ドライバー</span>
+                <span style={{ fontSize: 28, fontWeight: 800, color: "#1e293b" }}>{r.driverName}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <span style={{ fontSize: 20, color: "#64748b", minWidth: 100 }}>車両番号</span>
-                <span style={{ fontSize: 28, fontWeight: 700, color: "#1e293b" }}>{r.vehicleNumber}</span>
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: 16, color: "#94A3B8", flexShrink: 0 }}>車両</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: "#1e293b" }}>{r.vehicleNumber}</span>
               </div>
             </div>
 
             {/* 選択矢印 */}
             <div className="flex items-center justify-center flex-shrink-0"
               style={{
-                width: 80, height: 80, borderRadius: "50%",
+                width: 60, height: 60, borderRadius: "50%",
                 background: "linear-gradient(180deg,#3B82F6,#2563EB)",
-                boxShadow: "0 4px 0 #1E40AF",
+                boxShadow: "0 3px 0 #1E40AF",
               }}
             >
-              <span style={{ fontSize: 36, color: "#fff", fontWeight: 900 }}>▶</span>
+              <span style={{ fontSize: 28, color: "#fff", fontWeight: 900 }}>▶</span>
             </div>
           </button>
         ))}
-      </div>
 
-      {/* 予約なしで受付ボタン */}
-      <div className="flex justify-center flex-shrink-0" style={{ padding: "24px 0 36px" }}>
+        {/* 予約なしで受付ボタン（カードと同じスタイル） */}
         <button
           onPointerDown={skipReservation}
-          className="flex items-center justify-center font-bold rounded-2xl active:scale-[0.97] transition-transform"
+          className="w-full flex items-center justify-center rounded-2xl active:scale-[0.98] transition-transform"
           style={{
-            width: 600,
-            height: 100,
-            fontSize: 34,
-            color: "#64748B",
-            background: "rgba(0,0,0,0.05)",
-            border: "3px solid #CBD5E1",
-            borderRadius: 20,
+            maxWidth: 1200,
+            background: "#F8FAFC",
+            padding: "14px 28px",
+            gap: 16,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+            border: "2px dashed #CBD5E1",
           }}
         >
-          予約なしで受付する ▶
+          <span style={{ fontSize: 28, fontWeight: 800, color: "#64748B" }}>
+            予約なしで受付する
+          </span>
+          <div className="flex items-center justify-center flex-shrink-0"
+            style={{
+              width: 48, height: 48, borderRadius: "50%",
+              background: "#94A3B8",
+            }}
+          >
+            <span style={{ fontSize: 22, color: "#fff", fontWeight: 900 }}>▶</span>
+          </div>
         </button>
       </div>
     </div>

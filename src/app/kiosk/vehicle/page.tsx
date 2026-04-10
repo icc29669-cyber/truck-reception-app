@@ -104,56 +104,72 @@ function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "m
 
 /* ━━ 候補選択カード ━━ */
 function VehicleCard({
-  candidate, isFirst, onSelect,
+  candidate, isFirst, onSelect, onDelete,
 }: {
   candidate: VehicleCandidate;
   isFirst: boolean;
   onSelect: () => void;
+  onDelete: () => void;
 }) {
   const [pressed, setPressed] = useState(false);
   return (
-    <button
-      onPointerDown={() => { setPressed(true); onSelect(); }}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
-      className="w-full flex items-center text-left select-none touch-none transition-all duration-75"
-      style={{
-        height: 140, borderRadius: 22,
-        background: pressed ? "#EFF6FF" : "#fff",
-        border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
-        boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
-        borderLeft: isFirst ? "6px solid #0d9488" : undefined,
-        paddingLeft: isFirst ? 26 : 32,
-        paddingRight: 28,
-      }}
-    >
-      {/* プレート */}
-      <div className="flex-shrink-0 mr-8">
-        <MiniPlate plate={candidate.plate} size="sm" />
-      </div>
+    <div className="w-full flex items-center gap-3">
+      <button
+        onPointerDown={() => { setPressed(true); onSelect(); }}
+        onPointerUp={() => setPressed(false)}
+        onPointerLeave={() => setPressed(false)}
+        className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75"
+        style={{
+          height: 140, borderRadius: 22,
+          background: pressed ? "#EFF6FF" : "#fff",
+          border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
+          boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
+          borderLeft: isFirst ? "6px solid #0d9488" : undefined,
+          paddingLeft: isFirst ? 26 : 32,
+          paddingRight: 28,
+        }}
+      >
+        {/* プレート */}
+        <div className="flex-shrink-0 mr-8">
+          <MiniPlate plate={candidate.plate} size="sm" />
+        </div>
 
-      {/* テキスト情報 */}
-      <div className="flex flex-col flex-1">
-        <span style={{ fontSize: 32, fontWeight: 900, color: "#111827", letterSpacing: "0.06em" }}>
-          {formatPlate(candidate.plate) || candidate.vehicleNumber}
-        </span>
-        <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
-          最大積載量　{candidate.maxLoad ? Number(candidate.maxLoad).toLocaleString() + " kg" : "未登録"}
-        </span>
-      </div>
+        {/* テキスト情報 */}
+        <div className="flex flex-col flex-1">
+          <span style={{ fontSize: 32, fontWeight: 900, color: "#111827", letterSpacing: "0.06em" }}>
+            {formatPlate(candidate.plate) || candidate.vehicleNumber}
+          </span>
+          <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
+            最大積載量　{candidate.maxLoad ? Number(candidate.maxLoad).toLocaleString() + " kg" : "未登録"}
+          </span>
+        </div>
 
-      {/* 最近バッジ */}
-      {isFirst && (
-        <span style={{
-          fontSize: 20, fontWeight: 800, background: "#dcfce7",
-          color: "#0f766e", borderRadius: 8, padding: "4px 14px",
-          marginRight: 20, flexShrink: 0,
+        {/* 最近バッジ */}
+        {isFirst && (
+          <span style={{
+            fontSize: 20, fontWeight: 800, background: "#dcfce7",
+            color: "#0f766e", borderRadius: 8, padding: "4px 14px",
+            marginRight: 20, flexShrink: 0,
         }}>最近</span>
       )}
 
-      {/* 矢印 */}
-      <span style={{ fontSize: 36, color: "#9CA3AF", flexShrink: 0 }}>▶</span>
-    </button>
+        {/* 矢印 */}
+        <span style={{ fontSize: 36, color: "#9CA3AF", flexShrink: 0 }}>▶</span>
+      </button>
+
+      {/* 削除ボタン */}
+      <button
+        onPointerDown={(e) => { e.stopPropagation(); onDelete(); }}
+        className="flex items-center justify-center select-none touch-none active:scale-95 transition-transform flex-shrink-0"
+        style={{
+          width: 80, height: 80, borderRadius: 16,
+          background: "#FEE2E2", border: "2px solid #FECACA",
+          color: "#DC2626", fontSize: 32, fontWeight: 900,
+        }}
+      >
+        ✕
+      </button>
+    </div>
   );
 }
 
@@ -199,15 +215,15 @@ const ALPHA_KEYS   = ["A","C","F","H","K","L","M","P","X","Y"];
 
 // ひらがな列カラー（KatakanaKeyboard と同じ配色）
 const HIRA_COL_COLORS = [
-  { bg: "#F8FAFC", border: "#CBD5E1", shadow: "#94A3B8" }, // わ行
-  { bg: "#EEF2FF", border: "#C7D2FE", shadow: "#A5B4FC" }, // ら行
-  { bg: "#F7FEE7", border: "#D9F99D", shadow: "#BEF264" }, // や行
-  { bg: "#F0FDFA", border: "#C2F5E9", shadow: "#99F6E4" }, // ま行
-  { bg: "#FAF5FF", border: "#E4D5F7", shadow: "#C4B5FD" }, // は行
-  { bg: "#FDF2F8", border: "#F5D0E0", shadow: "#F0ABCF" }, // な行
-  { bg: "#FFF7ED", border: "#FDE0C2", shadow: "#FDBA74" }, // た行
-  { bg: "#FFFBEB", border: "#FDE68A", shadow: "#FCD34D" }, // さ行
-  { bg: "#F0FDF4", border: "#C6F6D5", shadow: "#A7F3D0" }, // か行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // わ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // ら行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // や行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // ま行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // は行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // な行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // た行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // さ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // か行
   { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // あ行
 ];
 const HIRA_COL_LABELS = ["わ","ら","や","ま","は","な","た","さ","か","あ"];
@@ -307,6 +323,15 @@ export default function VehiclePage() {
     }
     setMounted(true);
   }, []);
+
+  function deleteCandidate(id: number) {
+    const updated = candidates.filter((c) => c.id !== id);
+    setCandidates(updated);
+    setKioskSession({ vehicleCandidates: updated });
+    if (updated.length === 0) {
+      setMode("input");
+    }
+  }
 
   function selectCandidate(c: VehicleCandidate) {
     const s = getKioskSession();
@@ -486,7 +511,7 @@ export default function VehiclePage() {
             </p>
             <div className="flex flex-col gap-4 flex-shrink-0">
               {candidates.slice(0, 4).map((c, i) => (
-                <VehicleCard key={c.id} candidate={c} isFirst={i === 0} onSelect={() => selectCandidate(c)} />
+                <VehicleCard key={c.id} candidate={c} isFirst={i === 0} onSelect={() => selectCandidate(c)} onDelete={() => deleteCandidate(c.id)} />
               ))}
             </div>
             <div className="flex-1 flex items-end">
