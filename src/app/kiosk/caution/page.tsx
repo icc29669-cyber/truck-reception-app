@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 /* ━━ SVGアイコン：ヘルメット（正面からの建設用ヘルメット） ━━ */
 function HardHatIcon() {
   return (
-    <svg width="220" height="190" viewBox="0 0 220 190" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="180" height="155" viewBox="0 0 220 190" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* ブリム影 */}
       <ellipse cx="110" cy="128" rx="96" ry="18" fill="#92400E"/>
       {/* ブリム */}
@@ -28,7 +28,7 @@ function HardHatIcon() {
 /* ━━ SVGアイコン：安全靴（くるぶし以下の低いワークシューズ） ━━ */
 function SafetyShoeIcon() {
   return (
-    <svg width="280" height="150" viewBox="0 0 280 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="230" height="123" viewBox="0 0 280 150" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* ── ソール ── */}
       {/* アウトソール（黒） */}
       <rect x="8" y="120" width="264" height="22" rx="9" fill="#0F172A"/>
@@ -104,7 +104,7 @@ export default function CautionPage() {
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        gap: 28, padding: "0 80px",
+        gap: 16, padding: "0 80px",
       }}>
 
         {/* 小ラベル */}
@@ -116,23 +116,23 @@ export default function CautionPage() {
         </div>
 
         {/* 2アイコン（SVG・コンテナなし） */}
-        <div style={{ display: "flex", gap: 80, alignItems: "flex-end" }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", gap: 60, alignItems: "flex-end" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
             <HardHatIcon />
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 36, fontWeight: 800, color: "#1E293B", letterSpacing: "0.06em" }}>ヘルメット</div>
-              <div style={{ fontSize: 16, color: "#92400E", marginTop: 4, letterSpacing: "0.1em", fontWeight: 500 }}>保護帽</div>
+              <div style={{ fontSize: 32, fontWeight: 800, color: "#1E293B", letterSpacing: "0.06em" }}>ヘルメット</div>
+              <div style={{ fontSize: 14, color: "#92400E", marginTop: 2, letterSpacing: "0.1em", fontWeight: 500 }}>保護帽</div>
             </div>
           </div>
 
           {/* 区切り */}
-          <div style={{ width: 1, height: 180, background: "#D9C9A8", alignSelf: "center" }} />
+          <div style={{ width: 1, height: 150, background: "#D9C9A8", alignSelf: "center" }} />
 
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
             <SafetyShoeIcon />
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 36, fontWeight: 800, color: "#1E293B", letterSpacing: "0.06em" }}>安全靴</div>
-              <div style={{ fontSize: 16, color: "#475569", marginTop: 4, letterSpacing: "0.1em", fontWeight: 500 }}>Safety Shoes</div>
+              <div style={{ fontSize: 32, fontWeight: 800, color: "#1E293B", letterSpacing: "0.06em" }}>安全靴</div>
+              <div style={{ fontSize: 14, color: "#475569", marginTop: 2, letterSpacing: "0.1em", fontWeight: 500 }}>Safety Shoes</div>
             </div>
           </div>
         </div>
@@ -147,8 +147,8 @@ export default function CautionPage() {
         {/* メインメッセージ */}
         <div style={{ textAlign: "center" }}>
           <div style={{
-            fontSize: 48, fontWeight: 900, color: "#1E293B",
-            letterSpacing: "0.06em", lineHeight: 1.6,
+            fontSize: 42, fontWeight: 900, color: "#1E293B",
+            letterSpacing: "0.06em", lineHeight: 1.5,
           }}>
             場内ではヘルメット・安全靴を<br />着用願います
           </div>
@@ -158,7 +158,7 @@ export default function CautionPage() {
         <button
           onPointerDown={() => router.push("/kiosk/phone")}
           style={{
-            width: 760, height: 128, fontSize: 50, fontWeight: 900,
+            width: 700, height: 100, fontSize: 44, fontWeight: 900,
             background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
             color: "#fff", border: "none",
             borderRadius: 16,
