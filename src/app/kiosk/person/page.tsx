@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
+import { deleteCandidate as apiDeleteCandidate } from "@/lib/api";
 import type { DriverCandidate } from "@/types/reception";
 import KatakanaKeyboard from "@/components/KatakanaKeyboard";
 
@@ -140,6 +141,7 @@ export default function PersonPage() {
   const [inputField, setInputField] = useState<InputField>("company");
   const [mounted, setMounted] = useState(false);
   const [fromFinal, setFromFinal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<DriverCandidate | null>(null);
 
   useEffect(() => {
     if (initRef.current) return;
@@ -205,11 +207,14 @@ export default function PersonPage() {
     router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/vehicle");
   }
 
-  /* 候補を削除 */
-  function deleteCandidate(id: number) {
-    const updated = candidates.filter((c) => c.id !== id);
+  /* 候補を削除（確認後にDB+セッション両方から削除） */
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    await apiDeleteCandidate("driver", deleteTarget.id);
+    const updated = candidates.filter((c) => c.id !== deleteTarget.id);
     setCandidates(updated);
     setKioskSession({ driverCandidates: updated });
+    setDeleteTarget(null);
     if (updated.length === 0) {
       setMode("input");
     }
@@ -360,7 +365,7 @@ export default function PersonPage() {
                     candidate={c}
                     isFirst={i === 0}
                     onSelect={() => selectCandidate(c)}
-                    onDelete={() => deleteCandidate(c.id)}
+                    onDelete={() => setDeleteTarget(c)}
                   />
                 ))}
               </div>
@@ -484,6 +489,64 @@ export default function PersonPage() {
         )}
 
       </div>
+
+      {/* ━━ 削除確認ダイアログ ━━ */}
+      {deleteTarget && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          onPointerDown={() => setDeleteTarget(null)}
+        >
+          <div
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff", borderRadius: 24, padding: "40px 48px",
+              boxShadow: "0 12px 48px rgba(0,0,0,0.3)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 24,
+              maxWidth: 600,
+            }}
+          >
+            <span style={{ fontSize: 32, fontWeight: 800, color: "#1E293B" }}>
+              この記録を削除しますか？
+            </span>
+            <div style={{
+              background: "#F8FAFC", borderRadius: 16, padding: "20px 32px",
+              width: "100%", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 22, color: "#64748B" }}>{deleteTarget.companyName}</div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: "#111827", marginTop: 4 }}>{deleteTarget.name}</div>
+            </div>
+            <span style={{ fontSize: 20, color: "#94A3B8" }}>
+              次回の受付時に表示されなくなります
+            </span>
+            <div className="flex gap-4 w-full">
+              <button
+                onPointerDown={() => setDeleteTarget(null)}
+                className="flex-1 flex items-center justify-center select-none touch-none active:scale-95 transition-transform"
+                style={{
+                  height: 72, borderRadius: 16, fontSize: 28, fontWeight: 700,
+                  background: "#F1F5F9", color: "#64748B", border: "2px solid #E2E8F0",
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onPointerDown={confirmDelete}
+                className="flex-1 flex items-center justify-center select-none touch-none active:scale-95 transition-transform"
+                style={{
+                  height: 72, borderRadius: 16, fontSize: 28, fontWeight: 800,
+                  background: "#DC2626", color: "#fff", border: "none",
+                }}
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

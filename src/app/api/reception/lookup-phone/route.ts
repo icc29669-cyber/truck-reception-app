@@ -17,12 +17,12 @@ export async function GET(req: NextRequest) {
     // 同じ電話番号のドライバー候補・車両候補を並列取得
     const [drivers, vehicles] = await Promise.all([
       prisma.driver.findMany({
-        where: { phone },
+        where: { phone, isActive: true },
         orderBy: { updatedAt: "desc" },
         take: 10,
       }),
       prisma.vehicle.findMany({
-        where: { phone },
+        where: { phone, isActive: true },
         orderBy: { updatedAt: "desc" },
         take: 10,
       }),

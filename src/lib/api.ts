@@ -220,6 +220,23 @@ export async function registerReception(params: {
   return res.json();
 }
 
+// ─── 候補削除（ソフトデリート） ──────────────────────────
+export async function deleteCandidate(
+  type: "driver" | "vehicle",
+  id: number
+): Promise<boolean> {
+  if (USE_MOCK) {
+    await delay(300);
+    return true;
+  }
+  const res = await fetch(`${BASE}/api/reception/delete-candidate`, {
+    method: "DELETE",
+    headers: headers(),
+    body: JSON.stringify({ type, id }),
+  });
+  return res.ok;
+}
+
 export async function fetchCenters(): Promise<{ id: number; name: string }[]> {
   if (USE_MOCK) {
     await delay(300);
