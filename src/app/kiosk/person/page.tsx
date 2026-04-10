@@ -114,12 +114,12 @@ function CandidateCard({
         onPointerDown={(e) => { e.stopPropagation(); onDelete(); }}
         className="flex items-center justify-center select-none touch-none active:scale-95 transition-transform flex-shrink-0"
         style={{
-          width: 80, height: 80, borderRadius: 16,
+          width: 100, height: 60, borderRadius: 14,
           background: "#FEE2E2", border: "2px solid #FECACA",
-          color: "#DC2626", fontSize: 32, fontWeight: 900,
+          color: "#DC2626", fontSize: 22, fontWeight: 800,
         }}
       >
-        ✕
+        削除
       </button>
     </div>
   );
