@@ -497,7 +497,7 @@ export default function VehiclePage() {
 
         {/* 最大積載量表示（入力モード・maxload ステップ時） */}
         {mode === "input" && inputStep === "maxload" && (
-          <div className="rounded-2xl border-4 flex items-center px-8 transition-colors" style={{ width: 700, height: 90, borderColor: maxLoad ? "#F59E0B" : "rgba(255,255,255,0.55)", background: "#FFFFFF" }}>
+          <div className="rounded-2xl border-4 flex items-center px-8 transition-colors" style={{ width: 700, height: 90, borderColor: maxLoad ? "#F59E0B" : "rgba(255,255,255,0.55)", background: "#FFFFFF", justifyContent: "flex-end" }}>
             <span style={{ fontSize: 56, fontWeight: 900, color: maxLoad ? "#111827" : "#94a3b8" }}>
               {maxLoad ? `${Number(maxLoad).toLocaleString()} kg` : "（最大積載量を入力）"}
             </span>
