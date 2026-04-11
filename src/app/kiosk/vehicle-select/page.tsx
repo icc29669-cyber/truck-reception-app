@@ -18,7 +18,12 @@ export default function VehicleSelectPage() {
       plate: v.plate,
       driverInput: { ...session.driverInput, maxLoad: v.maxLoad },
     });
-    router.push("/kiosk/data-confirm");
+    // maxLoadが未入力なら入力画面を経由させる
+    if (!v.maxLoad) {
+      router.push("/kiosk/max-load");
+    } else {
+      router.push("/kiosk/data-confirm");
+    }
   }
 
   function deleteVehicle(id: number) {

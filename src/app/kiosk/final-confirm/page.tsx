@@ -387,7 +387,7 @@ export default function FinalConfirmPage() {
 
   const { driverInput, plate, phone, selectedReservation } = sessionData;
   const plateStr = formatPlate(plate);
-  const isComplete = !!(driverInput.companyName && driverInput.driverName && plateStr);
+  const isComplete = !!(driverInput.companyName && driverInput.driverName && plateStr && driverInput.maxLoad);
 
   const phoneComplete = !!(phone || driverInput.phone);
   const personComplete = !!(driverInput.companyName && driverInput.driverName);
