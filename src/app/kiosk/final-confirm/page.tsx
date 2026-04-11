@@ -455,28 +455,11 @@ export default function FinalConfirmPage() {
           <SectionCard iconType="truck" title="車両情報">
             <div style={{ display: "flex", alignItems: "center", borderBottom: "1px solid #F0F3F7" }}>
               {/* 左: ナンバープレート表示 */}
-              <div
-                onPointerDown={() => router.push("/kiosk/vehicle?section=region&from=final-confirm")}
-                style={{
-                  flexShrink: 0, padding: "16px 24px",
-                  cursor: "pointer", display: "flex", flexDirection: "column",
-                  alignItems: "center", gap: 8,
-                }}
-              >
+              <div style={{
+                flexShrink: 0, padding: "16px 24px",
+                display: "flex", alignItems: "center",
+              }}>
                 <PlateDisplay plate={plate} size="sm" />
-                <button
-                  className="select-none touch-none"
-                  style={{
-                    height: 36, fontSize: 16, fontWeight: 700,
-                    background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                    color: "#fff", border: "none", borderRadius: 10,
-                    boxShadow: "0 2px 0 #1d4ed8",
-                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
-                    padding: "0 16px", whiteSpace: "nowrap", cursor: "pointer",
-                  }}
-                >
-                  <span style={{ fontSize: 13 }}>✎</span> ナンバー修正
-                </button>
               </div>
               {/* 右: 個別フィールド */}
               <div style={{
