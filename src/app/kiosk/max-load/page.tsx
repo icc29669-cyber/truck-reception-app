@@ -61,7 +61,7 @@ export default function MaxLoadPage() {
         {/* 入力表示エリア */}
         <div
           suppressHydrationWarning
-          className={`rounded-3xl border-4 flex items-center justify-center gap-3 px-10
+          className={`rounded-3xl border-4 flex items-center justify-end gap-3 px-10
             ${value ? "bg-yellow-100 border-yellow-400" : "bg-white border-gray-300"}`}
           style={{ minWidth: 500, height: 180 }}
         >
