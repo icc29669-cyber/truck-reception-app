@@ -453,13 +453,38 @@ export default function FinalConfirmPage() {
 
           {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            <div style={{ display: "flex", alignItems: "center", borderBottom: "1px solid #F0F3F7" }}>
-              {/* 左: ナンバープレート表示 */}
+            <div style={{ display: "flex", alignItems: "stretch" }}>
+              {/* 左: ナンバープレート + 最大積載量 */}
               <div style={{
-                flexShrink: 0, padding: "16px 24px",
-                display: "flex", alignItems: "center",
+                flexShrink: 0, padding: "16px 28px",
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center", gap: 10,
+                borderRight: "1px solid #F0F3F7",
               }}>
-                <PlateDisplay plate={plate} size="sm" />
+                <PlateDisplay plate={plate} size="lg" />
+                <div
+                  onPointerDown={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    cursor: "pointer", padding: "6px 16px",
+                    background: "#F8FAFC", borderRadius: 12, border: "1.5px solid #E2E8F0",
+                  }}
+                >
+                  <span style={{ fontSize: 18, fontWeight: 600, color: "#94A3B8" }}>最大積載量</span>
+                  <span style={{ fontSize: 32, fontWeight: 800, color: driverInput.maxLoad ? "#1E293B" : "#EF4444" }}>
+                    {driverInput.maxLoad ? `${Number(driverInput.maxLoad).toLocaleString()} kg` : "未入力"}
+                  </span>
+                  <span style={{
+                    height: 32, fontSize: 14, fontWeight: 700,
+                    background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+                    color: "#fff", borderRadius: 8,
+                    boxShadow: "0 2px 0 #1d4ed8",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 3,
+                    padding: "0 10px", whiteSpace: "nowrap", flexShrink: 0,
+                  }}>
+                    <span style={{ fontSize: 11 }}>✎</span> 修正
+                  </span>
+                </div>
               </div>
               {/* 右: 個別フィールド */}
               <div style={{
@@ -512,11 +537,6 @@ export default function FinalConfirmPage() {
                 ))}
               </div>
             </div>
-            <FieldRow
-              label="最大積載量"
-              value={driverInput.maxLoad ? `${Number(driverInput.maxLoad).toLocaleString()} kg` : ""}
-              onEdit={() => router.push("/kiosk/vehicle?section=maxload&from=final-confirm")}
-            />
           </SectionCard>
 
           {error && (
