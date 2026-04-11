@@ -456,11 +456,11 @@ export default function FinalConfirmPage() {
             <div style={{ display: "flex", alignItems: "stretch" }}>
               {/* 左: ナンバープレート（大きめ表示） */}
               <div style={{
-                flexShrink: 0, padding: "20px 36px",
+                flexShrink: 0, padding: "24px 40px",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 borderRight: "1px solid #F0F3F7",
               }}>
-                <PlateDisplay plate={plate} size="xl" />
+                <PlateDisplay plate={plate} size="lg" />
               </div>
               {/* 右: 個別フィールド + 最大積載量 */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
