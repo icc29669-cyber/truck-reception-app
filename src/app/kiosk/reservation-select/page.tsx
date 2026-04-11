@@ -62,13 +62,28 @@ export default function ReservationSelectPage() {
 
   function selectReservation(r: ReservationCandidate) {
     const s = getKioskSession();
+
+    // 記憶済みドライバーと一致するか検索
+    const matchedDriver = (s.driverCandidates ?? []).find(
+      (d) => d.companyName === r.companyName && d.name === r.driverName
+    ) ?? null;
+
+    // 記憶済み車両と一致するか検索
+    const matchedVehicle = (s.vehicleCandidates ?? []).find(
+      (v) =>
+        v.plate.region === r.plateRegion &&
+        v.plate.classNum === r.plateClassNum &&
+        v.plate.hira === r.plateHira &&
+        v.plate.number === r.plateNumber
+    ) ?? null;
+
     setKioskSession({
       selectedReservation: r,
       driverInput: {
         companyName: r.companyName,
         driverName: r.driverName,
         phone: s.phone,
-        maxLoad: r.maxLoad,
+        maxLoad: r.maxLoad || matchedVehicle?.maxLoad || "",
       },
       plate: {
         region: r.plateRegion,
@@ -76,8 +91,8 @@ export default function ReservationSelectPage() {
         hira: r.plateHira,
         number: r.plateNumber,
       },
-      selectedDriver: null,
-      selectedVehicle: null,
+      selectedDriver: matchedDriver,
+      selectedVehicle: matchedVehicle,
     });
     router.push("/kiosk/final-confirm");
   }
