@@ -61,7 +61,7 @@ export default function MaxLoadPage() {
         {/* 入力表示エリア */}
         <div
           suppressHydrationWarning
-          className={`rounded-3xl border-4 flex items-center justify-end gap-3 px-10
+          className={`rounded-3xl border-4 flex items-center px-10
             ${value ? "bg-yellow-100 border-yellow-400" : "bg-white border-gray-300"}`}
           style={{ minWidth: 500, height: 180 }}
         >
@@ -70,11 +70,13 @@ export default function MaxLoadPage() {
             style={{
               fontSize: 96,
               color: value ? "#1a1a1a" : "#9ca3af",
+              flex: 1,
+              textAlign: "right",
             }}
           >
             {displayValue || "0"}
           </span>
-          <span className="text-5xl font-bold text-gray-600">kg</span>
+          <span className="text-5xl font-bold text-gray-600" style={{ marginLeft: 12 }}>kg</span>
         </div>
 
         <NumericKeypad
