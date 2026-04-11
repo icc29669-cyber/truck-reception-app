@@ -501,14 +501,14 @@ export default function FinalConfirmPage() {
                       {value || "未入力"}
                     </span>
                     <span style={{
-                      height: 40, fontSize: 16, fontWeight: 700,
+                      height: 48, fontSize: 20, fontWeight: 700,
                       background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                      color: "#fff", borderRadius: 10,
+                      color: "#fff", borderRadius: 12,
                       boxShadow: "0 2px 0 #1d4ed8",
-                      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
-                      padding: "0 12px", whiteSpace: "nowrap", flexShrink: 0,
+                      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
+                      padding: "0 16px", whiteSpace: "nowrap", flexShrink: 0,
                     }}>
-                      <span style={{ fontSize: 13 }}>✎</span> 修正
+                      <span style={{ fontSize: 16 }}>✎</span> 修正
                     </span>
                   </button>
                 ))}
