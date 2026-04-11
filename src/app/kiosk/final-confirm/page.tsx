@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession, clearKioskSession } from "@/lib/kioskState";
 import { registerReception } from "@/lib/api";
 import { formatPlate } from "@/types/reception";
-import { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
+import PlateDisplay, { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
 import type { PlateInput } from "@/types/reception";
 
 const MOBILE_PREFIXES = ["070", "080", "090"];
@@ -453,55 +453,81 @@ export default function FinalConfirmPage() {
 
           {/* 車両情報 */}
           <SectionCard iconType="truck" title="車両情報">
-            {/* ナンバー（2×2カードグリッド） */}
-            <div style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr",
-              padding: "14px 60px 14px 48px",
-              gap: "10px 20px", borderBottom: "1px solid #F0F3F7",
-            }}>
-              {([
-                { label: "地名", value: plate.region, section: "region" },
-                { label: "分類番号", value: plate.classNum, section: "classNum" },
-                { label: "ひらがな", value: plate.hira, section: "hira" },
-                { label: "一連番号", value: plate.number, section: "number" },
-              ] as const).map(({ label, value, section }) => (
+            <div style={{ display: "flex", alignItems: "center", borderBottom: "1px solid #F0F3F7" }}>
+              {/* 左: ナンバープレート表示 */}
+              <div
+                onPointerDown={() => router.push("/kiosk/vehicle?section=region&from=final-confirm")}
+                style={{
+                  flexShrink: 0, padding: "16px 24px",
+                  cursor: "pointer", display: "flex", flexDirection: "column",
+                  alignItems: "center", gap: 8,
+                }}
+              >
+                <PlateDisplay plate={plate} size="sm" />
                 <button
-                  key={section}
-                  onPointerDown={() => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
                   className="select-none touch-none"
                   style={{
-                    display: "flex", alignItems: "center",
-                    background: "#F1F5F9", borderRadius: 14,
-                    border: "1.5px solid #E2E8F0", cursor: "pointer",
-                    padding: "10px 16px", gap: 10,
-                    minHeight: 72,
-                  }}
-                >
-                  <span style={{
-                    fontSize: 16, fontWeight: 600, color: "#94A3B8",
-                    flexShrink: 0, width: 70,
-                  }}>
-                    {label}
-                  </span>
-                  <span style={{
-                    flex: 1, fontSize: 40, fontWeight: 800,
-                    color: value ? "#1E293B" : "#EF4444",
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    {value || "未入力"}
-                  </span>
-                  <span style={{
-                    height: 40, fontSize: 16, fontWeight: 700,
+                    height: 36, fontSize: 16, fontWeight: 700,
                     background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-                    color: "#fff", borderRadius: 10,
+                    color: "#fff", border: "none", borderRadius: 10,
                     boxShadow: "0 2px 0 #1d4ed8",
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
-                    padding: "0 12px", whiteSpace: "nowrap", flexShrink: 0,
-                  }}>
-                    <span style={{ fontSize: 13 }}>✎</span> 修正
-                  </span>
+                    padding: "0 16px", whiteSpace: "nowrap", cursor: "pointer",
+                  }}
+                >
+                  <span style={{ fontSize: 13 }}>✎</span> ナンバー修正
                 </button>
-              ))}
+              </div>
+              {/* 右: 個別フィールド */}
+              <div style={{
+                flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr",
+                padding: "14px 60px 14px 16px",
+                gap: "10px 20px",
+              }}>
+                {([
+                  { label: "地名", value: plate.region, section: "region" },
+                  { label: "分類番号", value: plate.classNum, section: "classNum" },
+                  { label: "ひらがな", value: plate.hira, section: "hira" },
+                  { label: "一連番号", value: plate.number, section: "number" },
+                ] as const).map(({ label, value, section }) => (
+                  <button
+                    key={section}
+                    onPointerDown={() => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
+                    className="select-none touch-none"
+                    style={{
+                      display: "flex", alignItems: "center",
+                      background: "#F1F5F9", borderRadius: 14,
+                      border: "1.5px solid #E2E8F0", cursor: "pointer",
+                      padding: "10px 16px", gap: 10,
+                      minHeight: 72,
+                    }}
+                  >
+                    <span style={{
+                      fontSize: 16, fontWeight: 600, color: "#94A3B8",
+                      flexShrink: 0, width: 70,
+                    }}>
+                      {label}
+                    </span>
+                    <span style={{
+                      flex: 1, fontSize: 40, fontWeight: 800,
+                      color: value ? "#1E293B" : "#EF4444",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    }}>
+                      {value || "未入力"}
+                    </span>
+                    <span style={{
+                      height: 40, fontSize: 16, fontWeight: 700,
+                      background: "linear-gradient(180deg, #3B82F6, #2563EB)",
+                      color: "#fff", borderRadius: 10,
+                      boxShadow: "0 2px 0 #1d4ed8",
+                      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
+                      padding: "0 12px", whiteSpace: "nowrap", flexShrink: 0,
+                    }}>
+                      <span style={{ fontSize: 13 }}>✎</span> 修正
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
             <FieldRow
               label="最大積載量"
