@@ -73,11 +73,13 @@ export async function GET(req: NextRequest) {
         driverName: string;
         companyName: string;
         vehicleNumber: string;
+        maxLoad?: string;
         status: string;
       }[];
 
-      // 車番から reception-app の Vehicle テーブルで maxLoad を検索
-      const vehicleNumbers = berthReservations.map((r) => r.vehicleNumber).filter(Boolean);
+      // berth-app に maxLoad がない予約だけローカル Vehicle テーブルで補完
+      const needLookup = berthReservations.filter((r) => !r.maxLoad && r.vehicleNumber);
+      const vehicleNumbers = needLookup.map((r) => r.vehicleNumber);
       const vehicles = vehicleNumbers.length > 0
         ? await prisma.vehicle.findMany({
             where: { vehicleNumber: { in: vehicleNumbers }, isActive: true },
@@ -86,7 +88,7 @@ export async function GET(req: NextRequest) {
         : [];
       const maxLoadMap = new Map(vehicles.map((v) => [v.vehicleNumber, v.maxLoad]));
 
-      // ReservationCandidate 型に変換（車番を分解 + maxLoad 補完）
+      // ReservationCandidate 型に変換（車番を分解 + maxLoad: berth-app優先 → ローカル補完）
       return NextResponse.json(
         berthReservations.map((r) => {
           const plate = parseVehicleNumber(r.vehicleNumber);
@@ -97,7 +99,7 @@ export async function GET(req: NextRequest) {
             driverName: r.driverName,
             companyName: r.companyName,
             vehicleNumber: r.vehicleNumber,
-            maxLoad: maxLoadMap.get(r.vehicleNumber) ?? "",
+            maxLoad: r.maxLoad || maxLoadMap.get(r.vehicleNumber) || "",
             plateRegion: plate.region,
             plateClassNum: plate.classNum,
             plateHira: plate.hira,
