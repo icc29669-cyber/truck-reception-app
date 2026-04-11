@@ -63,15 +63,13 @@ export default function MaxLoadPage() {
           suppressHydrationWarning
           className={`rounded-3xl border-4 flex items-center px-10
             ${value ? "bg-yellow-100 border-yellow-400" : "bg-white border-gray-300"}`}
-          style={{ minWidth: 500, height: 180 }}
+          style={{ minWidth: 500, height: 180, justifyContent: "flex-end" }}
         >
           <span
             className="font-black"
             style={{
               fontSize: 96,
               color: value ? "#1a1a1a" : "#9ca3af",
-              flex: 1,
-              textAlign: "right",
             }}
           >
             {displayValue || "0"}
