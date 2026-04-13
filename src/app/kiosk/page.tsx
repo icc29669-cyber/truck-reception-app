@@ -135,9 +135,9 @@ function KioskTop() {
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
   const secStr  = pad(now.getSeconds());
 
-  // 時間帯ステータス判定
+  // 時間帯ステータス判定（受付は常に可能）
   const status: TimeStatus = center ? getTimeStatus(center, now) : "open";
-  const isAccepting = status === "open";
+  const isAccepting = true; // 時間外でも受付可能
   const message    = center ? getMessage(center, status) : "いらっしゃいませ";
   const subMessage = center ? getSubMessage(center, status) : "";
 
@@ -246,9 +246,9 @@ function KioskTop() {
               </div>
             )}
 
-            {/* 受付ボタン */}
+            {/* 受付ボタン（時間外でも受付可能） */}
             <button
-              onPointerDown={isAccepting ? start : undefined}
+              onPointerDown={center ? start : undefined}
               style={{
                 width: 800, height: 220,
                 display: "flex", flexDirection: "column",
@@ -259,38 +259,21 @@ function KioskTop() {
                 boxShadow: center
                   ? `0 8px 0 ${colors.shadow}, 0 18px 56px rgba(0,0,0,0.12)`
                   : "0 8px 0 #64748B",
-                cursor: isAccepting && center ? "pointer" : "default",
+                cursor: center ? "pointer" : "default",
                 gap: 12,
                 opacity: center ? 1 : 0.5,
-                animation: isAccepting && center ? "kiosk-pulse 2.4s ease-in-out infinite" : "none",
+                animation: status === "open" && center ? "kiosk-pulse 2.4s ease-in-out infinite" : "none",
               }}
             >
-              {isAccepting ? (
-                <>
-                  <span style={{
-                    fontSize: 66, fontWeight: 800, color: "#fff", letterSpacing: "0.16em",
-                    textShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                  }}>
-                    受付はこちら
-                  </span>
-                  <span style={{ fontSize: 23, color: "rgba(255,255,255,0.7)", fontWeight: 500, letterSpacing: "0.16em" }}>
-                    タッチしてください
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span style={{
-                    fontSize: 48, fontWeight: 700, color: "rgba(255,255,255,0.9)", letterSpacing: "0.12em",
-                  }}>
-                    {status === "break" ? "休憩中" : "受付時間外"}
-                  </span>
-                  <span style={{ fontSize: 22, color: "rgba(255,255,255,0.6)", fontWeight: 400, letterSpacing: "0.1em" }}>
-                    {status === "break"
-                      ? `${center?.breakEnd} に再開します`
-                      : `受付時間: ${center?.openTime} 〜 ${center?.closeTime}`}
-                  </span>
-                </>
-              )}
+              <span style={{
+                fontSize: 66, fontWeight: 800, color: "#fff", letterSpacing: "0.16em",
+                textShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              }}>
+                受付はこちら
+              </span>
+              <span style={{ fontSize: 23, color: "rgba(255,255,255,0.7)", fontWeight: 500, letterSpacing: "0.16em" }}>
+                タッチしてください
+              </span>
             </button>
 
             {/* 営業時間表示（受付時間中のみ） */}
