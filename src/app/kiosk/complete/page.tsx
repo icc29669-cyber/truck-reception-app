@@ -11,14 +11,14 @@ const AUTO_RETURN = 15;
 function getPrinterSettings() {
   try {
     const raw = localStorage.getItem("printer_settings");
-    if (!raw) return { autoPrint: false, paperWidth: "80" };
+    if (!raw) return { autoPrint: true, paperWidth: "80" };
     const s = JSON.parse(raw);
     return {
-      autoPrint: s.autoPrint ?? false,
+      autoPrint: s.autoPrint ?? true,
       paperWidth: s.paperWidth || "80",
     };
   } catch {
-    return { autoPrint: false, paperWidth: "80" };
+    return { autoPrint: true, paperWidth: "80" };
   }
 }
 
