@@ -7,10 +7,10 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/admin", label: "受付一覧", icon: "\u{1F4CB}" },
   { href: "/admin/reservations", label: "予約管理", icon: "\u{1F4C5}" },
-  { href: "/admin/companies", label: "運送会社", icon: "\u{1F3E2}" },
   { href: "/admin/drivers", label: "ドライバー", icon: "\u{1F464}" },
   { href: "/admin/vehicles", label: "車両", icon: "\u{1F69B}" },
-  { href: "/admin/masters", label: "マスタ管理", icon: "\u2699\uFE0F" },
+  { href: "/admin/centers", label: "センター管理", icon: "\u{1F3ED}" },
+  { href: "/admin/settings", label: "システム設定", icon: "\u{1F527}" },
 ];
 
 const BERTH_ADMIN_URL = process.env.NEXT_PUBLIC_BERTH_ADMIN_URL || "";
