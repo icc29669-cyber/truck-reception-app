@@ -11,13 +11,13 @@ async function main() {
   // ─── センター ──────────────────────────────────────────
   const center1 = await prisma.center.upsert({
     where: { id: 1 },
-    update: {},
-    create: { name: "だんじり機材センター", secretKey: "secret-danjiricenter" },
+    update: { code: "3100" },
+    create: { code: "3100", name: "だんじり機材センター", secretKey: "secret-danjiricenter" },
   });
   const center2 = await prisma.center.upsert({
     where: { id: 2 },
-    update: {},
-    create: { name: "狭山機材センター", secretKey: "secret-sayamacenter" },
+    update: { code: "3101" },
+    create: { code: "3101", name: "狭山機材センター", secretKey: "secret-sayamacenter" },
   });
   console.log(`✅ センター: ${center1.name}, ${center2.name}`);
 
