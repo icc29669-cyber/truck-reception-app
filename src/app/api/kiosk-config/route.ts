@@ -7,6 +7,7 @@ const CENTER_SELECT = {
   id: true, code: true, name: true,
   openTime: true, closeTime: true,
   hasBreak: true, breakStart: true, breakEnd: true,
+  breaks: true,
   closedOnSunday: true, closedOnHoliday: true,
   messageOpen: true, messageBreak: true,
   messageClosed: true, messageOutsideHours: true,

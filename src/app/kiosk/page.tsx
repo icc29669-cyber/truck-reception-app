@@ -3,61 +3,94 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clearKioskSession, setKioskSession } from "@/lib/kioskState";
 
+type BreakPeriod = {
+  type: "lunch" | "break";
+  start: string;   // "HH:mm"
+  end: string;     // "HH:mm"
+  message: string;
+};
+
 type CenterConfig = {
   id: number; code: string; name: string;
   openTime: string; closeTime: string;
+  breaks: string; // JSON string of BreakPeriod[]
   hasBreak: boolean; breakStart: string; breakEnd: string;
   closedOnSunday: boolean; closedOnHoliday: boolean;
   messageOpen: string; messageBreak: string;
   messageClosed: string; messageOutsideHours: string;
 };
 
-type TimeStatus = "open" | "break" | "closed" | "outside";
+type TimeStatus = "open" | "lunch" | "break" | "closed" | "outside";
 
-/** 現在時刻からセンターの状態を判定（JST） */
-function getTimeStatus(center: CenterConfig, now: Date): TimeStatus {
-  const h = now.getHours();
-  const m = now.getMinutes();
-  const nowMin = h * 60 + m;
+/** breaksフィールドをパース（旧形式のフォールバック付き） */
+function parseBreaks(center: CenterConfig): BreakPeriod[] {
+  try {
+    const parsed = JSON.parse(center.breaks || "[]");
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+  } catch { /* ignore */ }
+  // 旧形式フォールバック
+  if (center.hasBreak) {
+    return [{
+      type: "lunch",
+      start: center.breakStart || "12:00",
+      end: center.breakEnd || "13:00",
+      message: center.messageBreak || "ただいま昼休みです　しばらくお待ちください",
+    }];
+  }
+  return [];
+}
+
+/** 現在時刻からセンターの状態を判定 */
+function getTimeStatus(center: CenterConfig, now: Date): { status: TimeStatus; activeBreak: BreakPeriod | null } {
+  const nowMin = now.getHours() * 60 + now.getMinutes();
 
   const [oh, om] = center.openTime.split(":").map(Number);
   const [ch, cm] = center.closeTime.split(":").map(Number);
   const openMin = oh * 60 + om;
   const closeMin = ch * 60 + cm;
 
-  // 営業時間外チェック
-  if (nowMin < openMin || nowMin >= closeMin) return "outside";
+  // 営業前
+  if (nowMin < openMin) return { status: "outside", activeBreak: null };
+  // 営業後
+  if (nowMin >= closeMin) return { status: "closed", activeBreak: null };
 
-  // 休憩時間チェック
-  if (center.hasBreak) {
-    const [bsh, bsm] = center.breakStart.split(":").map(Number);
-    const [beh, bem] = center.breakEnd.split(":").map(Number);
-    const breakStartMin = bsh * 60 + bsm;
-    const breakEndMin = beh * 60 + bem;
-    if (nowMin >= breakStartMin && nowMin < breakEndMin) return "break";
+  // 休憩チェック
+  const breaks = parseBreaks(center);
+  for (const b of breaks) {
+    const [bsh, bsm] = b.start.split(":").map(Number);
+    const [beh, bem] = b.end.split(":").map(Number);
+    if (nowMin >= bsh * 60 + bsm && nowMin < beh * 60 + bem) {
+      return { status: b.type === "lunch" ? "lunch" : "break", activeBreak: b };
+    }
   }
 
-  return "open";
+  return { status: "open", activeBreak: null };
 }
 
-/** 状態に応じたメッセージを取得 */
-function getMessage(center: CenterConfig, status: TimeStatus): string {
+/** 状態に応じたメインメッセージ */
+function getMessage(center: CenterConfig, status: TimeStatus, activeBreak: BreakPeriod | null): string {
+  if ((status === "lunch" || status === "break") && activeBreak?.message) {
+    return activeBreak.message;
+  }
   switch (status) {
     case "open":    return center.messageOpen || "いらっしゃいませ";
-    case "break":   return center.messageBreak || "ただいま休憩中です";
+    case "lunch":   return center.messageBreak || "ただいま昼休みです";
+    case "break":   return "ただいま休憩中です";
     case "closed":  return center.messageClosed || "本日の受付は終了しました";
     case "outside": return center.messageOutsideHours || "受付時間外です";
   }
 }
 
 /** 状態に応じたサブメッセージ */
-function getSubMessage(center: CenterConfig, status: TimeStatus): string {
+function getSubMessage(center: CenterConfig, status: TimeStatus, activeBreak: BreakPeriod | null): string {
+  if ((status === "lunch" || status === "break") && activeBreak) {
+    return `${activeBreak.end} より受付を再開します`;
+  }
   switch (status) {
     case "open":    return "受付をご案内いたします";
-    case "break":   return `${center.breakEnd} より受付を再開します`;
     case "closed":  return "またのお越しをお待ちしております";
-    case "outside":
-      return `受付時間: ${center.openTime} 〜 ${center.closeTime}`;
+    case "outside": return `受付時間: ${center.openTime} 〜 ${center.closeTime}`;
+    default:        return "";
   }
 }
 
@@ -135,20 +168,30 @@ function KioskTop() {
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
   const secStr  = pad(now.getSeconds());
 
-  // 時間帯ステータス判定（受付は常に可能）
-  const status: TimeStatus = center ? getTimeStatus(center, now) : "open";
-  const isAccepting = true; // 時間外でも受付可能
-  const message    = center ? getMessage(center, status) : "いらっしゃいませ";
-  const subMessage = center ? getSubMessage(center, status) : "";
+  // 時間帯ステータス判定
+  const { status, activeBreak } = center
+    ? getTimeStatus(center, now)
+    : { status: "open" as TimeStatus, activeBreak: null };
+  const message    = center ? getMessage(center, status, activeBreak) : "いらっしゃいませ";
+  const subMessage = center ? getSubMessage(center, status, activeBreak) : "";
 
   // ステータスカラー
-  const statusColors = {
-    open:    { bg: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)", shadow: "#0F766E", pulse: true },
-    break:   { bg: "linear-gradient(180deg, #FBBF24 0%, #D97706 100%)", shadow: "#92400E", pulse: false },
-    closed:  { bg: "linear-gradient(180deg, #94A3B8 0%, #64748B 100%)", shadow: "#475569", pulse: false },
-    outside: { bg: "linear-gradient(180deg, #94A3B8 0%, #64748B 100%)", shadow: "#475569", pulse: false },
+  const statusColors: Record<TimeStatus, { bg: string; shadow: string }> = {
+    open:    { bg: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)", shadow: "#0F766E" },
+    lunch:   { bg: "linear-gradient(180deg, #FBBF24 0%, #D97706 100%)", shadow: "#92400E" },
+    break:   { bg: "linear-gradient(180deg, #FB923C 0%, #EA580C 100%)", shadow: "#9A3412" },
+    closed:  { bg: "linear-gradient(180deg, #94A3B8 0%, #64748B 100%)", shadow: "#475569" },
+    outside: { bg: "linear-gradient(180deg, #94A3B8 0%, #64748B 100%)", shadow: "#475569" },
   };
   const colors = statusColors[status];
+
+  // メッセージ文字色
+  const msgColor = status === "open" ? "#1E293B"
+    : (status === "lunch" || status === "break") ? "#92400E"
+    : "#64748B";
+  const subColor = status === "open" ? "#64748B"
+    : (status === "lunch" || status === "break") ? "#B45309"
+    : "#94A3B8";
 
   return (
     <div className="w-screen h-screen overflow-hidden select-none" style={{
@@ -222,7 +265,7 @@ function KioskTop() {
               </div>
               <div style={{
                 fontSize: 64, fontWeight: 700,
-                color: isAccepting ? "#1E293B" : status === "break" ? "#92400E" : "#64748B",
+                color: msgColor,
                 letterSpacing: "0.12em", marginBottom: 14,
                 lineHeight: 1.4,
               }}>
@@ -230,7 +273,7 @@ function KioskTop() {
               </div>
               <div style={{
                 fontSize: 23,
-                color: isAccepting ? "#64748B" : status === "break" ? "#B45309" : "#94A3B8",
+                color: subColor,
                 letterSpacing: "0.1em", fontWeight: 400,
               }}>
                 {subMessage}
@@ -276,8 +319,8 @@ function KioskTop() {
               </span>
             </button>
 
-            {/* 営業時間表示（受付時間中のみ） */}
-            {isAccepting && center && (
+            {/* 安全注意（営業時間中のみ） */}
+            {status === "open" && center && (
               <div style={{ fontSize: 18, color: "#94A3B8", letterSpacing: "0.1em" }}>
                 &#x26A0; 保護帽・安全靴を着用の上ご入場ください
               </div>

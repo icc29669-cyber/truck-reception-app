@@ -17,6 +17,7 @@ async function ensureSchema() {
     [`"hasBreak"`,        `BOOLEAN NOT NULL DEFAULT false`],
     [`"breakStart"`,      `TEXT NOT NULL DEFAULT '12:00'`],
     [`"breakEnd"`,        `TEXT NOT NULL DEFAULT '13:00'`],
+    [`"breaks"`,          `TEXT NOT NULL DEFAULT '[]'`],
     [`"messageOpen"`,     `TEXT NOT NULL DEFAULT 'いらっしゃいませ'`],
     [`"messageBreak"`,    `TEXT NOT NULL DEFAULT 'ただいま昼休みです　しばらくお待ちください'`],
     [`"messageClosed"`,   `TEXT NOT NULL DEFAULT '本日の受付は終了しました'`],

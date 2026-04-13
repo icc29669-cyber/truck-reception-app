@@ -6,10 +6,12 @@ import { useState, useEffect, useCallback } from "react";
 type PlateRegion = { id: number; name: string; kana: string; sortOrder: number; isActive: boolean };
 type PlateHiragana = { id: number; char: string; category: string; sortOrder: number; isActive: boolean };
 type PlateAlphabet = { id: number; char: string; sortOrder: number; isActive: boolean };
+type BreakPeriod = { type: "lunch" | "break"; start: string; end: string; message: string };
 type Center = {
   id: number; code: string; name: string; secretKey: string; isActive: boolean;
   openTime: string; closeTime: string;
   hasBreak: boolean; breakStart: string; breakEnd: string;
+  breaks: string; // JSON
   closedOnSunday: boolean; closedOnHoliday: boolean;
   messageOpen: string; messageBreak: string; messageClosed: string; messageOutsideHours: string;
 };
@@ -492,6 +494,10 @@ function AlphabetTab({ showToast }: { showToast: (m: string) => void }) {
 /* ═══════════════════════════════════════════════════════════════
    Tab 4: Center
    ═══════════════════════════════════════════════════════════════ */
+function parseBreaks(raw: string | undefined): BreakPeriod[] {
+  try { const p = JSON.parse(raw || "[]"); return Array.isArray(p) ? p : []; } catch { return []; }
+}
+
 function CentersTab({ showToast }: { showToast: (m: string) => void }) {
   const [items, setItems] = useState<Center[]>([]);
   const [loading, setLoading] = useState(false);
@@ -500,14 +506,13 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
   const defaultForm = {
     code: "", name: "", secretKey: "", isActive: true,
     openTime: "08:00", closeTime: "18:00",
-    hasBreak: false, breakStart: "12:00", breakEnd: "13:00",
     closedOnSunday: true, closedOnHoliday: true,
     messageOpen: "いらっしゃいませ",
-    messageBreak: "ただいま昼休みです　しばらくお待ちください",
     messageClosed: "本日の受付は終了しました",
     messageOutsideHours: "受付時間外です",
   };
   const [form, setForm] = useState(defaultForm);
+  const [breaks, setBreaks] = useState<BreakPeriod[]>([]);
   const [syncing, setSyncing] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -522,20 +527,43 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openAdd = () => { setEditId(null); setForm({ ...defaultForm }); setShowModal(true); };
+  const openAdd = () => {
+    setEditId(null); setForm({ ...defaultForm }); setBreaks([]); setShowModal(true);
+  };
   const openEdit = (c: Center) => {
     setEditId(c.id);
+    // breaks を解析（旧形式フォールバック）
+    let bks = parseBreaks(c.breaks);
+    if (bks.length === 0 && c.hasBreak) {
+      bks = [{ type: "lunch", start: c.breakStart || "12:00", end: c.breakEnd || "13:00", message: c.messageBreak || "ただいま昼休みです　しばらくお待ちください" }];
+    }
+    setBreaks(bks);
     setForm({
       code: c.code || "", name: c.name, secretKey: c.secretKey, isActive: c.isActive,
       openTime: c.openTime || "08:00", closeTime: c.closeTime || "18:00",
-      hasBreak: c.hasBreak ?? false, breakStart: c.breakStart || "12:00", breakEnd: c.breakEnd || "13:00",
       closedOnSunday: c.closedOnSunday ?? true, closedOnHoliday: c.closedOnHoliday ?? true,
       messageOpen: c.messageOpen || "いらっしゃいませ",
-      messageBreak: c.messageBreak || "ただいま昼休みです　しばらくお待ちください",
       messageClosed: c.messageClosed || "本日の受付は終了しました",
       messageOutsideHours: c.messageOutsideHours || "受付時間外です",
     });
     setShowModal(true);
+  };
+
+  const addBreak = (type: "lunch" | "break") => {
+    const msg = type === "lunch" ? "ただいま昼休みです　しばらくお待ちください" : "ただいま休憩中です　しばらくお待ちください";
+    const start = type === "lunch" ? "12:00" : "15:00";
+    const end = type === "lunch" ? "13:00" : "15:15";
+    setBreaks([...breaks, { type, start, end, message: msg }]);
+  };
+
+  const updateBreak = (idx: number, field: keyof BreakPeriod, value: string) => {
+    const next = [...breaks];
+    (next[idx] as Record<string, string>)[field] = value;
+    setBreaks(next);
+  };
+
+  const removeBreak = (idx: number) => {
+    setBreaks(breaks.filter((_, i) => i !== idx));
   };
 
   const handleSyncCenters = async () => {
@@ -546,18 +574,27 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
       if (data.success) {
         showToast(`同期完了: 新規${data.created}件, 更新${data.updated}件`);
         fetchData();
-      } else {
-        showToast(data.error || "同期に失敗しました");
-      }
+      } else { showToast(data.error || "同期に失敗しました"); }
     } catch { showToast("同期に失敗しました"); }
     finally { setSyncing(false); }
   };
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.code.trim()) return;
+    // 旧フィールドとの互換性を保つ
+    const hasBreak = breaks.length > 0;
+    const firstLunch = breaks.find(b => b.type === "lunch");
+    const payload = {
+      ...form,
+      breaks: JSON.stringify(breaks),
+      hasBreak,
+      breakStart: firstLunch?.start || "12:00",
+      breakEnd: firstLunch?.end || "13:00",
+      messageBreak: firstLunch?.message || "ただいま昼休みです　しばらくお待ちください",
+    };
     try {
       if (editId) {
-        await fetch("/api/admin/centers/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        await fetch("/api/admin/centers/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         showToast("更新しました");
       } else {
         await fetch("/api/admin/centers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: form.code, name: form.name, secretKey: form.secretKey }) });
@@ -585,6 +622,24 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
     } catch { showToast("エラーが発生しました"); }
   };
 
+  // テーブル用: breaks表示
+  const renderBreaks = (c: Center) => {
+    const bks = parseBreaks(c.breaks);
+    if (bks.length === 0 && c.hasBreak) {
+      return <span className="text-amber-600 font-bold text-xs">{c.breakStart}〜{c.breakEnd}</span>;
+    }
+    if (bks.length === 0) return <span className="text-gray-400 text-xs">なし</span>;
+    return (
+      <div className="flex flex-col gap-0.5">
+        {bks.map((b, i) => (
+          <span key={i} className={`text-xs font-bold ${b.type === "lunch" ? "text-amber-600" : "text-orange-500"}`}>
+            {b.type === "lunch" ? "昼" : "休"} {b.start}〜{b.end}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="bg-white rounded-2xl shadow overflow-hidden">
@@ -603,7 +658,7 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {["CD", "センター名", "営業時間", "休憩", "状態", "操作"].map((h) => (
+                {["CD", "センター名", "営業時間", "昼休み・休憩", "状態", "操作"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -614,7 +669,7 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
                   <td className="px-4 py-3 font-mono text-gray-700 font-bold">{c.code || "—"}</td>
                   <td className="px-4 py-3 font-semibold text-gray-800">{c.name}</td>
                   <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{c.openTime || "08:00"} 〜 {c.closeTime || "18:00"}</td>
-                  <td className="px-4 py-3 text-xs whitespace-nowrap">{c.hasBreak ? <span className="text-amber-600 font-bold">{c.breakStart}〜{c.breakEnd}</span> : <span className="text-gray-400">なし</span>}</td>
+                  <td className="px-4 py-3">{renderBreaks(c)}</td>
                   <td className="px-4 py-3">
                     <span className={"px-2 py-1 rounded-full text-xs font-bold " + (c.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
                       {c.isActive ? "有効" : "無効"}
@@ -676,29 +731,51 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
                     <input type="time" value={form.closeTime} onChange={(e) => setForm({ ...form, closeTime: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" />
                   </div>
                 </div>
+                <p className="text-xs text-blue-400">営業開始前 → 「時間外メッセージ」 / 営業終了後 → 「受付終了メッセージ」がTOP画面に表示されます</p>
               </div>
 
-              {/* ── 休憩時間 ── */}
+              {/* ── 昼休み・休憩 ── */}
               <div className="bg-amber-50 rounded-xl p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="text-xs font-bold text-amber-500 uppercase tracking-wider">休憩時間</div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={form.hasBreak} onChange={(e) => setForm({ ...form, hasBreak: e.target.checked })} className="w-4 h-4 accent-amber-500" />
-                    <span className="text-sm font-semibold text-gray-600">休憩あり</span>
-                  </label>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-amber-500 uppercase tracking-wider">昼休み・休憩時間</div>
+                  <div className="flex gap-2">
+                    <button onClick={() => addBreak("lunch")} className="px-3 py-1 bg-amber-200 text-amber-800 rounded-lg text-xs font-bold hover:bg-amber-300 transition-colors">+ 昼休み</button>
+                    <button onClick={() => addBreak("break")} className="px-3 py-1 bg-orange-200 text-orange-800 rounded-lg text-xs font-bold hover:bg-orange-300 transition-colors">+ 休憩</button>
+                  </div>
                 </div>
-                {form.hasBreak && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-sm font-semibold text-gray-600">休憩開始</label>
-                      <input type="time" value={form.breakStart} onChange={(e) => setForm({ ...form, breakStart: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" />
+                {breaks.length === 0 && (
+                  <p className="text-sm text-gray-400">昼休み・休憩は設定されていません</p>
+                )}
+                {breaks.map((b, i) => (
+                  <div key={i} className={`rounded-lg p-3 space-y-2 ${b.type === "lunch" ? "bg-amber-100/60 border border-amber-200" : "bg-orange-100/60 border border-orange-200"}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${b.type === "lunch" ? "bg-amber-500 text-white" : "bg-orange-500 text-white"}`}>
+                          {b.type === "lunch" ? "昼休み" : "休憩"}
+                        </span>
+                        <select value={b.type} onChange={(e) => updateBreak(i, "type", e.target.value)} className="text-xs border border-gray-200 rounded px-2 py-1 bg-white">
+                          <option value="lunch">昼休み</option>
+                          <option value="break">休憩</option>
+                        </select>
+                      </div>
+                      <button onClick={() => removeBreak(i)} className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs font-bold hover:bg-red-200 transition-colors">削除</button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-gray-500">開始</label>
+                        <input type="time" value={b.start} onChange={(e) => updateBreak(i, "start", e.target.value)} className="border-2 border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-amber-500 outline-none font-mono" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-semibold text-gray-500">終了</label>
+                        <input type="time" value={b.end} onChange={(e) => updateBreak(i, "end", e.target.value)} className="border-2 border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-amber-500 outline-none font-mono" />
+                      </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-sm font-semibold text-gray-600">休憩終了</label>
-                      <input type="time" value={form.breakEnd} onChange={(e) => setForm({ ...form, breakEnd: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" />
+                      <label className="text-xs font-semibold text-gray-500">表示メッセージ</label>
+                      <input type="text" value={b.message} onChange={(e) => updateBreak(i, "message", e.target.value)} className="border-2 border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:border-amber-500 outline-none" />
                     </div>
                   </div>
-                )}
+                ))}
               </div>
 
               {/* ── TOP画面メッセージ ── */}
@@ -709,15 +786,11 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
                   <input type="text" value={form.messageOpen} onChange={(e) => setForm({ ...form, messageOpen: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-teal-500 outline-none" placeholder="いらっしゃいませ" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-gray-600">休憩中メッセージ</label>
-                  <input type="text" value={form.messageBreak} onChange={(e) => setForm({ ...form, messageBreak: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-amber-500 outline-none" placeholder="ただいま昼休みです" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-gray-600">受付終了メッセージ</label>
+                  <label className="text-sm font-semibold text-gray-600">受付終了メッセージ <span className="text-xs text-gray-400 font-normal">（営業終了後に表示）</span></label>
                   <input type="text" value={form.messageClosed} onChange={(e) => setForm({ ...form, messageClosed: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-gray-400 outline-none" placeholder="本日の受付は終了しました" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-gray-600">時間外メッセージ</label>
+                  <label className="text-sm font-semibold text-gray-600">時間外メッセージ <span className="text-xs text-gray-400 font-normal">（営業開始前に表示）</span></label>
                   <input type="text" value={form.messageOutsideHours} onChange={(e) => setForm({ ...form, messageOutsideHours: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-gray-400 outline-none" placeholder="受付時間外です" />
                 </div>
               </div>

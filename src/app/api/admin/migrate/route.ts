@@ -16,6 +16,7 @@ export async function POST() {
     ['"hasBreak"',           "BOOLEAN NOT NULL DEFAULT false"],
     ['"breakStart"',         "TEXT NOT NULL DEFAULT '12:00'"],
     ['"breakEnd"',           "TEXT NOT NULL DEFAULT '13:00'"],
+    ['"breaks"',             "TEXT NOT NULL DEFAULT '[]'"],
     ['"messageOpen"',        "TEXT NOT NULL DEFAULT ''"],
     ['"messageBreak"',       "TEXT NOT NULL DEFAULT ''"],
     ['"messageClosed"',      "TEXT NOT NULL DEFAULT ''"],
@@ -44,6 +45,30 @@ export async function POST() {
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     results.push(`FAIL: default messages - ${msg}`);
+  }
+
+  // 既存のhasBreak/breakStart/breakEndデータをbreaksに移行
+  try {
+    const centers = await prisma.$queryRawUnsafe<Array<{id: number; hasBreak: boolean; breakStart: string; breakEnd: string; breaks: string; messageBreak: string}>>(
+      `SELECT "id", "hasBreak", "breakStart", "breakEnd", "breaks", "messageBreak" FROM "Center"`
+    );
+    for (const c of centers) {
+      if (c.hasBreak && (!c.breaks || c.breaks === "[]")) {
+        const breakData = JSON.stringify([{
+          type: "lunch",
+          start: c.breakStart || "12:00",
+          end: c.breakEnd || "13:00",
+          message: c.messageBreak || "ただいま昼休みです　しばらくお待ちください",
+        }]);
+        await prisma.$executeRawUnsafe(
+          `UPDATE "Center" SET "breaks" = '${breakData.replace(/'/g, "''")}' WHERE "id" = ${c.id}`
+        );
+      }
+    }
+    results.push("OK: breaks migration");
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    results.push(`FAIL: breaks migration - ${msg}`);
   }
 
   return NextResponse.json({ results });

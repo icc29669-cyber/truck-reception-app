@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 
 const TIME_FIELDS = [
   "openTime", "closeTime", "hasBreak", "breakStart", "breakEnd",
+  "breaks",
   "closedOnSunday", "closedOnHoliday",
   "messageOpen", "messageBreak", "messageClosed", "messageOutsideHours",
 ] as const;
