@@ -37,6 +37,28 @@ export async function PUT(
       return NextResponse.json({ error: "無効なステータスです" }, { status: 400 });
     }
 
+    // ステータス遷移バリデーション
+    if (status !== undefined) {
+      const current = await prisma.reservation.findUnique({ where: { id }, select: { status: true } });
+      if (!current) {
+        return NextResponse.json({ error: "予約が見つかりません" }, { status: 404 });
+      }
+      const allowedTransitions: Record<string, string[]> = {
+        pending: ["checked_in", "completed", "cancelled", "no_show"],
+        checked_in: ["completed", "cancelled"],
+        completed: [],
+        cancelled: [],
+        no_show: [],
+      };
+      const allowed = allowedTransitions[current.status] ?? [];
+      if (!allowed.includes(status)) {
+        return NextResponse.json(
+          { error: `このステータス変更はできません (${current.status} → ${status})` },
+          { status: 400 }
+        );
+      }
+    }
+
     const reservation = await prisma.reservation.update({
       where: { id },
       data: {
@@ -51,10 +73,7 @@ export async function PUT(
         ...(vehicleNumber !== undefined && { vehicleNumber }),
         ...(maxLoad !== undefined && { maxLoad }),
         ...(reservationDate !== undefined && {
-          reservationDate: (() => {
-            const [y, m, d] = reservationDate.split("-").map(Number);
-            return new Date(y, m - 1, d, 0, 0, 0, 0);
-          })(),
+          reservationDate: new Date(reservationDate + "T00:00:00+09:00"),
         }),
         ...(startTime !== undefined && { startTime }),
         ...(endTime !== undefined && { endTime }),

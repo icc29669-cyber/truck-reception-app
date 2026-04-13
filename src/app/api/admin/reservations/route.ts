@@ -10,10 +10,10 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (date) {
-      // date is "YYYY-MM-DD" — parse as local midnight to avoid UTC offset issues
-      const [y, m, day] = date.split("-").map(Number);
-      const d = new Date(y, m - 1, day, 0, 0, 0, 0);
-      const next = new Date(y, m - 1, day + 1, 0, 0, 0, 0);
+      // JST基準で日付範囲を作成（Vercel=UTCでも正しく動作）
+      const d = new Date(date + "T00:00:00+09:00");     // JST 00:00 = UTC前日15:00
+      const next = new Date(date + "T00:00:00+09:00");
+      next.setDate(next.getDate() + 1);                 // JST翌日00:00
       where.reservationDate = { gte: d, lt: next };
     }
 
@@ -38,6 +38,12 @@ export async function GET(req: NextRequest) {
   }
 }
 
+function isValidTime(t: string): boolean {
+  if (!/^\d{2}:\d{2}$/.test(t)) return false;
+  const [h, m] = t.split(":").map(Number);
+  return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -53,9 +59,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 入力バリデーション
-    const timeRe = /^\d{2}:\d{2}$/;
-    if (!timeRe.test(startTime) || !timeRe.test(endTime)) {
-      return NextResponse.json({ error: "時刻の形式が不正です (HH:mm)" }, { status: 400 });
+    if (!isValidTime(startTime)) {
+      return NextResponse.json({ error: "開始時刻が不正です (HH:mm, 00:00〜23:59)" }, { status: 400 });
+    }
+    if (!isValidTime(endTime)) {
+      return NextResponse.json({ error: "終了時刻が不正です (HH:mm, 00:00〜23:59)" }, { status: 400 });
     }
     if (startTime >= endTime) {
       return NextResponse.json({ error: "終了時刻は開始時刻より後にしてください" }, { status: 400 });
@@ -80,10 +88,7 @@ export async function POST(req: NextRequest) {
         plateNumber: plateNumber || "",
         vehicleNumber: vehicleNumber || "",
         maxLoad: maxLoad || "",
-        reservationDate: (() => {
-          const [y, m, d] = reservationDate.split("-").map(Number);
-          return new Date(y, m - 1, d, 0, 0, 0, 0);
-        })(),
+        reservationDate: new Date(reservationDate + "T00:00:00+09:00"),
         startTime,
         endTime,
         notes: notes || "",

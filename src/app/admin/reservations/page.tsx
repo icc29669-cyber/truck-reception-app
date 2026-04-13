@@ -59,7 +59,11 @@ const emptyForm: FormData = {
 };
 
 function fmtDate(d: Date) {
-  return d.toISOString().slice(0, 10);
+  // ブラウザのローカル時刻（JST）で日付を出力
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 const STATUS_LIST = [
@@ -104,6 +108,7 @@ export default function ReservationsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
+  const [syncing, setSyncing] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -221,6 +226,21 @@ export default function ReservationsPage() {
     }
   };
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/admin/sync/reservations", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`同期完了: 新規${data.created}件, 取消${data.cancelled}件`);
+        fetchData();
+      } else {
+        showToast(data.error || "同期に失敗しました");
+      }
+    } catch { showToast("同期に失敗しました"); }
+    finally { setSyncing(false); }
+  };
+
   const handleStatusChange = async (r: Reservation, newStatus: string) => {
     try {
       await fetch("/api/admin/reservations/" + r.id, {
@@ -275,8 +295,15 @@ export default function ReservationsPage() {
           今日
         </button>
         <button
+          onClick={handleSync}
+          disabled={syncing}
+          className="px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 ml-auto"
+        >
+          {syncing ? "同期中..." : "予約システムから同期"}
+        </button>
+        <button
           onClick={openAdd}
-          className="px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors ml-auto"
+          className="px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors"
         >
           + 新規予約
         </button>
