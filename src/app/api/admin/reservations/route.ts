@@ -10,11 +10,11 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (date) {
-      // JST基準で日付範囲を作成（Vercel=UTCでも正しく動作）
-      const d = new Date(date + "T00:00:00+09:00");     // JST 00:00 = UTC前日15:00
-      const next = new Date(date + "T00:00:00+09:00");
-      next.setDate(next.getDate() + 1);                 // JST翌日00:00
-      where.reservationDate = { gte: d, lt: next };
+      // 既存データ(UTC midnight)と新データ(JST midnight=UTC 15:00)の両方を拾う
+      // UTC前日15:00(=JST当日00:00) 〜 UTC当日23:59(=JST翌日08:59)
+      const jstStart = new Date(date + "T00:00:00+09:00");  // JST 00:00
+      const utcEnd = new Date(date + "T23:59:59.999Z");     // UTC 23:59
+      where.reservationDate = { gte: jstStart, lte: utcEnd };
     }
 
     if (centerId) {

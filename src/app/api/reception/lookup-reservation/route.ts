@@ -56,11 +56,14 @@ export async function GET(req: NextRequest) {
     }[] = [];
 
     // ── 1. ローカルDBの予約を検索（JST基準） ──
-    const { start: todayStart, end: todayEnd } = getJSTDayRange();
+    // 既存データ(UTC midnight)と新データ(JST midnight)の両方を拾う
+    const { start: todayStart } = getJSTDayRange();
+    const todayStr = todayStart.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const todayUtcEnd = new Date(todayStr + "T23:59:59.999Z");
 
     const localWhere: Record<string, unknown> = {
       phone,
-      reservationDate: { gte: todayStart, lte: todayEnd },
+      reservationDate: { gte: todayStart, lte: todayUtcEnd },
       status: { notIn: ["completed", "cancelled", "no_show"] },
     };
     if (centerId) {
