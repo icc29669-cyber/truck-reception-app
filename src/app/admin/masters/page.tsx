@@ -750,13 +750,26 @@ function PrinterTab({ showToast }: { showToast: (m: string) => void }) {
             <li>レシートプリンタをPCにUSB接続</li>
             <li>プリンタメーカーのドライバをインストール</li>
             <li>Windowsの「プリンターとスキャナー」で認識を確認</li>
-            <li>Chromeの印刷設定で「送信先」をレシートプリンタに変更</li>
+            <li>レシートプリンタを<strong>通常使うプリンター</strong>に設定</li>
             <li>用紙サイズを {paperWidth}mm に設定</li>
             <li>「テスト印刷」ボタンで動作確認</li>
           </ol>
-          <p className="text-xs text-gray-400 mt-2">
-            Chrome の印刷設定で「送信先の保存」をすると、次回以降は自動でそのプリンタが選択されます
-          </p>
+
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-bold text-blue-800 text-sm mb-2">ダイアログなしで自動印刷するには</h4>
+            <p className="text-xs text-blue-700 mb-2">
+              Chromeのショートカットに以下のオプションを追加してください：
+            </p>
+            <code className="block bg-white p-2 rounded text-xs text-gray-800 border font-mono break-all">
+              --kiosk-printing
+            </code>
+            <p className="text-xs text-blue-600 mt-2">
+              例: &quot;C:\Program Files\Google\Chrome\...\chrome.exe&quot; --kiosk-printing
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              このオプションで起動すると、受付完了時に印刷ダイアログを表示せず直接プリンタに送信されます
+            </p>
+          </div>
         </div>
       </div>
 

@@ -22,12 +22,56 @@ function getPrinterSettings() {
   }
 }
 
+/**
+ * サイレント印刷: iframeに受付票を描画して印刷
+ * Chrome --kiosk-printing モードならダイアログなしで直接印刷される
+ * 通常モードでもiframe経由でメインページに影響しない
+ */
+function silentPrint(paperWidth: string) {
+  const src = document.getElementById("print-receipt");
+  if (!src) return;
+
+  // 既存iframeがあれば削除
+  const old = document.getElementById("print-frame");
+  if (old) old.remove();
+
+  const iframe = document.createElement("iframe");
+  iframe.id = "print-frame";
+  iframe.style.cssText = "position:fixed;width:0;height:0;border:none;left:-9999px;top:-9999px;";
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!doc) return;
+
+  doc.open();
+  doc.write(`<!DOCTYPE html><html><head>
+<style>
+  @page { size: ${paperWidth}mm auto; margin: 3mm; }
+  body { margin: 0; padding: 0; }
+  * { font-family: "MS Gothic", "Courier New", monospace; }
+</style>
+</head><body>${src.innerHTML}</body></html>`);
+  doc.close();
+
+  // バーコードSVGをコピー
+  const origSvg = src.querySelector("svg");
+  const newSvg = doc.querySelector("svg");
+  if (origSvg && newSvg) {
+    newSvg.outerHTML = origSvg.outerHTML;
+  }
+
+  setTimeout(() => {
+    iframe.contentWindow?.print();
+    // 印刷後にiframe削除
+    setTimeout(() => iframe.remove(), 2000);
+  }, 300);
+}
+
 export default function CompletePage() {
   const router = useRouter();
   const [result, setResult]       = useState<ReceptionResult | null>(null);
   const [countdown, setCountdown] = useState(AUTO_RETURN);
   const [paused, setPaused]       = useState(false);
-  const [printed, setPrinted]     = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const printTriggered = useRef(false);
 
@@ -39,15 +83,13 @@ export default function CompletePage() {
     }
     setResult(s.receptionResult);
 
-    // 自動印刷
-    const { autoPrint } = getPrinterSettings();
+    // 自動印刷（バーコード描画待ち後）
+    const { autoPrint, paperWidth } = getPrinterSettings();
     if (autoPrint && !printTriggered.current) {
       printTriggered.current = true;
-      // バーコード描画を待ってから印刷
       setTimeout(() => {
-        window.print();
-        setPrinted(true);
-      }, 600);
+        silentPrint(paperWidth);
+      }, 800);
     }
 
     let n = AUTO_RETURN;
@@ -63,20 +105,6 @@ export default function CompletePage() {
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 印刷用の @page スタイルを動的挿入
-  useEffect(() => {
-    const { paperWidth } = getPrinterSettings();
-    const styleId = "dynamic-print-page";
-    let el = document.getElementById(styleId) as HTMLStyleElement | null;
-    if (!el) {
-      el = document.createElement("style");
-      el.id = styleId;
-      document.head.appendChild(el);
-    }
-    el.textContent = `@media print { @page { size: ${paperWidth}mm auto; margin: 3mm; } }`;
-    return () => { el?.remove(); };
   }, []);
 
   function pauseCountdown() {
@@ -96,8 +124,8 @@ export default function CompletePage() {
 
   function handlePrint() {
     pauseCountdown();
-    window.print();
-    setPrinted(true);
+    const { paperWidth } = getPrinterSettings();
+    silentPrint(paperWidth);
   }
 
   const arrivedAt = result ? new Date(result.arrivedAt) : new Date();
@@ -159,7 +187,7 @@ export default function CompletePage() {
                 borderRadius: 16, padding: "20px 52px",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
               }}>
-                <span style={{ fontSize: 14, color: "#D97706", letterSpacing: "0.14em", fontWeight: 500 }}>📅 予約時間</span>
+                <span style={{ fontSize: 14, color: "#D97706", letterSpacing: "0.14em", fontWeight: 500 }}>予約時間</span>
                 <span style={{ fontSize: 44, fontWeight: 700, color: "#92400E" }}>
                   {result.reservation.startTime} 〜 {result.reservation.endTime}
                 </span>
@@ -204,7 +232,7 @@ export default function CompletePage() {
               letterSpacing: "0.08em",
             }}
           >
-            🖨️ もう一度印刷
+            もう一度印刷
           </button>
 
           {/* 戻るボタン */}
@@ -226,7 +254,7 @@ export default function CompletePage() {
         </div>
       </div>
 
-      {/* ── 印刷用受付票（画面上は非表示、印刷時のみ表示） ── */}
+      {/* ── 印刷用受付票（画面上は非表示、iframe経由で印刷） ── */}
       {result && <PrintReceipt data={result} />}
     </div>
   );
