@@ -1,17 +1,35 @@
-﻿"use client";
+"use client";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, clearKioskSession } from "@/lib/kioskState";
+import PrintReceipt from "@/components/PrintReceipt";
 import type { ReceptionResult } from "@/types/reception";
 
 const AUTO_RETURN = 15;
+
+/** localStorage からプリンタ設定を取得 */
+function getPrinterSettings() {
+  try {
+    const raw = localStorage.getItem("printer_settings");
+    if (!raw) return { autoPrint: true, paperWidth: "80" };
+    const s = JSON.parse(raw);
+    return {
+      autoPrint: s.autoPrint ?? true,
+      paperWidth: s.paperWidth || "80",
+    };
+  } catch {
+    return { autoPrint: true, paperWidth: "80" };
+  }
+}
 
 export default function CompletePage() {
   const router = useRouter();
   const [result, setResult]       = useState<ReceptionResult | null>(null);
   const [countdown, setCountdown] = useState(AUTO_RETURN);
   const [paused, setPaused]       = useState(false);
+  const [printed, setPrinted]     = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const printTriggered = useRef(false);
 
   useEffect(() => {
     const s = getKioskSession();
@@ -20,6 +38,17 @@ export default function CompletePage() {
       return;
     }
     setResult(s.receptionResult);
+
+    // 自動印刷
+    const { autoPrint } = getPrinterSettings();
+    if (autoPrint && !printTriggered.current) {
+      printTriggered.current = true;
+      // バーコード描画を待ってから印刷
+      setTimeout(() => {
+        window.print();
+        setPrinted(true);
+      }, 600);
+    }
 
     let n = AUTO_RETURN;
     timerRef.current = setInterval(() => {
@@ -36,6 +65,20 @@ export default function CompletePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 印刷用の @page スタイルを動的挿入
+  useEffect(() => {
+    const { paperWidth } = getPrinterSettings();
+    const styleId = "dynamic-print-page";
+    let el = document.getElementById(styleId) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement("style");
+      el.id = styleId;
+      document.head.appendChild(el);
+    }
+    el.textContent = `@media print { @page { size: ${paperWidth}mm auto; margin: 3mm; } }`;
+    return () => { el?.remove(); };
+  }, []);
+
   function pauseCountdown() {
     if (paused) return;
     setPaused(true);
@@ -49,6 +92,12 @@ export default function CompletePage() {
     if (timerRef.current) clearInterval(timerRef.current);
     clearKioskSession();
     router.push("/kiosk");
+  }
+
+  function handlePrint() {
+    pauseCountdown();
+    window.print();
+    setPrinted(true);
   }
 
   const arrivedAt = result ? new Date(result.arrivedAt) : new Date();
@@ -70,7 +119,7 @@ export default function CompletePage() {
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        gap: 32, padding: "0 80px",
+        gap: 28, padding: "0 80px",
       }}>
 
         {/* チェックアイコン */}
@@ -139,23 +188,46 @@ export default function CompletePage() {
             : `${countdown}秒後に自動的に最初の画面に戻ります`}
         </div>
 
-        {/* 戻るボタン */}
-        <button
-          onPointerDown={goHome}
-          style={{
-            width: 580, height: 110, fontSize: 38, fontWeight: 800,
-            background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
-            color: "#fff", border: "none",
-            borderRadius: 14,
-            boxShadow: "0 7px 0 #0F766E, 0 12px 36px rgba(13,148,136,0.22)",
-            cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            letterSpacing: "0.1em",
-          }}
-        >
-          {paused ? "トップに戻る" : "最初の画面に戻る"}
-        </button>
+        {/* ボタン群 */}
+        <div style={{ display: "flex", gap: 20 }}>
+          {/* もう一度印刷ボタン */}
+          <button
+            onPointerDown={handlePrint}
+            style={{
+              width: 280, height: 110, fontSize: 34, fontWeight: 800,
+              background: "linear-gradient(180deg, #60A5FA 0%, #2563EB 100%)",
+              color: "#fff", border: "none",
+              borderRadius: 14,
+              boxShadow: "0 7px 0 #1D4ED8, 0 12px 36px rgba(37,99,235,0.22)",
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              letterSpacing: "0.08em",
+            }}
+          >
+            🖨️ もう一度印刷
+          </button>
+
+          {/* 戻るボタン */}
+          <button
+            onPointerDown={goHome}
+            style={{
+              width: 280, height: 110, fontSize: 34, fontWeight: 800,
+              background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
+              color: "#fff", border: "none",
+              borderRadius: 14,
+              boxShadow: "0 7px 0 #0F766E, 0 12px 36px rgba(13,148,136,0.22)",
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              letterSpacing: "0.08em",
+            }}
+          >
+            {paused ? "トップに戻る" : "最初の画面に戻る"}
+          </button>
+        </div>
       </div>
+
+      {/* ── 印刷用受付票（画面上は非表示、印刷時のみ表示） ── */}
+      {result && <PrintReceipt data={result} />}
     </div>
   );
 }
