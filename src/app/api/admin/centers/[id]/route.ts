@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const TIME_FIELDS = [
   "openTime", "closeTime", "hasBreak", "breakStart", "breakEnd",
   "closedOnSunday", "closedOnHoliday",

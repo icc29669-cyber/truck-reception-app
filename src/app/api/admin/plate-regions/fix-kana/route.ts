@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 /** 地名 → ひらがな読み マッピング */
 const KANA_MAP: Record<string, string> = {
   // 北海道

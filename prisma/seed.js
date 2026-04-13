@@ -9,17 +9,20 @@ async function main() {
   console.log("🌱 シードデータを投入します...");
 
   // ─── センター ──────────────────────────────────────────
-  const center1 = await prisma.center.upsert({
-    where: { id: 1 },
-    update: { code: "3100" },
-    create: { code: "3100", name: "だんじり機材センター", secretKey: "secret-danjiricenter" },
-  });
-  const center2 = await prisma.center.upsert({
-    where: { id: 2 },
-    update: { code: "3101" },
-    create: { code: "3101", name: "狭山機材センター", secretKey: "secret-sayamacenter" },
-  });
-  console.log(`✅ センター: ${center1.name}, ${center2.name}`);
+  // センターはfindFirst+create/updateで確実に存在を保証
+  const centersData = [
+    { code: "3100", name: "だんじり機材センター", secretKey: "secret-danjiricenter" },
+    { code: "3101", name: "狭山機材センター", secretKey: "secret-sayamacenter" },
+  ];
+  for (const cd of centersData) {
+    const existing = await prisma.center.findFirst({ where: { code: cd.code } });
+    if (existing) {
+      await prisma.center.update({ where: { id: existing.id }, data: { name: cd.name } });
+    } else {
+      await prisma.center.create({ data: cd });
+    }
+    console.log(`  ✅ センター: ${cd.code} ${cd.name}`);
+  }
 
   // ─── 運送会社 ──────────────────────────────────────────
   const companiesData = [

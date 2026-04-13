@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyKioskSecret } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 /**
  * キオスク向け: ドライバー/車両候補をソフトデリート（isActive = false）
  * DELETE /api/reception/delete-candidate

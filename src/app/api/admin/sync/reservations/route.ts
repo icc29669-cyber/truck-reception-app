@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const BERTH_API_URL = process.env.BERTH_API_URL || "";
 const BERTH_KIOSK_SECRET = process.env.BERTH_KIOSK_SECRET || "";
 

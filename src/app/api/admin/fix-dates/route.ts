@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 /**
  * 既存の予約データの reservationDate を UTC midnight → JST midnight に修正
  * UTC 2026-04-13T00:00:00.000Z → JST 2026-04-13T00:00:00+09:00 = UTC 2026-04-12T15:00:00.000Z

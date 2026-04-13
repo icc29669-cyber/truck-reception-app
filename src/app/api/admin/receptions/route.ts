@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const centerId = Number(req.nextUrl.searchParams.get("centerId") ?? "0") || undefined;
   const date = req.nextUrl.searchParams.get("date"); // YYYY-MM-DD

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 /** CSV数式インジェクション対策: =, +, -, @, \t, \r で始まるセルを無害化 */
 function sanitizeCSVCell(val: string): string {
   if (/^[=+\-@\t\r]/.test(val)) {
