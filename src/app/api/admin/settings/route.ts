@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const ALLOWED_KEYS = [
   "kiosk_center_id",
   "last_center_sync",
