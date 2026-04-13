@@ -61,6 +61,7 @@ model Driver {
   receptions Reception[]
 
   @@unique([phone, name, companyName], name: "driver_phone_name_company")
+  @@index([phone])
 }
 
 // ─── 車両 ──────────────────────────────────────────────────
@@ -80,6 +81,8 @@ model Vehicle {
   receptions Reception[]
 
   @@unique([vehicleNumber, phone], name: "vehicle_number_phone")
+  @@index([phone])
+  @@index([vehicleNumber])
 }
 
 // ─── ナンバープレート地名マスタ ────────────────────────────
