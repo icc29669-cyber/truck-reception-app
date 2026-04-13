@@ -8,20 +8,35 @@ import NumericKeypad from "@/components/NumericKeypad";
 export default function PlateNumberPage() {
   const router = useRouter();
   const [value, setValue] = useState("");
+  const [overwrite, setOverwrite] = useState(false); // 戻り時の上書きフラグ
 
   useEffect(() => {
     const s = getKioskSession();
-    setValue(s.plate.number ?? "");
+    const existing = s.plate.number ?? "";
+    setValue(existing);
+    if (existing) setOverwrite(true); // 既存値があれば上書きモード
   }, []);
 
-  function handleChange(v: string) {
+  function handleChange(v: string, fromOverwrite = false) {
     if (v.length > 4) return;
     setValue(v);
     const session = getKioskSession();
     setKioskSession({ plate: { ...session.plate, number: v } });
-    // 4桁入力で自動進行
-    if (v.length === 4) {
+    // 4桁入力で自動進行（上書き直後の1桁目は進行しない）
+    if (v.length === 4 && !fromOverwrite) {
       router.push("/kiosk/data-confirm");
+    }
+  }
+
+  // NumericKeypadのonChangeをラップして上書きモード対応
+  function handleKeypadChange(v: string) {
+    if (overwrite && v.length > 0) {
+      // 上書き: 最後に追加された1文字だけ取得
+      const newChar = v.slice(-1);
+      setOverwrite(false);
+      handleChange(newChar, true);
+    } else {
+      handleChange(v);
     }
   }
 
@@ -62,8 +77,8 @@ export default function PlateNumberPage() {
         <div
           suppressHydrationWarning
           className={`rounded-3xl border-4 flex items-center justify-center px-10
-            ${value ? "bg-yellow-100 border-yellow-400" : "bg-white border-gray-300"}`}
-          style={{ minWidth: 400, height: 180 }}
+            ${overwrite ? "bg-blue-100 border-blue-500" : value ? "bg-yellow-100 border-yellow-400" : "bg-white border-gray-300"}`}
+          style={{ minWidth: 400, height: 180, animation: overwrite ? "pulse 1.5s ease-in-out infinite" : "none" }}
         >
           <span
             className="font-black"
@@ -80,7 +95,7 @@ export default function PlateNumberPage() {
         {/* テンキー（数字のみ、maxLength=4） */}
         <NumericKeypad
           value={value}
-          onChange={handleChange}
+          onChange={handleKeypadChange}
           onOK={handleOK}
           maxLength={4}
         />

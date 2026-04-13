@@ -11,11 +11,14 @@ export default function ClassNumPage() {
   const [plate, setPlate] = useState(() => getKioskSession().plate);
   const [value, setValue] = useState("");
   const [mode, setMode] = useState<"num" | "alpha">("num");
+  const [overwrite, setOverwrite] = useState(false); // 戻り時の上書きフラグ
 
   useEffect(() => {
     const s = getKioskSession();
     setPlate(s.plate);
-    setValue(s.plate.classNum ?? "");
+    const existing = s.plate.classNum ?? "";
+    setValue(existing);
+    if (existing) setOverwrite(true); // 既存値があれば上書きモード
   }, []);
 
   function handleChange(v: string) {
@@ -28,11 +31,21 @@ export default function ClassNumPage() {
   }
 
   function press(d: string) {
-    handleChange(value + d);
+    if (overwrite) {
+      setOverwrite(false);
+      handleChange(d); // 上書き: 既存値をクリアして新しい1桁で開始
+    } else {
+      handleChange(value + d);
+    }
   }
 
   function pressAlpha(ch: string) {
-    handleChange(value + ch);
+    if (overwrite) {
+      setOverwrite(false);
+      handleChange(ch);
+    } else {
+      handleChange(value + ch);
+    }
   }
 
   function handleOK() {
@@ -88,8 +101,9 @@ export default function ClassNumPage() {
             style={{
               width: 520,
               height: 160,
-              background: value ? "#FFF176" : "rgba(255,255,255,0.8)",
-              borderColor: value ? "#F59E0B" : "#CBD5E1",
+              background: overwrite ? "#DBEAFE" : value ? "#FFF176" : "rgba(255,255,255,0.8)",
+              borderColor: overwrite ? "#3B82F6" : value ? "#F59E0B" : "#CBD5E1",
+              animation: overwrite ? "pulse 1.5s ease-in-out infinite" : "none",
             }}
           >
             <span
@@ -157,14 +171,14 @@ export default function ClassNumPage() {
             {/* 操作ボタン */}
             <div className="flex flex-col gap-3">
               <button
-                onPointerDown={() => handleChange("")}
+                onPointerDown={() => { setOverwrite(false); handleChange(""); }}
                 className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75"
                 style={{ width: 220, height: BTN_H, fontSize: 28 }}
               >
                 すべて消す
               </button>
               <button
-                onPointerDown={() => handleChange(value.slice(0, -1))}
+                onPointerDown={() => { setOverwrite(false); handleChange(value.slice(0, -1)); }}
                 className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75"
                 style={{ width: 220, height: BTN_H, fontSize: 28 }}
               >
@@ -199,14 +213,14 @@ export default function ClassNumPage() {
             </div>
             <div className="flex gap-3">
               <button
-                onPointerDown={() => handleChange("")}
+                onPointerDown={() => { setOverwrite(false); handleChange(""); }}
                 className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white text-2xl active:bg-red-600 touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75"
                 style={{ width: 200, height: 90 }}
               >
                 すべて消す
               </button>
               <button
-                onPointerDown={() => handleChange(value.slice(0, -1))}
+                onPointerDown={() => { setOverwrite(false); handleChange(value.slice(0, -1)); }}
                 className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white text-2xl active:bg-orange-500 touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75"
                 style={{ width: 200, height: 90 }}
               >
