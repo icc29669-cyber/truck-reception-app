@@ -11,14 +11,14 @@ const AUTO_RETURN = 15;
 function getPrinterSettings() {
   try {
     const raw = localStorage.getItem("printer_settings");
-    if (!raw) return { autoPrint: true, paperWidth: "80" };
+    if (!raw) return { autoPrint: false, paperWidth: "80" };
     const s = JSON.parse(raw);
     return {
-      autoPrint: s.autoPrint ?? true,
+      autoPrint: s.autoPrint ?? false,
       paperWidth: s.paperWidth || "80",
     };
   } catch {
-    return { autoPrint: true, paperWidth: "80" };
+    return { autoPrint: false, paperWidth: "80" };
   }
 }
 
@@ -213,16 +213,16 @@ export default function CompletePage() {
         <div style={{ fontSize: 20, color: "#94A3B8", letterSpacing: "0.06em" }}>
           {paused
             ? "自動遷移を停止しました"
-            : `${countdown}秒後に自動的に最初の画面に戻ります`}
+            : `${countdown}秒後に自動的にトップへ戻ります`}
         </div>
 
         {/* ボタン群 */}
-        <div style={{ display: "flex", gap: 20 }}>
+        <div style={{ display: "flex", gap: 24 }}>
           {/* もう一度印刷ボタン */}
           <button
             onPointerDown={handlePrint}
             style={{
-              width: 280, height: 110, fontSize: 34, fontWeight: 800,
+              width: 300, height: 110, fontSize: 34, fontWeight: 800,
               background: "linear-gradient(180deg, #60A5FA 0%, #2563EB 100%)",
               color: "#fff", border: "none",
               borderRadius: 14,
@@ -239,7 +239,7 @@ export default function CompletePage() {
           <button
             onPointerDown={goHome}
             style={{
-              width: 280, height: 110, fontSize: 34, fontWeight: 800,
+              width: 300, height: 110, fontSize: 34, fontWeight: 800,
               background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
               color: "#fff", border: "none",
               borderRadius: 14,
@@ -249,7 +249,7 @@ export default function CompletePage() {
               letterSpacing: "0.08em",
             }}
           >
-            {paused ? "トップに戻る" : "最初の画面に戻る"}
+            トップへ戻る
           </button>
         </div>
       </div>
