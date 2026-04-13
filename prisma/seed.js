@@ -5,8 +5,39 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+async function ensureSchema() {
+  // prisma db pushがDDLを適用できない場合のフォールバック
+  // ADD COLUMN IF NOT EXISTSは冪等（既にあれば何もしない）
+  const cols = [
+    [`"openTime"`,        `TEXT NOT NULL DEFAULT '08:00'`],
+    [`"closeTime"`,       `TEXT NOT NULL DEFAULT '18:00'`],
+    [`"slotDurationMinutes"`, `INTEGER NOT NULL DEFAULT 60`],
+    [`"closedOnSunday"`,  `BOOLEAN NOT NULL DEFAULT true`],
+    [`"closedOnHoliday"`, `BOOLEAN NOT NULL DEFAULT true`],
+    [`"hasBreak"`,        `BOOLEAN NOT NULL DEFAULT false`],
+    [`"breakStart"`,      `TEXT NOT NULL DEFAULT '12:00'`],
+    [`"breakEnd"`,        `TEXT NOT NULL DEFAULT '13:00'`],
+    [`"messageOpen"`,     `TEXT NOT NULL DEFAULT 'いらっしゃいませ'`],
+    [`"messageBreak"`,    `TEXT NOT NULL DEFAULT 'ただいま昼休みです　しばらくお待ちください'`],
+    [`"messageClosed"`,   `TEXT NOT NULL DEFAULT '本日の受付は終了しました'`],
+    [`"messageOutsideHours"`, `TEXT NOT NULL DEFAULT '受付時間外です'`],
+  ];
+  for (const [col, def] of cols) {
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "Center" ADD COLUMN IF NOT EXISTS ${col} ${def}`);
+    } catch (e) {
+      // カラムが既に存在する場合は無視
+      console.log(`  (skip ${col})`);
+    }
+  }
+  console.log("  DB schema ensured");
+}
+
 async function main() {
-  console.log("🌱 シードデータを投入します...");
+  console.log("seed: start");
+
+  // まずスキーマ保証
+  await ensureSchema();
 
   // ─── センター ──────────────────────────────────────────
   // センターはfindFirst+create/updateで確実に存在を保証
