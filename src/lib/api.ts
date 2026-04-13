@@ -95,33 +95,6 @@ function headers() {
   };
 }
 
-export async function lookupByPlate(
-  plateStr: string,
-  centerId: number
-): Promise<DriverCandidate[]> {
-  if (USE_MOCK) {
-    await delay(600);
-    if (plateStr.includes("7917")) {
-      return [
-        { id: 1, name: "山田 太郎", companyName: "サンプル運輸株式会社", phone: "09012345678" },
-      ];
-    }
-    if (plateStr.includes("1234")) {
-      return [
-        { id: 2, name: "鈴木 次郎", companyName: "テスト物流株式会社", phone: "08012345678" },
-        { id: 3, name: "佐藤 三郎", companyName: "サンプル運輸株式会社", phone: "07012345678" },
-      ];
-    }
-    return [];
-  }
-  const res = await fetch(
-    `${BASE}/api/reception/lookup-plate?plate=${encodeURIComponent(plateStr)}&centerId=${centerId}`,
-    { headers: headers() }
-  );
-  if (!res.ok) return [];
-  return res.json();
-}
-
 export async function lookupByPhone(
   phone: string,
   centerId: number,
