@@ -285,7 +285,7 @@ export default function FinalConfirmPage() {
   const [sessionData, setSessionData] = useState<ReturnType<typeof getKioskSession> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  // 確認モーダル廃止: 受付ボタンで直接受付
 
   useEffect(() => {
     if (initRef.current) return;
@@ -555,7 +555,7 @@ export default function FinalConfirmPage() {
 
           {/* 受付するボタン */}
           <button
-            onPointerDown={() => setShowConfirmModal(true)}
+            onPointerDown={() => { if (!loading && isComplete) handleRegister(); }}
             disabled={loading || !isComplete}
             className="flex flex-col items-center justify-center select-none touch-none"
             style={{
@@ -596,70 +596,6 @@ export default function FinalConfirmPage() {
         </div>
         </div>
       </div>
-
-      {/* ━━ 確認モーダル ━━ */}
-      {showConfirmModal && (
-        <div
-          style={{
-            position: "fixed", inset: 0, zIndex: 9000,
-            background: "rgba(0,0,0,0.55)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-          onPointerDown={() => setShowConfirmModal(false)}
-        >
-          <div
-            style={{
-              background: "#fff", borderRadius: 32,
-              padding: "48px 56px", minWidth: 560,
-              boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
-              display: "flex", flexDirection: "column",
-              alignItems: "center", gap: 40,
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <span style={{
-              fontSize: 38, fontWeight: 900, color: "#1E293B",
-              textAlign: "center", letterSpacing: "0.06em", lineHeight: 1.4,
-            }}>
-              この情報で受付して<br />よろしいですか？
-            </span>
-            <div style={{ display: "flex", gap: 28 }}>
-              <button
-                onPointerDown={() => setShowConfirmModal(false)}
-                className="select-none touch-none"
-                style={{
-                  minWidth: 200, height: 80, fontSize: 28, fontWeight: 800,
-                  background: "linear-gradient(180deg, #9CA3AF, #6B7280)",
-                  color: "#fff", border: "none", borderRadius: 18,
-                  cursor: "pointer",
-                  boxShadow: "0 5px 0 #4B5563",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                やり直す
-              </button>
-              <button
-                onPointerDown={() => { if (loading) return; setShowConfirmModal(false); handleRegister(); }}
-                className="select-none touch-none"
-                style={{
-                  minWidth: 200, height: 80, fontSize: 28, fontWeight: 800,
-                  background: loading
-                    ? "linear-gradient(180deg, #9CA3AF, #6B7280)"
-                    : "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
-                  color: "#fff", border: "none", borderRadius: 18,
-                  cursor: loading ? "not-allowed" : "pointer",
-                  boxShadow: loading ? "0 5px 0 #4B5563" : "0 5px 0 #0f766e",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                受付を確定する
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ━━ 送信中オーバーレイ ━━ */}
       {loading && (
