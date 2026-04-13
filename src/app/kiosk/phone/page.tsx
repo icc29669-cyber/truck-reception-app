@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
@@ -7,40 +7,40 @@ import { fmtPhone, isMobilePrefix, getJpAreaMap } from "@/lib/phoneFormat";
 
 const JP_AREA = getJpAreaMap();
 
-/* ━━ ステップドット ━━ */
+/* ━━ ステップインジケータ ━━ */
 function StepDots({ current }: { current: number }) {
   const labels = ["電話番号", "お名前", "車　両", "最終確認"];
   return (
-    <div className="flex items-center gap-4">
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       {labels.map((label, i) => {
         const step = i + 1;
         const done = step < current;
         const active = step === current;
         return (
-          <div key={i} className="flex items-center gap-4">
-            <div className="flex flex-col items-center" style={{ minWidth: 72 }}>
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 66 }}>
               <div style={{
-                width: 52, height: 52, borderRadius: "50%",
-                background: done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.25)",
-                border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
+                width: 44, height: 44, borderRadius: "50%",
+                background: done ? "#4ade80" : active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.12)",
+                border: `2.5px solid ${done ? "#22c55e" : active ? "#fff" : "rgba(255,255,255,0.25)"}`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, fontWeight: 900,
-                color: done ? "#0f766e" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
+                fontSize: 18, fontWeight: 900,
+                color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.35)",
+                transition: "all 0.3s ease",
               }}>
                 {done ? "✓" : step}
               </div>
               <span style={{
-                fontSize: 15, fontWeight: 700, marginTop: 4,
-                color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.4)",
+                fontSize: 12.5, fontWeight: 700, marginTop: 3,
+                color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.3)",
                 whiteSpace: "nowrap",
               }}>{label}</span>
             </div>
             {i < labels.length - 1 && (
               <div style={{
-                width: 56, height: 3,
-                background: done ? "#4ade80" : "rgba(255,255,255,0.2)",
-                borderRadius: 2,
-                marginBottom: 20,
+                width: 36, height: 2.5,
+                background: done ? "#4ade80" : "rgba(255,255,255,0.12)",
+                borderRadius: 2, marginBottom: 16,
               }} />
             )}
           </div>
@@ -50,25 +50,21 @@ function StepDots({ current }: { current: number }) {
   );
 }
 
-// ── レイアウト定数 ──
-const W        = 180;  // テンキーボタン幅
-const WP       = 165;  // プレフィックスボタン幅
-const WA       = 200;  // アクションボタン幅（OK大型化に合わせ拡大）
-const H        = 130;  // ボタン高さ（手袋対応で130px）
-const GAP      = 16;   // ボタン間隔
-const FONT_NUM   = 52;
-const FONT_PRE   = 40;
-const FONT_INPUT = 72;
-
-const totalW = WP + GAP + (W * 3 + GAP * 2) + GAP + WA; // 981px
+/* ━━ レイアウト定数 ━━ */
+const W   = 190;
+const WP  = 170;
+const WA  = 210;
+const H   = 155;
+const GAP = 14;
+const totalW = WP + GAP + (W * 3 + GAP * 2) + GAP + WA;
 
 export default function PhonePage() {
   const router = useRouter();
-  const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [phone, setPhone]         = useState("");
+  const [loading, setLoading]     = useState(false);
   const [fromFinal, setFromFinal] = useState(false);
   const [phoneError, setPhoneError] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError]         = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -77,7 +73,7 @@ export default function PhonePage() {
     setPhone(s.phone ?? "");
   }, []);
 
-  // バリデーション
+  /* ── バリデーション ── */
   function validatePhone(p: string): string {
     if (p.length === 0) return "";
     if (!p.startsWith("0")) return "電話番号は「0」から始めてください";
@@ -92,8 +88,9 @@ export default function PhonePage() {
   }
 
   const isLengthOk = isMobilePrefix(phone) ? phone.length === 11 : phone.length === 10;
-  const isValid = isLengthOk && !phone.startsWith("00") && phone.startsWith("0");
+  const isValid    = isLengthOk && !phone.startsWith("00") && phone.startsWith("0");
 
+  /* ── 送信 ── */
   async function submit(p: string) {
     const session = getKioskSession();
     setLoading(true);
@@ -125,7 +122,6 @@ export default function PhonePage() {
         result.vehicles.length === 1 &&
         reservations.length === 0
       ) {
-        // ドライバー1名・車両1台のみ → 選択画面をスキップして確認画面へ直行
         const d = result.drivers[0];
         const v = result.vehicles[0];
         setKioskSession({
@@ -146,7 +142,6 @@ export default function PhonePage() {
         result.vehicles.length === 0 &&
         reservations.length === 0
       ) {
-        // ドライバー1名・車両なし → ドライバー自動選択して確認画面へ
         const d = result.drivers[0];
         setKioskSession({
           selectedDriver: d,
@@ -167,17 +162,13 @@ export default function PhonePage() {
     }
   }
 
+  /* ── キー押下（自動送信なし — OKボタンで送信） ── */
   function press(d: string) {
     if (phone.length >= 11 || loading) return;
     setError("");
     const next = phone + d;
     setPhone(next);
-    const err = validatePhone(next);
-    setPhoneError(err);
-    if (err) return; // エラーがあれば自動送信しない
-    // 携帯は11桁で自動送信、固定は10桁で自動送信
-    if (isMobilePrefix(next) && next.length >= 11) submit(next);
-    else if (!isMobilePrefix(next) && next.length >= 10) submit(next);
+    setPhoneError(validatePhone(next));
   }
 
   function pressPrefix(prefix: string) {
@@ -192,46 +183,93 @@ export default function PhonePage() {
     submit(phone);
   }
 
-  const numBtn = `flex items-center justify-center font-black rounded-2xl bg-white border-2 border-gray-200
-    text-gray-900 shadow-[0_5px_0_#CBD5E1] active:shadow-[0_1px_0_#CBD5E1] active:translate-y-[3px]
-    select-none touch-none transition-all duration-75`;
+  /* ── ボタン状態 ── */
+  const okActive  = isValid && !loading;
+  const okLoading = loading;
 
   return (
-    <div
-      className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "#F5F0E8" }}
-    >
-      {/* ── スピナーアニメーション ── */}
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <div style={{
+      width: "100vw", height: "100vh",
+      display: "flex", flexDirection: "column",
+      background: "#F5F0E8",
+      overflow: "hidden", userSelect: "none",
+    }}>
 
-      {/* ── フルページローディングオーバーレイ ── */}
+      {/* ── CSS Animations ── */}
+      <style>{`
+        @keyframes kiosk-spin {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes kiosk-fade-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes kiosk-pulse-border {
+          0%, 100% { border-color: #0D9488; box-shadow: 0 0 0 4px rgba(13,148,136,0.10); }
+          50%      { border-color: #14B8A6; box-shadow: 0 0 0 6px rgba(20,184,166,0.18); }
+        }
+        .kiosk-num:active { transform: translateY(3px); box-shadow: 0 1px 0 #CBD5E1 !important; }
+        .kiosk-prefix:active { transform: translateY(3px); box-shadow: 0 1px 0 #1D4ED8 !important; }
+        .kiosk-del:active { transform: translateY(3px); }
+        .kiosk-ok:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 #047857 !important; }
+      `}</style>
+
+      {/* ── 全画面ローディング ── */}
       {loading && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 9999,
-          background: "rgba(0,0,0,0.5)",
+          background: "rgba(15,23,42,0.55)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          flexDirection: "column", gap: 24,
+          flexDirection: "column", gap: 28,
+          animation: "kiosk-fade-in 0.25s ease-out",
         }}>
-          <div style={{
-            width: 80, height: 80, border: "8px solid rgba(255,255,255,0.3)",
-            borderTopColor: "#fff", borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }} />
-          <div style={{ color: "#fff", fontSize: 32, fontWeight: 900 }}>
-            検索中...
+          <div style={{ position: "relative", width: 96, height: 96 }}>
+            <div style={{
+              width: 96, height: 96,
+              border: "5px solid rgba(255,255,255,0.1)",
+              borderTopColor: "#2DD4BF",
+              borderRightColor: "#2DD4BF",
+              borderRadius: "50%",
+              animation: "kiosk-spin 0.9s ease-in-out infinite",
+            }} />
+            <div style={{
+              position: "absolute", inset: 14,
+              border: "4px solid rgba(255,255,255,0.06)",
+              borderBottomColor: "#60A5FA",
+              borderLeftColor: "#60A5FA",
+              borderRadius: "50%",
+              animation: "kiosk-spin 1.4s linear infinite reverse",
+            }} />
           </div>
+          <span style={{
+            color: "rgba(255,255,255,0.85)", fontSize: 24,
+            fontWeight: 600, letterSpacing: "0.25em",
+          }}>
+            検索しています
+          </span>
         </div>
       )}
 
-      {/* ── ヘッダー（TOP同様の薄いバー）── */}
-      <div
-        className="flex items-center px-8 gap-6 flex-shrink-0"
-        style={{ background: "#1a3a6b", height: 88 }}
-      >
+      {/* ━━ ヘッダー ━━ */}
+      <div style={{
+        display: "flex", alignItems: "center",
+        padding: "0 28px", gap: 20, flexShrink: 0,
+        background: "linear-gradient(135deg, #172554 0%, #1e3a6b 100%)",
+        height: 82,
+        boxShadow: "0 2px 16px rgba(0,0,0,0.18)",
+      }}>
         <button
           onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/caution")}
-          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 80, width: 160, fontSize: 28 }}
+          style={{
+            height: 56, width: 130, fontSize: 24, fontWeight: 700,
+            background: "rgba(255,255,255,0.08)",
+            border: "2px solid rgba(255,255,255,0.35)",
+            borderRadius: 12, color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", letterSpacing: "0.04em",
+          }}
         >
           ◀ 戻る
         </button>
@@ -239,136 +277,228 @@ export default function PhonePage() {
         <StepDots current={1} />
       </div>
 
-      {/* ── タイトル＋入力欄（ベージュ背景上）── */}
-      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: "24px 0 20px" }}>
-        <div style={{ marginBottom: 20 }}>
-          <span style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.1em" }}>
-            電話番号を入力してください
-          </span>
+      {/* ━━ メインコンテンツ（タイトル＋番号＋テンキー一体） ━━ */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        gap: 28, paddingBottom: 16,
+      }}>
+
+        {/* タイトル */}
+        <div style={{
+          fontSize: 44, fontWeight: 800, color: "#1E293B",
+          letterSpacing: "0.08em",
+        }}>
+          電話番号を入力してください
         </div>
-        <div
-          suppressHydrationWarning
-          className="rounded-2xl border-4 flex items-center justify-center transition-colors"
-          style={{
-            width: totalW,
-            height: 110,
-            borderColor: phone ? "#F59E0B" : "#CBD5E1",
-            background: "#FFFFFF",
-          }}
-        >
-          <span
-            className="font-black tracking-widest"
-            style={{ fontSize: FONT_INPUT, color: phone ? "#1a1a1a" : "#94a3b8" }}
-          >
+
+        {/* 番号表示エリア */}
+        <div style={{
+          width: totalW, height: 116, borderRadius: 18,
+          border: `3px solid ${phone ? "#0D9488" : "#D1CCC3"}`,
+          background: phone
+            ? "linear-gradient(180deg, #FFFFFF 0%, #F0FDFA 100%)"
+            : "#FFFFFF",
+          boxShadow: phone
+            ? "0 0 0 5px rgba(13,148,136,0.08), inset 0 2px 6px rgba(0,0,0,0.03)"
+            : "inset 0 2px 6px rgba(0,0,0,0.04)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "all 0.25s ease",
+          animation: isValid ? "kiosk-pulse-border 2s ease-in-out infinite" : "none",
+        }}>
+          <span style={{
+            fontSize: 68, fontWeight: 900,
+            letterSpacing: "0.16em",
+            fontVariantNumeric: "tabular-nums",
+            color: phone ? "#0F172A" : "#C8C3BA",
+            transition: "color 0.2s ease",
+          }}>
             {phone ? fmtPhone(phone) : "090-0000-0000"}
           </span>
         </div>
+
+        {/* バリデーションエラー */}
         {phoneError && (
           <div style={{
-            marginTop: 10, padding: "8px 24px",
-            background: "rgba(239,68,68,0.12)", borderRadius: 12,
-            display: "flex", alignItems: "center", gap: 10,
+            padding: "6px 20px",
+            background: "rgba(239,68,68,0.08)", borderRadius: 10,
+            display: "flex", alignItems: "center", gap: 8,
+            marginTop: -16,
           }}>
-            <span style={{ fontSize: 24, color: "#DC2626" }}>⚠</span>
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#DC2626" }}>{phoneError}</span>
+            <span style={{ fontSize: 20, color: "#DC2626" }}>!</span>
+            <span style={{ fontSize: 19, fontWeight: 700, color: "#DC2626" }}>{phoneError}</span>
           </div>
         )}
+        {/* 検索エラー */}
         {error && (
           <div style={{
-            marginTop: 14, padding: "18px 36px",
-            background: "#FEE2E2", border: "3px solid #EF4444", borderRadius: 16,
-            display: "flex", alignItems: "center", gap: 14,
-            maxWidth: totalW,
+            padding: "14px 28px",
+            background: "#FEF2F2", border: "2px solid #FECACA", borderRadius: 14,
+            display: "flex", alignItems: "center", gap: 12,
+            maxWidth: totalW, marginTop: -16,
           }}>
-            <span style={{ fontSize: 36, color: "#DC2626", flexShrink: 0 }}>⚠</span>
-            <span style={{ fontSize: 28, fontWeight: 800, color: "#DC2626" }}>{error}</span>
+            <span style={{ fontSize: 28, color: "#DC2626", flexShrink: 0 }}>!</span>
+            <span style={{ fontSize: 24, fontWeight: 700, color: "#DC2626" }}>{error}</span>
           </div>
         )}
-      </div>
+        <div style={{ display: "flex", gap: GAP }}>
 
-      {/* ── テンキーエリア ── */}
-      <div className="flex-1 flex flex-col items-center justify-center pb-6" style={{ gap: GAP + 8 }}>
-
-        {/* 3カラムレイアウト */}
-        <div className="flex" style={{ gap: GAP }}>
-
-          {/* 左列: 070 / 080 / 090 */}
-          <div className="flex flex-col" style={{ gap: GAP }}>
+          {/* ── 左列: プレフィクス (070/080/090) ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
             {["070", "080", "090"].map((prefix) => (
               <button
                 key={prefix}
+                className="kiosk-prefix"
                 onPointerDown={() => pressPrefix(prefix)}
-                className="flex items-center justify-center font-bold rounded-2xl text-white
-                  shadow-[0_5px_0_#1E40AF] active:shadow-[0_1px_0_#1E40AF] active:translate-y-[3px]
-                  select-none touch-none transition-all duration-75"
-                style={{ width: WP, height: H, fontSize: FONT_PRE, background: "#3B82F6" }}
+                style={{
+                  width: WP, height: H,
+                  fontSize: 40, fontWeight: 800,
+                  background: "linear-gradient(180deg, #60A5FA 0%, #3B82F6 100%)",
+                  color: "#fff",
+                  border: "none", borderRadius: 16,
+                  boxShadow: "0 5px 0 #1D4ED8, 0 8px 20px rgba(59,130,246,0.18)",
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  letterSpacing: "0.06em",
+                  touchAction: "manipulation",
+                  transition: "transform 75ms ease, box-shadow 75ms ease",
+                }}
               >
                 {prefix}
               </button>
             ))}
           </div>
 
-          {/* 中央列: テンキー（1〜9 + 0） */}
-          <div className="flex flex-col" style={{ gap: GAP }}>
+          {/* ── 中央列: テンキー ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
             {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
-              <div key={ri} className="flex" style={{ gap: GAP }}>
+              <div key={ri} style={{ display: "flex", gap: GAP }}>
                 {row.map((k) => (
-                  <button key={k} onPointerDown={() => press(k)}
-                    className={numBtn} style={{ width: W, height: H, fontSize: FONT_NUM }}>
+                  <button
+                    key={k}
+                    className="kiosk-num"
+                    onPointerDown={() => press(k)}
+                    style={{
+                      width: W, height: H,
+                      fontSize: 52, fontWeight: 900,
+                      background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",
+                      color: "#1E293B",
+                      border: "1.5px solid #E2E8F0",
+                      borderRadius: 16,
+                      boxShadow: "0 4px 0 #CBD5E1, 0 6px 14px rgba(0,0,0,0.05)",
+                      cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      touchAction: "manipulation",
+                      transition: "transform 75ms ease, box-shadow 75ms ease",
+                    }}
+                  >
                     {k}
                   </button>
                 ))}
               </div>
             ))}
-            <div className="flex" style={{ gap: GAP }}>
-              <button onPointerDown={() => press("0")}
-                className={numBtn}
-                style={{ width: W * 3 + GAP * 2, height: H, fontSize: FONT_NUM }}>
+            <div style={{ display: "flex", gap: GAP }}>
+              <button
+                className="kiosk-num"
+                onPointerDown={() => press("0")}
+                style={{
+                  width: W * 3 + GAP * 2, height: H,
+                  fontSize: 52, fontWeight: 900,
+                  background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",
+                  color: "#1E293B",
+                  border: "1.5px solid #E2E8F0",
+                  borderRadius: 16,
+                  boxShadow: "0 4px 0 #CBD5E1, 0 6px 14px rgba(0,0,0,0.05)",
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  touchAction: "manipulation",
+                  transition: "transform 75ms ease, box-shadow 75ms ease",
+                }}
+              >
                 0
               </button>
             </div>
           </div>
 
-          {/* 右列: 全消し / 1文字消す / OK */}
-          <div className="flex flex-col" style={{ gap: GAP, width: WA }}>
+          {/* ── 右列: 全消し / 1文字消す / OK ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: GAP, width: WA }}>
+            {/* 全消し */}
             <button
-              onPointerDown={() => { setPhone(""); setPhoneError(""); }}
-              className="flex items-center justify-center font-bold rounded-2xl text-white
-                shadow-[0_5px_0_#991B1B] active:shadow-[0_1px_0_#991B1B] active:translate-y-[3px]
-                select-none touch-none transition-all duration-75"
-              style={{ height: H, fontSize: 28, background: "#EF4444" }}
+              className="kiosk-del"
+              onPointerDown={() => { setPhone(""); setPhoneError(""); setError(""); }}
+              style={{
+                height: H, fontSize: 26, fontWeight: 800,
+                background: "linear-gradient(180deg, #F87171 0%, #EF4444 100%)",
+                color: "#fff",
+                border: "none", borderRadius: 16,
+                boxShadow: "0 5px 0 #B91C1C, 0 8px 20px rgba(239,68,68,0.15)",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                touchAction: "manipulation",
+                transition: "transform 75ms ease, box-shadow 75ms ease",
+              }}
             >
               全消し
             </button>
+
+            {/* 1文字消す */}
             <button
-              onPointerDown={() => { const next = phone.slice(0, -1); setPhone(next); setPhoneError(validatePhone(next)); }}
-              className="flex items-center justify-center font-bold rounded-2xl text-white
-                shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px]
-                select-none touch-none transition-all duration-75"
-              style={{ height: H, fontSize: 24, background: "#F97316" }}
+              className="kiosk-del"
+              onPointerDown={() => {
+                const next = phone.slice(0, -1);
+                setPhone(next);
+                setPhoneError(validatePhone(next));
+              }}
+              style={{
+                height: H, fontSize: 22, fontWeight: 800, lineHeight: 1.3,
+                background: "linear-gradient(180deg, #FBBF24 0%, #F59E0B 100%)",
+                color: "#fff",
+                border: "none", borderRadius: 16,
+                boxShadow: "0 5px 0 #B45309, 0 8px 20px rgba(245,158,11,0.15)",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                touchAction: "manipulation",
+                transition: "transform 75ms ease, box-shadow 75ms ease",
+              }}
             >
               1文字<br/>消す
             </button>
+
+            {/* OK */}
             <button
+              className="kiosk-ok"
               onPointerDown={handleOk}
-              disabled={!isValid || loading}
-              className={`flex items-center justify-center font-black rounded-2xl text-white
-                select-none touch-none transition-all duration-75
-                ${isValid && !loading
-                  ? "shadow-[0_8px_0_#0F766E] active:shadow-[0_2px_0_#0F766E] active:translate-y-[5px]"
-                  : "opacity-40 cursor-not-allowed"
-                }`}
+              disabled={!okActive && !okLoading}
               style={{
-                minHeight: 200,
-                flex: 1,
-                fontSize: 64,
-                letterSpacing: "0.1em",
-                background: isValid && !loading
-                  ? "linear-gradient(180deg,#34D399,#059669)"
-                  : "#9CA3AF",
+                minHeight: 240, flex: 1,
+                fontSize: okLoading ? 0 : 66,
+                fontWeight: 900, letterSpacing: "0.12em",
+                background: (okActive || okLoading)
+                  ? "linear-gradient(180deg, #34D399 0%, #059669 100%)"
+                  : "#D1D5DB",
+                color: "#fff",
+                border: "none", borderRadius: 16,
+                boxShadow: (okActive || okLoading)
+                  ? "0 7px 0 #047857, 0 10px 28px rgba(5,150,105,0.22)"
+                  : "0 4px 0 #9CA3AF",
+                opacity: (okActive || okLoading) ? 1 : 0.4,
+                cursor: okActive ? "pointer" : "default",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                touchAction: "manipulation",
+                transition: "all 200ms ease",
+                overflow: "hidden",
               }}
             >
-              {loading ? "検索中…" : "OK"}
+              {okLoading ? (
+                /* ── スピナー（OK内に表示） ── */
+                <div style={{
+                  width: 56, height: 56,
+                  border: "5px solid rgba(255,255,255,0.25)",
+                  borderTopColor: "#fff",
+                  borderRadius: "50%",
+                  animation: "kiosk-spin 0.8s linear infinite",
+                }} />
+              ) : "OK"}
             </button>
           </div>
 
