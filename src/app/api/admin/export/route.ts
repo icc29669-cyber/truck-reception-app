@@ -55,7 +55,10 @@ export async function GET(req: NextRequest) {
         ...(centerId ? { centerId } : {}),
         arrivedAt: { gte: fromDate, lt: toDate },
       },
-      include: { center: { select: { name: true } } },
+      include: {
+        center: { select: { name: true } },
+        reservation: { select: { startTime: true, endTime: true } },
+      },
       orderBy: [{ centerId: "asc" }, { arrivedAt: "asc" }],
     });
 
@@ -73,11 +76,16 @@ export async function GET(req: NextRequest) {
       ひらがな: r.plateHira,
       番号: r.plateNumber,
       最大積載量kg: r.maxLoad,
+      予約有無: r.reservation ? "あり" : "なし",
+      予約時間帯: r.reservation
+        ? `${r.reservation.startTime}-${r.reservation.endTime}`
+        : "",
     }));
 
     const csv = toCSV(rows as Record<string, string | number>[]);
     const fmtLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    const filename = `reception_${from || fmtLocal(fromDate)}_${to || fmtLocal(fromDate)}.csv`;
+    const endDisplay = new Date(toDate); endDisplay.setDate(endDisplay.getDate() - 1);
+    const filename = `reception_${from || fmtLocal(fromDate)}_${to || fmtLocal(endDisplay)}.csv`;
 
     return new NextResponse(csv, {
       headers: {

@@ -12,6 +12,8 @@ type Vehicle = {
   maxLoad: string;
   phone: string;
   isActive: boolean;
+  createdAt: string;
+  lastReceptionAt: string | null;
 };
 
 type FormData = {
@@ -191,7 +193,7 @@ export default function VehiclesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  {["ID", "車両番号", "地域", "分類", "ひらがな", "番号", "最大積載量", "電話番号", "状態", "操作"].map((h) => (
+                  {["ID", "ナンバープレート", "最大積載量", "電話番号", "初回登録", "最終受付", "状態", "操作"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                       {h}
                     </th>
@@ -208,15 +210,40 @@ export default function VehiclesPage() {
                     }
                   >
                     <td className="px-4 py-3 font-mono text-gray-500">{v.id}</td>
-                    <td className="px-4 py-3 font-mono font-bold text-gray-900">{v.vehicleNumber}</td>
-                    <td className="px-4 py-3 text-gray-700">{v.region || "\u2014"}</td>
-                    <td className="px-4 py-3 text-gray-700">{v.classNum || "\u2014"}</td>
-                    <td className="px-4 py-3 text-gray-700">{v.hira || "\u2014"}</td>
-                    <td className="px-4 py-3 font-mono text-gray-700">{v.number || "\u2014"}</td>
+                    <td className="px-4 py-3">
+                      {v.region || v.classNum || v.hira || v.number ? (
+                        <div className="inline-flex items-stretch border-2 border-green-700 rounded-md overflow-hidden bg-white" style={{ minWidth: 180 }}>
+                          <div className="flex flex-col items-center justify-center px-2 py-1">
+                            <span className="text-xs font-bold text-gray-800 leading-tight">{v.region || "---"}</span>
+                            <span className="text-xs text-gray-500 leading-tight">{v.classNum || "---"}</span>
+                          </div>
+                          <div className="flex items-center justify-center px-1.5 border-l border-green-700/30">
+                            <span className="text-sm text-gray-600">{v.hira || "-"}</span>
+                          </div>
+                          <div className="flex items-center justify-center px-3 border-l border-green-700/30 bg-white">
+                            <span className="text-lg font-bold font-mono tracking-wider text-gray-900">{v.number || "----"}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-gray-700">{v.vehicleNumber || "\u2014"}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right text-gray-700">
                       {v.maxLoad ? Number(v.maxLoad).toLocaleString() + " kg" : "\u2014"}
                     </td>
                     <td className="px-4 py-3 text-gray-600 font-mono">{v.phone || "\u2014"}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                      {v.createdAt ? new Date(v.createdAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "\u2014"}
+                    </td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap">
+                      {v.lastReceptionAt ? (
+                        <span className="text-blue-600 font-semibold">
+                          {new Date(v.lastReceptionAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">{"\u2014"}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={

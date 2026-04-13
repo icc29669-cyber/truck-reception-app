@@ -41,7 +41,7 @@ export default function MaxLoadPage() {
         style={{ background: "#1a3a6b" }}
       >
         <button
-          onPointerDown={() => router.back()}
+          onPointerDown={() => router.push("/kiosk/vehicle-select")}
           className="min-h-[56px] px-8 rounded-xl border-2 text-2xl font-bold active:opacity-80 transition-opacity"
           style={{ borderColor: "white", color: "white", background: "transparent" }}
         >

@@ -13,6 +13,8 @@ const NAV_ITEMS = [
   { href: "/admin/masters", label: "マスタ管理", icon: "\u2699\uFE0F" },
 ];
 
+const BERTH_ADMIN_URL = process.env.NEXT_PUBLIC_BERTH_ADMIN_URL || "";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [dateStr, setDateStr] = useState("");
@@ -60,7 +62,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-200">
+        <div className="px-5 py-3 border-t border-gray-200 space-y-2">
+          {BERTH_ADMIN_URL && (
+            <a
+              href={BERTH_ADMIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs text-blue-500 hover:text-blue-700 transition-colors font-semibold"
+            >
+              <span>{"\u{1F517}"}</span>
+              <span>予約システム管理画面</span>
+            </a>
+          )}
           <Link
             href="/kiosk"
             className="text-xs text-gray-400 hover:text-blue-500 transition-colors"

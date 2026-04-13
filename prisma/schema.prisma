@@ -9,12 +9,20 @@ datasource db {
 
 // ─── センター（拠点）───────────────────────────────────────
 model Center {
-  id        Int      @id @default(autoincrement())
-  code      String   @default("")   // 4桁センターコード 例: "3101"
-  name      String
-  secretKey String   @default("")
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id                     Int      @id @default(autoincrement())
+  code                   String   @default("")   // 4桁センターコード 例: "3101"
+  name                   String
+  secretKey              String   @default("")
+  isActive               Boolean  @default(true)
+  openTime               String   @default("08:00")
+  closeTime              String   @default("18:00")
+  slotDurationMinutes    Int      @default(60)
+  closedOnSunday         Boolean  @default(true)
+  closedOnHoliday        Boolean  @default(true)
+  hasBreak               Boolean  @default(false)
+  breakStart             String   @default("12:00")
+  breakEnd               String   @default("13:00")
+  createdAt              DateTime @default(now())
 
   receptions   Reception[]
   reservations Reservation[]
@@ -51,6 +59,8 @@ model Driver {
 
   company    Company?    @relation(fields: [companyId], references: [id])
   receptions Reception[]
+
+  @@unique([phone, name, companyName], name: "driver_phone_name_company")
 }
 
 // ─── 車両 ──────────────────────────────────────────────────
@@ -68,6 +78,8 @@ model Vehicle {
   updatedAt     DateTime @updatedAt
 
   receptions Reception[]
+
+  @@unique([vehicleNumber, phone], name: "vehicle_number_phone")
 }
 
 // ─── ナンバープレート地名マスタ ────────────────────────────

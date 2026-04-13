@@ -7,6 +7,7 @@ type Company = {
   name: string;
   phone: string;
   isActive: boolean;
+  driverCount?: number;
 };
 
 type FormData = { name: string; phone: string };
@@ -152,7 +153,7 @@ export default function CompaniesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  {["ID", "会社名", "電話番号", "状態", "操作"].map((h) => (
+                  {["ID", "会社名", "電話番号", "ドライバー数", "状態", "操作"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                       {h}
                     </th>
@@ -171,6 +172,22 @@ export default function CompaniesPage() {
                     <td className="px-4 py-3 font-mono text-gray-500">{c.id}</td>
                     <td className="px-4 py-3 font-semibold text-gray-800">{c.name}</td>
                     <td className="px-4 py-3 text-gray-600 font-mono">{c.phone || "\u2014"}</td>
+                    <td className="px-4 py-3 text-center">
+                      {c.driverCount != null ? (
+                        <span
+                          className={
+                            "inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full text-xs font-bold " +
+                            (c.driverCount > 0
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-400")
+                          }
+                        >
+                          {c.driverCount}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">{"\u2014"}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={

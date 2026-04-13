@@ -124,7 +124,8 @@ export async function lookupByPlate(
 
 export async function lookupByPhone(
   phone: string,
-  centerId: number
+  centerId: number,
+  signal?: AbortSignal
 ): Promise<{ drivers: DriverCandidate[]; vehicles: VehicleCandidate[] }> {
   if (USE_MOCK) {
     await delay(600);
@@ -132,7 +133,7 @@ export async function lookupByPhone(
   }
   const res = await fetch(
     `${BASE}/api/reception/lookup-phone?phone=${encodeURIComponent(phone)}&centerId=${centerId}`,
-    { headers: headers() }
+    { headers: headers(), signal }
   );
   if (!res.ok) return { drivers: [], vehicles: [] };
   return res.json();
@@ -142,7 +143,8 @@ export async function lookupByPhone(
 export async function lookupReservation(
   phone: string,
   centerId: number,
-  centerName?: string
+  centerName?: string,
+  signal?: AbortSignal
 ): Promise<ReservationCandidate[]> {
   if (USE_MOCK) {
     await delay(400);
@@ -183,7 +185,7 @@ export async function lookupReservation(
   const nameParam = centerName ? `&centerName=${encodeURIComponent(centerName)}` : "";
   const res = await fetch(
     `${BASE}/api/reception/lookup-reservation?phone=${encodeURIComponent(phone)}&centerId=${centerId}${nameParam}`,
-    { headers: headers() }
+    { headers: headers(), signal }
   );
   if (!res.ok) return [];
   return res.json();
@@ -196,6 +198,7 @@ export async function registerReception(params: {
   driverInput?: DriverInput;
   driverData?: DriverInput;
   reservationId?: number;
+  reservationSource?: "local" | "berth";
 }): Promise<ReceptionResult> {
   const normalizedParams = {
     phone: params.phone,
@@ -203,6 +206,7 @@ export async function registerReception(params: {
     plate: params.plate ?? { region: "", classNum: "", hira: "", number: "" },
     driverInput: params.driverInput ?? params.driverData ?? { companyName: "", driverName: "", phone: params.phone, maxLoad: "" },
     reservationId: params.reservationId,
+    reservationSource: params.reservationSource,
   };
   if (USE_MOCK) {
     await delay(800);

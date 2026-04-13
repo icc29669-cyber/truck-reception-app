@@ -8,33 +8,33 @@ import { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
 import KatakanaKeyboard from "@/components/KatakanaKeyboard";
 
 /* ━━ プレートデータ ━━ */
-const REGION_MAP: Record<string, string[]> = {
-  あ:["会津","足立","厚木","旭川","安曇野","青森","秋田","奄美"],
-  い:["いわき","一宮","伊勢志摩","伊豆","石川","出雲","市川","市原","板橋","岩手","茨城","和泉"],
-  う:["宇都宮","宇部"], え:["江戸川"],
-  お:["帯広","岡崎","岡山","小山","大宮","大分","大阪","沖縄","尾張小牧"],
-  か:["加古川","香川","葛飾","鹿児島","柏","春日井","春日部","川越","川口","川崎","金沢"],
-  き:["京都","岐阜","北九州","北見","木更津"],
-  く:["釧路","久留米","熊谷","熊本","倉敷"],
-  こ:["江東","越谷","甲府","古河","神戸","高知","郡山"],
-  さ:["佐賀","佐世保","堺","相模","相模原","札幌"],
-  し:["滋賀","下関","庄内","知床","品川","島根","静岡"],
-  す:["諏訪","鈴鹿","杉並"], せ:["世田谷","仙台"], そ:["袖ヶ浦"],
-  た:["高崎","高松","多摩","高槻"], ち:["千葉","千代田","筑豊"],
-  つ:["つくば","土浦","鶴見"],
-  と:["十勝","徳島","とちぎ","苫小牧","豊田","豊橋","所沢","鳥取","富山"],
-  な:["長岡","長崎","長野","名古屋","なにわ","奈良","那須","那覇","成田","習志野"],
-  に:["新潟","西宮","日光"], ぬ:["沼津"], ね:["練馬"], の:["野田"],
-  は:["八王子","八戸","函館","浜松"],
-  ひ:["東大阪","飛騨","弘前","広島","姫路","平泉"],
-  ふ:["福井","福岡","福島","福山","富士","富士山","府中","船橋"],
-  ま:["前橋","町田","松江","松戸","松山","松本"],
-  み:["三河","三重","宮城","宮崎","宮古","水戸","南大阪","南信州"],
-  む:["室蘭","武蔵野","武蔵府中"], め:["目黒"], も:["盛岡","茂原"],
-  や:["八尾","八重山","山形","山口","山梨"],
-  よ:["横須賀","横浜","米子","四日市"],
-  ら:[],り:[],る:[],れ:[],ろ:[], わ:["和歌山"], を:[], ん:[],
-};
+interface PlateRegion {
+  id: number;
+  name: string;
+  kana: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+// API失敗時のフォールバック地名リスト（主要地名＋読み仮名）
+const FALLBACK_REGIONS: PlateRegion[] = ([
+  ["札幌","さっぽろ"],["函館","はこだて"],["旭川","あさひかわ"],["室蘭","むろらん"],["帯広","おびひろ"],["釧路","くしろ"],["北見","きたみ"],
+  ["青森","あおもり"],["八戸","はちのへ"],["岩手","いわて"],["宮城","みやぎ"],["秋田","あきた"],["山形","やまがた"],["福島","ふくしま"],["いわき","いわき"],
+  ["水戸","みと"],["つくば","つくば"],["宇都宮","うつのみや"],["とちぎ","とちぎ"],["群馬","ぐんま"],["前橋","まえばし"],["高崎","たかさき"],
+  ["大宮","おおみや"],["所沢","ところざわ"],["熊谷","くまがや"],["春日部","かすかべ"],["川越","かわごえ"],["川口","かわぐち"],["越谷","こしがや"],
+  ["千葉","ちば"],["成田","なりた"],["習志野","ならしの"],["野田","のだ"],["柏","かしわ"],["袖ヶ浦","そでがうら"],["船橋","ふなばし"],["松戸","まつど"],
+  ["品川","しながわ"],["世田谷","せたがや"],["練馬","ねりま"],["杉並","すぎなみ"],["板橋","いたばし"],["足立","あだち"],["江東","こうとう"],["葛飾","かつしか"],["八王子","はちおうじ"],["多摩","たま"],
+  ["横浜","よこはま"],["川崎","かわさき"],["相模","さがみ"],["湘南","しょうなん"],
+  ["新潟","にいがた"],["長岡","ながおか"],["長野","ながの"],["松本","まつもと"],["富山","とやま"],["金沢","かなざわ"],["石川","いしかわ"],["福井","ふくい"],
+  ["山梨","やまなし"],["岐阜","ぎふ"],["静岡","しずおか"],["浜松","はままつ"],["沼津","ぬまづ"],["富士山","ふじさん"],
+  ["名古屋","なごや"],["豊橋","とよはし"],["三河","みかわ"],["岡崎","おかざき"],["豊田","とよた"],["尾張小牧","おわりこまき"],["一宮","いちのみや"],["春日井","かすがい"],
+  ["三重","みえ"],["鈴鹿","すずか"],
+  ["滋賀","しが"],["京都","きょうと"],["大阪","おおさか"],["なにわ","なにわ"],["和泉","いずみ"],["堺","さかい"],
+  ["神戸","こうべ"],["姫路","ひめじ"],["奈良","なら"],["和歌山","わかやま"],
+  ["鳥取","とっとり"],["島根","しまね"],["岡山","おかやま"],["倉敷","くらしき"],["広島","ひろしま"],["福山","ふくやま"],["山口","やまぐち"],["下関","しものせき"],
+  ["徳島","とくしま"],["香川","かがわ"],["愛媛","えひめ"],["高知","こうち"],
+  ["福岡","ふくおか"],["北九州","きたきゅうしゅう"],["久留米","くるめ"],["佐賀","さが"],["長崎","ながさき"],["熊本","くまもと"],["大分","おおいた"],["宮崎","みやざき"],["鹿児島","かごしま"],["沖縄","おきなわ"],
+] as [string, string][]).map(([name, kana], i) => ({ id: 9000 + i, name, kana, sortOrder: i, isActive: true }));
 const KANA_ROWS: (string|null)[][] = [
   ["あ","い","う","え","お"],
   ["か","き","く","け","こ"],
@@ -143,6 +143,24 @@ function PlatePanel({ plate, onChange }: {
     return "number";
   });
   const [kanaFilter, setKanaFilter] = useState<string|null>(null);
+  const [regions, setRegions] = useState<PlateRegion[]>([]);
+
+  // DBから地名マスタ取得（失敗時はフォールバック）
+  useEffect(() => {
+    fetch("/api/plate-masters")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.regions && data.regions.length > 0) setRegions(data.regions);
+        else setRegions(FALLBACK_REGIONS);
+      })
+      .catch(() => setRegions(FALLBACK_REGIONS));
+  }, []);
+
+  // ひらがな頭文字でフィルタした地名リスト
+  const regionList = kanaFilter
+    ? regions.filter((r) => r.kana.startsWith(kanaFilter))
+    : [];
+
   const color = detectPlateColor(plate.classNum, plate.hira);
   const { bg, text, dim, border } = COLOR_CONFIG[color];
   const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
@@ -224,10 +242,10 @@ function PlatePanel({ plate, onChange }: {
                   {KANA_ROWS.map((row,ri)=>(
                     <div key={ri} className="flex gap-2">
                       {row.map((k,ci)=>k===null
-                        ? <div key={ci} style={{width:64,height:64}}/>
+                        ? <div key={ci} style={{width:80,height:80}}/>
                         : <button key={ci} onPointerDown={()=>setKanaFilter(k)}
                             className="flex items-center justify-center font-bold rounded-xl border-2 border-gray-200 bg-white text-gray-800 active:bg-blue-50 shadow-[0_3px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[2px] transition-all duration-75"
-                            style={{width:64,height:64,fontSize:26}}>
+                            style={{width:80,height:80,fontSize:26}}>
                             {k}
                           </button>
                       )}
@@ -244,11 +262,11 @@ function PlatePanel({ plate, onChange }: {
                   <span style={{fontSize:22,fontWeight:700,color:"#475569"}}>「{kanaFilter}」から始まる地名</span>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {(REGION_MAP[kanaFilter]||[]).map(r=>(
-                    <button key={r} onPointerDown={()=>{onChange({region:r});setKanaFilter(null);setTimeout(()=>setSection("classNum"),100);}}
+                  {regionList.map(r=>(
+                    <button key={r.id} onPointerDown={()=>{onChange({region:r.name});setKanaFilter(null);setTimeout(()=>setSection("classNum"),100);}}
                       className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-blue-50 shadow-[0_3px_0_#BDBDBD] active:translate-y-[2px] transition-all"
                       style={{height:72,padding:"0 24px",fontSize:30,minWidth:120}}>
-                      {r}
+                      {r.name}
                     </button>
                   ))}
                 </div>
@@ -368,6 +386,10 @@ export default function DataConfirmPage() {
     if (initRef.current) return;
     initRef.current = true;
     const s = getKioskSession();
+    if (!s.phone || !s.centerId) {
+      router.replace("/kiosk");
+      return;
+    }
     setCompany(s.driverInput.companyName ?? "");
     setName(s.driverInput.driverName ?? "");
     setMaxLoad(s.driverInput.maxLoad ?? "");

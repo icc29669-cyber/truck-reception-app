@@ -6,18 +6,33 @@ export async function GET(req: NextRequest) {
     const search = req.nextUrl.searchParams.get("search") || "";
 
     const companies = await prisma.company.findMany({
-      where: search
-        ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { phone: { contains: search } },
-            ],
-          }
-        : undefined,
+      where: {
+        isActive: true,
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { phone: { contains: search } },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        _count: {
+          select: { drivers: { where: { isActive: true } } },
+        },
+      },
       orderBy: { id: "asc" },
     });
 
-    return NextResponse.json(companies);
+    // Flatten _count into driverCount for frontend consumption
+    const result = companies.map((c) => ({
+      ...c,
+      driverCount: c._count.drivers,
+      _count: undefined,
+    }));
+
+    return NextResponse.json(result);
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });

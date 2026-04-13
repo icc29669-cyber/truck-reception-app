@@ -3,66 +3,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import { lookupByPhone, lookupReservation } from "@/lib/api";
+import { fmtPhone, isMobilePrefix, getJpAreaMap } from "@/lib/phoneFormat";
 
-// ── 電話番号フォーマット（truck-berth-app準拠） ──
-const MOBILE_PREFIXES = ["070", "080", "090"];
-const JP_AREA: Record<string, number> = {
-  "0120": 2, "0570": 2, "0800": 2, "0990": 2,
-  "0494": 2, "0493": 2, "0492": 2, "0491": 2, "0490": 2,
-  "0480": 2, "0479": 2, "0478": 2, "0477": 2, "0476": 2,
-  "0475": 2, "0474": 2, "0472": 2, "0471": 2, "0470": 2,
-  "0467": 2, "0466": 2, "0465": 2, "0463": 2, "0460": 2,
-  "0439": 2, "0438": 2, "0436": 2, "0428": 2, "0426": 2,
-  "0267": 2, "0266": 2, "0265": 2, "0264": 2, "0263": 2,
-  "0261": 2, "0260": 2, "0259": 2, "0258": 2, "0257": 2,
-  "0256": 2, "0255": 2, "0254": 2, "0250": 2,
-  "0246": 2, "0244": 2, "0243": 2, "0242": 2, "0241": 2,
-  "0240": 2, "0237": 2, "0235": 2, "0234": 2, "0233": 2,
-  "0229": 2, "0228": 2, "0227": 2, "0226": 2, "0225": 2,
-  "0224": 2, "0223": 2, "0220": 2,
-  "0197": 2, "0195": 2, "0194": 2, "0193": 2, "0192": 2,
-  "0191": 2, "0187": 2, "0186": 2, "0185": 2, "0184": 2,
-  "0183": 2, "0182": 2, "0180": 2, "0179": 2, "0178": 2,
-  "0176": 2, "0175": 2, "0174": 2, "0173": 2, "0172": 2,
-  "0170": 2, "0167": 2, "0166": 2, "0165": 2, "0164": 2,
-  "0163": 2, "0162": 2, "0158": 2, "0157": 2, "0156": 2,
-  "0155": 2, "0154": 2, "0153": 2, "0152": 2, "0146": 2,
-  "0145": 2, "0144": 2, "0143": 2, "0142": 2, "0135": 2,
-  "0134": 2, "0133": 2, "0132": 2, "0125": 2, "0124": 2,
-  "0123": 2,
-  "011": 3, "012": 3, "013": 3, "014": 3, "015": 3, "016": 3, "017": 3, "018": 3, "019": 3,
-  "022": 3, "023": 3, "024": 3, "025": 3, "026": 3, "027": 3, "028": 3, "029": 3,
-  "042": 3, "043": 3, "044": 3, "045": 3, "046": 3, "047": 3, "048": 3, "049": 3,
-  "052": 3, "053": 3, "054": 3, "055": 3, "056": 3, "057": 3, "058": 3, "059": 3,
-  "072": 3, "073": 3, "074": 3, "075": 3, "076": 3, "077": 3, "078": 3, "079": 3,
-  "082": 3, "083": 3, "084": 3, "085": 3, "086": 3, "087": 3, "088": 3, "089": 3,
-  "092": 3, "093": 3, "094": 3, "095": 3, "096": 3, "097": 3, "098": 3, "099": 3,
-  "03": 4, "06": 4, "04": 4,
-};
-function isMobilePrefix(digits: string) {
-  return MOBILE_PREFIXES.some((p) => digits.startsWith(p));
-}
-function fmtPhone(digits: string): string {
-  if (digits.length === 0) return "";
-  if (isMobilePrefix(digits)) {
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
-  }
-  for (const areaLen of [4, 3, 2]) {
-    const prefix = digits.slice(0, areaLen);
-    const midLen = JP_AREA[prefix];
-    if (midLen !== undefined) {
-      const midEnd = areaLen + midLen;
-      if (digits.length <= areaLen) return digits;
-      if (digits.length <= midEnd) return `${digits.slice(0, areaLen)}-${digits.slice(areaLen)}`;
-      return `${digits.slice(0, areaLen)}-${digits.slice(areaLen, midEnd)}-${digits.slice(midEnd, 10)}`;
-    }
-  }
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-}
+const JP_AREA = getJpAreaMap();
 
 /* ━━ ステップドット ━━ */
 function StepDots({ current }: { current: number }) {
@@ -110,9 +53,9 @@ function StepDots({ current }: { current: number }) {
 // ── レイアウト定数 ──
 const W        = 180;  // テンキーボタン幅
 const WP       = 165;  // プレフィックスボタン幅
-const WA       = 180;  // アクションボタン幅
-const H        = 120;  // ボタン高さ
-const GAP      = 24;   // ボタン間隔
+const WA       = 200;  // アクションボタン幅（OK大型化に合わせ拡大）
+const H        = 130;  // ボタン高さ（手袋対応で130px）
+const GAP      = 16;   // ボタン間隔
 const FONT_NUM   = 52;
 const FONT_PRE   = 40;
 const FONT_INPUT = 72;
@@ -125,6 +68,7 @@ export default function PhonePage() {
   const [loading, setLoading] = useState(false);
   const [fromFinal, setFromFinal] = useState(false);
   const [phoneError, setPhoneError] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -153,11 +97,15 @@ export default function PhonePage() {
   async function submit(p: string) {
     const session = getKioskSession();
     setLoading(true);
+    setError("");
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       const [result, reservations] = await Promise.all([
-        lookupByPhone(p, session.centerId),
-        fromFinal ? Promise.resolve([]) : lookupReservation(p, session.centerId, session.centerName),
+        lookupByPhone(p, session.centerId, controller.signal),
+        fromFinal ? Promise.resolve([]) : lookupReservation(p, session.centerId, session.centerName, controller.signal),
       ]);
+      clearTimeout(timeoutId);
       setKioskSession({
         phone: p,
         driverInput: { ...session.driverInput, phone: p },
@@ -172,16 +120,56 @@ export default function PhonePage() {
         router.push("/kiosk/final-confirm");
       } else if (reservations.length > 0) {
         router.push("/kiosk/reservation-select");
+      } else if (
+        result.drivers.length === 1 &&
+        result.vehicles.length === 1 &&
+        reservations.length === 0
+      ) {
+        // ドライバー1名・車両1台のみ → 選択画面をスキップして確認画面へ直行
+        const d = result.drivers[0];
+        const v = result.vehicles[0];
+        setKioskSession({
+          selectedDriver: d,
+          selectedVehicle: v,
+          driverInput: {
+            ...session.driverInput,
+            phone: p,
+            companyName: d.companyName,
+            driverName: d.name,
+            maxLoad: v.maxLoad,
+          },
+          plate: v.plate,
+        });
+        router.push("/kiosk/data-confirm");
+      } else if (
+        result.drivers.length === 1 &&
+        result.vehicles.length === 0 &&
+        reservations.length === 0
+      ) {
+        // ドライバー1名・車両なし → ドライバー自動選択して確認画面へ
+        const d = result.drivers[0];
+        setKioskSession({
+          selectedDriver: d,
+          driverInput: {
+            ...session.driverInput,
+            phone: p,
+            companyName: d.companyName,
+            driverName: d.name,
+          },
+        });
+        router.push("/kiosk/data-confirm");
       } else {
         router.push("/kiosk/person");
       }
-    } finally {
+    } catch {
+      setError("検索に失敗しました。もう一度お試しください。");
       setLoading(false);
     }
   }
 
   function press(d: string) {
     if (phone.length >= 11 || loading) return;
+    setError("");
     const next = phone + d;
     setPhone(next);
     const err = validatePhone(next);
@@ -196,6 +184,7 @@ export default function PhonePage() {
     if (loading) return;
     setPhone(prefix);
     setPhoneError("");
+    setError("");
   }
 
   async function handleOk() {
@@ -212,6 +201,28 @@ export default function PhonePage() {
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
       style={{ background: "#F5F0E8" }}
     >
+      {/* ── スピナーアニメーション ── */}
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* ── フルページローディングオーバーレイ ── */}
+      {loading && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: 24,
+        }}>
+          <div style={{
+            width: 80, height: 80, border: "8px solid rgba(255,255,255,0.3)",
+            borderTopColor: "#fff", borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+          }} />
+          <div style={{ color: "#fff", fontSize: 32, fontWeight: 900 }}>
+            検索中...
+          </div>
+        </div>
+      )}
+
       {/* ── ヘッダー（TOP同様の薄いバー）── */}
       <div
         className="flex items-center px-8 gap-6 flex-shrink-0"
@@ -220,7 +231,7 @@ export default function PhonePage() {
         <button
           onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/caution")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 60, width: 160, fontSize: 28 }}
+          style={{ height: 80, width: 160, fontSize: 28 }}
         >
           ◀ 戻る
         </button>
@@ -260,6 +271,17 @@ export default function PhonePage() {
           }}>
             <span style={{ fontSize: 24, color: "#DC2626" }}>⚠</span>
             <span style={{ fontSize: 22, fontWeight: 700, color: "#DC2626" }}>{phoneError}</span>
+          </div>
+        )}
+        {error && (
+          <div style={{
+            marginTop: 14, padding: "18px 36px",
+            background: "#FEE2E2", border: "3px solid #EF4444", borderRadius: 16,
+            display: "flex", alignItems: "center", gap: 14,
+            maxWidth: totalW,
+          }}>
+            <span style={{ fontSize: 36, color: "#DC2626", flexShrink: 0 }}>⚠</span>
+            <span style={{ fontSize: 28, fontWeight: 800, color: "#DC2626" }}>{error}</span>
           </div>
         )}
       </div>
@@ -331,19 +353,22 @@ export default function PhonePage() {
               onPointerDown={handleOk}
               disabled={!isValid || loading}
               className={`flex items-center justify-center font-black rounded-2xl text-white
-                select-none touch-none transition-all duration-75 flex-1
+                select-none touch-none transition-all duration-75
                 ${isValid && !loading
-                  ? "shadow-[0_5px_0_#0F766E] active:shadow-[0_1px_0_#0F766E] active:translate-y-[3px]"
+                  ? "shadow-[0_8px_0_#0F766E] active:shadow-[0_2px_0_#0F766E] active:translate-y-[5px]"
                   : "opacity-40 cursor-not-allowed"
                 }`}
               style={{
-                fontSize: FONT_NUM,
+                minHeight: 200,
+                flex: 1,
+                fontSize: 64,
+                letterSpacing: "0.1em",
                 background: isValid && !loading
-                  ? "linear-gradient(180deg,#2DD4BF,#0D9488)"
+                  ? "linear-gradient(180deg,#34D399,#059669)"
                   : "#9CA3AF",
               }}
             >
-              {loading ? "…" : "OK"}
+              {loading ? "検索中…" : "OK"}
             </button>
           </div>
 

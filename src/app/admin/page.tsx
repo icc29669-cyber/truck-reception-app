@@ -39,6 +39,7 @@ export default function AdminPage() {
   const [date, setDate] = useState<string>("");
   const [receptions, setReceptions] = useState<Reception[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [exportFrom, setExportFrom] = useState("");
   const [exportTo, setExportTo]   = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -76,6 +77,7 @@ export default function AdminPage() {
   const fetchReceptions = useCallback(async () => {
     if (!date) return;
     setLoading(true);
+    setFetchError(false);
     try {
       const params = new URLSearchParams({ date });
       if (centerId) params.set("centerId", centerId);
@@ -85,6 +87,8 @@ export default function AdminPage() {
       setLastRefresh(new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
     } catch {
       setReceptions([]);
+      setFetchError(true);
+      showToast("受付データの取得に失敗しました");
     } finally {
       setLoading(false);
     }
@@ -317,15 +321,24 @@ export default function AdminPage() {
               </div>
               {filtered.length === 0 && !loading ? (
                 <div className="py-16 text-center text-gray-400">
-                  <div className="text-4xl mb-3">📋</div>
-                  <div className="text-lg font-semibold">{search ? "該当する受付はありません" : "この日の受付はありません"}</div>
+                  {fetchError ? (
+                    <>
+                      <div className="text-4xl mb-3 text-red-400">&#x26A0;&#xFE0F;</div>
+                      <div className="text-lg font-semibold text-red-500">データ取得に失敗しました。更新ボタンをクリックしてリトライしてください。</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-4xl mb-3">📋</div>
+                      <div className="text-lg font-semibold">{search ? "該当する受付はありません" : "この日の受付はありません"}</div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        {["No.", "時刻", "センター", "運送会社", "ドライバー名", "電話番号", "ナンバープレート", "積載量(kg)", "予約"].map((h) => (
+                        {["受付No", "時刻", "センター", "運送会社", "ドライバー名", "電話番号", "ナンバープレート", "積載量(kg)", "予約"].map((h) => (
                           <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                         ))}
                       </tr>

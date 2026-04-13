@@ -7,6 +7,7 @@ export async function PUT(
 ) {
   try {
     const id = Number(params.id);
+    if (isNaN(id) || id <= 0) return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
     const body = await req.json();
     const { region, classNum, hira, number, vehicleNumber, maxLoad, phone, isActive } = body;
 
@@ -37,6 +38,7 @@ export async function DELETE(
 ) {
   try {
     const id = Number(params.id);
+    if (isNaN(id) || id <= 0) return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
 
     const vehicle = await prisma.vehicle.update({
       where: { id },

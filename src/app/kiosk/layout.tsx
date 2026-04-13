@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { clearKioskSession } from "@/lib/kioskState";
+
+/** 無操作タイムアウト（秒） — トップ画面以外で操作がなければ自動リセット */
+const INACTIVITY_TIMEOUT_SEC = 300; // 5分
 
 /**
  * キオスク共通レイアウト
  * - 全 button 要素にタップ時のフラッシュフィードバックを自動付与
+ * - 無操作タイムアウトで自動的にトップへ戻る
  */
 function requestFullscreen() {
   if (!document.fullscreenElement) {
@@ -14,6 +20,37 @@ function requestFullscreen() {
 
 export default function KioskLayout({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // トップ画面・完了画面ではタイムアウト不要
+  const isExemptPage = pathname === "/kiosk" || pathname === "/kiosk/complete";
+
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (isExemptPage) return;
+    timerRef.current = setTimeout(() => {
+      clearKioskSession();
+      router.replace("/kiosk");
+    }, INACTIVITY_TIMEOUT_SEC * 1000);
+  }, [isExemptPage, router]);
+
+  // 無操作タイムアウト
+  useEffect(() => {
+    if (isExemptPage) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      return;
+    }
+    const events = ["pointerdown", "keydown", "scroll"] as const;
+    const handler = () => resetTimer();
+    events.forEach((e) => document.addEventListener(e, handler));
+    resetTimer();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      events.forEach((e) => document.removeEventListener(e, handler));
+    };
+  }, [isExemptPage, resetTimer]);
 
   useEffect(() => {
     // ページ表示時・フォーカス復帰時に全画面を試みる

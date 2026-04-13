@@ -142,6 +142,7 @@ export default function PersonPage() {
   const [mounted, setMounted] = useState(false);
   const [fromFinal, setFromFinal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DriverCandidate | null>(null);
+  const [navigating, setNavigating] = useState(false);
 
   useEffect(() => {
     if (initRef.current) return;
@@ -188,6 +189,8 @@ export default function PersonPage() {
 
   /* 候補を選択 → 車両ページへ（final-confirmから来た場合はfinal-confirmへ） */
   function selectCandidate(c: DriverCandidate) {
+    if (navigating) return;
+    setNavigating(true);
     const s = getKioskSession();
     setKioskSession({
       selectedDriver: c,
@@ -198,11 +201,13 @@ export default function PersonPage() {
 
   /* 手入力を確定 */
   function submitInput() {
-    if (!company || !name) return;
+    if (navigating) return;
+    if (!company.trim() || !name.trim()) return;
+    setNavigating(true);
     const s = getKioskSession();
     setKioskSession({
       selectedDriver: null,
-      driverInput: { ...s.driverInput, companyName: company, driverName: name },
+      driverInput: { ...s.driverInput, companyName: company.trim(), driverName: name.trim() },
     });
     router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/vehicle");
   }
@@ -234,10 +239,13 @@ export default function PersonPage() {
 
   /* 入力完了ハンドラ（会社名・名前共通） */
   function handleInputComplete() {
+    if (navigating) return;
     if (inputField === "company") {
+      if (!company.trim()) return;
       if (fromFinal) {
+        setNavigating(true);
         const s = getKioskSession();
-        setKioskSession({ driverInput: { ...s.driverInput, companyName: company, driverName: name } });
+        setKioskSession({ driverInput: { ...s.driverInput, companyName: company.trim(), driverName: name.trim() } });
         router.push("/kiosk/final-confirm");
       } else {
         setInputField("name");
@@ -245,8 +253,9 @@ export default function PersonPage() {
     } else {
       if (!name.trim()) return;
       if (fromFinal) {
+        setNavigating(true);
         const s = getKioskSession();
-        setKioskSession({ driverInput: { ...s.driverInput, companyName: company, driverName: name } });
+        setKioskSession({ driverInput: { ...s.driverInput, companyName: company.trim(), driverName: name.trim() } });
         router.push("/kiosk/final-confirm");
       } else {
         submitInput();

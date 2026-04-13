@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { getKioskSession, clearKioskSession } from "@/lib/kioskState";
 import type { ReceptionResult } from "@/types/reception";
 
-const AUTO_RETURN = 10;
+const AUTO_RETURN = 15;
 
 export default function CompletePage() {
   const router = useRouter();
   const [result, setResult]       = useState<ReceptionResult | null>(null);
   const [countdown, setCountdown] = useState(AUTO_RETURN);
+  const [paused, setPaused]       = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -35,6 +36,15 @@ export default function CompletePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function pauseCountdown() {
+    if (paused) return;
+    setPaused(true);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }
+
   function goHome() {
     if (timerRef.current) clearInterval(timerRef.current);
     clearKioskSession();
@@ -48,7 +58,7 @@ export default function CompletePage() {
     : "";
 
   return (
-    <div className="w-screen h-screen overflow-hidden select-none" style={{
+    <div className="w-screen h-screen overflow-hidden select-none" onPointerDown={pauseCountdown} style={{
       display: "flex", flexDirection: "column",
       background: "#F5F0E8",
     }}>
@@ -122,9 +132,11 @@ export default function CompletePage() {
           </div>
         </div>
 
-        {/* カウントダウン */}
+        {/* カウントダウン or 一時停止メッセージ */}
         <div style={{ fontSize: 20, color: "#94A3B8", letterSpacing: "0.06em" }}>
-          {countdown}秒後に自動的に最初の画面に戻ります
+          {paused
+            ? "自動遷移を停止しました"
+            : `${countdown}秒後に自動的に最初の画面に戻ります`}
         </div>
 
         {/* 戻るボタン */}
@@ -141,7 +153,7 @@ export default function CompletePage() {
             letterSpacing: "0.1em",
           }}
         >
-          最初の画面に戻る
+          {paused ? "トップに戻る" : "最初の画面に戻る"}
         </button>
       </div>
     </div>

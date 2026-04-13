@@ -8,11 +8,20 @@ import type { VehicleCandidate } from "@/types/reception";
 export default function VehicleSelectPage() {
   const router = useRouter();
   const session = getKioskSession();
+
+  // セッション不完全な場合はトップへリダイレクト
+  if (typeof window !== "undefined" && (!session.phone || !session.centerId)) {
+    router.replace("/kiosk");
+  }
+
   const [vehicles, setVehicles] = useState<VehicleCandidate[]>(
     session.vehicleCandidates ?? []
   );
+  const [navigating, setNavigating] = useState(false);
 
   function selectVehicle(v: VehicleCandidate) {
+    if (navigating) return;
+    setNavigating(true);
     setKioskSession({
       selectedVehicle: v,
       plate: v.plate,
@@ -50,15 +59,6 @@ export default function VehicleSelectPage() {
           height: 110,
         }}
       >
-        {/* 表示されないお客様ボタン */}
-        <button
-          onPointerDown={notFound}
-          className="flex items-center justify-center font-bold rounded-2xl border-2 border-pink-400 bg-pink-500 text-white text-4xl active:bg-pink-600 flex-shrink-0"
-          style={{ height: 110, width: 400 }}
-        >
-          表示されないお客様
-        </button>
-
         {/* タイトル */}
         <h1 className="flex-1 text-5xl font-black text-white text-center">
           車両ナンバーを選択して下さい
@@ -66,11 +66,11 @@ export default function VehicleSelectPage() {
 
         {/* 戻るボタン */}
         <button
-          onPointerDown={() => router.back()}
+          onPointerDown={() => router.push("/kiosk/person")}
           className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white text-4xl active:bg-blue-800 flex-shrink-0"
           style={{ height: 90, width: 180 }}
         >
-          戻る
+          ◀ 戻る
         </button>
       </div>
 
@@ -88,8 +88,14 @@ export default function VehicleSelectPage() {
           </div>
         ) : (
           <div
-            className="grid gap-6 w-full"
-            style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
+            className="grid gap-6"
+            style={{
+              gridTemplateColumns: vehicles.length <= 2
+                ? `repeat(${vehicles.length}, minmax(0, 420px))`
+                : "repeat(3, 1fr)",
+              justifyContent: vehicles.length <= 2 ? "center" : undefined,
+              width: vehicles.length <= 2 ? undefined : "100%",
+            }}
           >
             {vehicles.map((v) => (
               <div
@@ -122,6 +128,17 @@ export default function VehicleSelectPage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* 表示されないお客様ボタン（フッター） */}
+      <div className="flex-shrink-0 px-10 pb-6">
+        <button
+          onPointerDown={notFound}
+          className="w-full flex items-center justify-center font-bold rounded-2xl border-3 border-orange-400 bg-orange-500 text-white text-4xl active:bg-orange-600 shadow-lg"
+          style={{ height: 100 }}
+        >
+          表示されないお客様はこちら
+        </button>
       </div>
     </div>
   );

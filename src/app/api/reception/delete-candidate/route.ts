@@ -15,8 +15,8 @@ export async function DELETE(req: NextRequest) {
     const body = await req.json();
     const { type, id } = body as { type: string; id: number };
 
-    if (!type || !id) {
-      return NextResponse.json({ error: "type と id は必須です" }, { status: 400 });
+    if (!type || !id || typeof id !== "number" || !Number.isInteger(id) || id <= 0) {
+      return NextResponse.json({ error: "type と有効な id は必須です" }, { status: 400 });
     }
 
     if (type === "driver") {

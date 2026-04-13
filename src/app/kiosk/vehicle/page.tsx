@@ -328,11 +328,16 @@ export default function VehiclePage() {
 
   async function confirmDelete() {
     if (!deleteTarget) return;
-    await apiDeleteCandidate("vehicle", deleteTarget.id);
-    const updated = candidates.filter((c) => c.id !== deleteTarget.id);
+    const targetId = deleteTarget.id;
+    setDeleteTarget(null); // 即座にモーダルを閉じて二重タップ防止
+    try {
+      await apiDeleteCandidate("vehicle", targetId);
+    } catch {
+      // API失敗しても UI 上は削除を反映（次回起動時に復活する可能性あり）
+    }
+    const updated = candidates.filter((c) => c.id !== targetId);
     setCandidates(updated);
     setKioskSession({ vehicleCandidates: updated });
-    setDeleteTarget(null);
     if (updated.length === 0) {
       setMode("input");
     }

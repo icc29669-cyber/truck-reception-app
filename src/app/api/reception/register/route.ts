@@ -1,9 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyKioskSecret } from "@/lib/auth";
+import { getJSTToday, getJSTDayRange } from "@/lib/jstDate";
 
 const BERTH_API_URL = process.env.BERTH_API_URL || "";
 const BERTH_KIOSK_SECRET = process.env.BERTH_KIOSK_SECRET || "";
+
+async function notifyBerthApp(url: string, secret: string, reservationId: number) {
+  const maxRetries = 3;
+  const delays = [0, 3000, 10000]; // immediate, 3s, 10s
+  for (let i = 0; i < maxRetries; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, delays[i]));
+    try {
+      const res = await fetch(`${url}/api/reception/checkin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Kiosk-Secret": secret },
+        body: JSON.stringify({ reservationId }),
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) return;
+      console.error(`berth-app checkin attempt ${i+1} failed: ${res.status}`);
+    } catch (e) {
+      console.error(`berth-app checkin attempt ${i+1} error:`, e);
+    }
+  }
+  console.error(`berth-app checkin failed after ${maxRetries} attempts for reservation ${reservationId}`);
+}
 
 function formatPlate(p: {
   region: string;
@@ -27,13 +49,21 @@ export async function POST(req: NextRequest) {
       plate = { region: "", classNum: "", hira: "", number: "" },
       driverInput = { companyName: "", driverName: "", phone: "", maxLoad: "" },
       reservationId,
+      reservationSource,
     } = body as {
       phone: string;
       centerId: number;
       plate?: { region: string; classNum: string; hira: string; number: string };
       driverInput?: { companyName: string; driverName: string; phone: string; maxLoad: string };
       reservationId?: number;
+      reservationSource?: "local" | "berth";
     };
+
+    // berth-app予約の場合、オフセット(+1000000)を除去して元のIDを取得
+    const isBerthReservation = reservationSource === "berth";
+    const originalBerthId = isBerthReservation && reservationId ? reservationId - 1000000 : undefined;
+    // ローカルDB用のreservationId（berth予約の場合はnull — ローカルDBには存在しない）
+    const localReservationId = isBerthReservation ? null : (reservationId ?? null);
 
     if (!phone || !/^\d{10,11}$/.test(phone)) {
       return NextResponse.json({ error: "正しい電話番号が必要です" }, { status: 400 });
@@ -57,73 +87,70 @@ export async function POST(req: NextRequest) {
 
     // ─── トランザクションで一括処理 ─────────────────────────
     const result = await prisma.$transaction(async (tx) => {
-      // 1. ドライバーをupsert（電話番号＋会社名＋名前が一致すれば更新、なければ作成）
-      let driver = await tx.driver.findFirst({
+      // 0. センター存在チェック
+      const center = await tx.center.findUnique({ where: { id: centerId } });
+      if (!center) {
+        throw new Error("INVALID_CENTER");
+      }
+
+      // 1. ドライバーをupsert（ユニーク制約: phone+name+companyName）
+      const driver = await tx.driver.upsert({
         where: {
-          phone: effectivePhone,
-          name: driverInput.driverName,
-          companyName: driverInput.companyName,
-        },
-      });
-      if (!driver) {
-        driver = await tx.driver.create({
-          data: {
+          driver_phone_name_company: {
             phone: effectivePhone,
             name: driverInput.driverName,
             companyName: driverInput.companyName,
           },
-        });
-      } else {
-        driver = await tx.driver.update({
-          where: { id: driver.id },
-          data: { updatedAt: new Date() },
-        });
-      }
+        },
+        create: {
+          phone: effectivePhone,
+          name: driverInput.driverName,
+          companyName: driverInput.companyName,
+        },
+        update: {
+          updatedAt: new Date(),
+        },
+      });
 
-      // 2. 車両をupsert（車番が一致すれば更新、なければ作成）
+      // 2. 車両をupsert（ユニーク制約: vehicleNumber+phone）
       let vehicle = null;
       if (vehicleNumber) {
-        vehicle = await tx.vehicle.findFirst({
-          where: { vehicleNumber, phone: effectivePhone },
-        });
-        if (!vehicle) {
-          vehicle = await tx.vehicle.create({
-            data: {
-              region: plate.region,
-              classNum: plate.classNum,
-              hira: plate.hira,
-              number: plate.number,
+        vehicle = await tx.vehicle.upsert({
+          where: {
+            vehicle_number_phone: {
               vehicleNumber,
-              maxLoad: driverInput.maxLoad ?? "",
               phone: effectivePhone,
             },
-          });
-        } else {
-          vehicle = await tx.vehicle.update({
-            where: { id: vehicle.id },
-            data: {
-              maxLoad: driverInput.maxLoad ?? vehicle.maxLoad,
-              updatedAt: new Date(),
-            },
-          });
-        }
+          },
+          create: {
+            region: plate.region,
+            classNum: plate.classNum,
+            hira: plate.hira,
+            number: plate.number,
+            vehicleNumber,
+            maxLoad: driverInput.maxLoad ?? "",
+            phone: effectivePhone,
+          },
+          update: {
+            maxLoad: driverInput.maxLoad || undefined,
+            updatedAt: new Date(),
+          },
+        });
       }
 
-      // 3. 本日のセンター受付連番を算出
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
+      // 3. 本日のセンター受付連番を算出（JST基準・MAXで欠番にも対応）
+      const { start: todayStart, end: todayEnd } = getJSTDayRange();
 
-      const todayCount = await tx.reception.count({
+      const maxResult = await tx.reception.aggregate({
         where: {
           centerId,
           arrivedAt: { gte: todayStart, lte: todayEnd },
         },
+        _max: { centerDailyNo: true },
       });
-      const centerDailyNo = todayCount + 1;
+      const centerDailyNo = (maxResult._max.centerDailyNo ?? 0) + 1;
 
-      // 4. 受付記録を作成（予約は berth-app 側で管理）
+      // 4. 受付記録を作成
       const reception = await tx.reception.create({
         data: {
           centerId,
@@ -139,19 +166,29 @@ export async function POST(req: NextRequest) {
           maxLoad: driverInput.maxLoad ?? "",
           driverId: driver.id,
           vehicleId: vehicle?.id ?? null,
-          reservationId: null, // 予約は berth-app 側で管理
+          reservationId: localReservationId,
         },
         include: { center: true },
       });
 
+      // 5. ローカル予約があれば checked_in に更新（berth-app予約は後でHTTP通知）
+      if (localReservationId) {
+        const resv = await tx.reservation.findUnique({ where: { id: localReservationId } });
+        if (resv && resv.status !== "cancelled") {
+          await tx.reservation.update({
+            where: { id: localReservationId },
+            data: { status: "checked_in" },
+          });
+        }
+      }
+
       return { reception, centerDailyNo };
     });
 
-    // 現在の待機台数（本日受付済み件数）
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // 現在の待機台数（本日受付済み件数・JST基準）
+    const { start: todayStartOut } = getJSTDayRange();
     const waitingCount = await prisma.reception.count({
-      where: { centerId, arrivedAt: { gte: todayStart } },
+      where: { centerId, arrivedAt: { gte: todayStartOut } },
     });
 
     const center = await prisma.center.findUnique({ where: { id: centerId } });
@@ -171,20 +208,17 @@ export async function POST(req: NextRequest) {
       barcodeValue: `RC-${result.reception.id}-${result.centerDailyNo}`,
     };
 
-    // ── berth-app に予約チェックインを通知（非同期・失敗しても受付は完了） ──
-    if (reservationId && BERTH_API_URL && BERTH_KIOSK_SECRET) {
-      fetch(`${BERTH_API_URL}/api/reception/checkin`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Kiosk-Secret": BERTH_KIOSK_SECRET,
-        },
-        body: JSON.stringify({ reservationId }),
-      }).catch((e) => console.error("berth-app checkin notification failed:", e));
+    // ── berth-app に予約チェックインを通知（非同期・リトライ付き・失敗しても受付は完了） ──
+    // berth-app予約の場合のみ通知（オフセット除去済みの元IDを使用）
+    if (originalBerthId && BERTH_API_URL && BERTH_KIOSK_SECRET) {
+      notifyBerthApp(BERTH_API_URL, BERTH_KIOSK_SECRET, originalBerthId);
     }
 
     return NextResponse.json(responseData);
   } catch (e) {
+    if (e instanceof Error && e.message === "INVALID_CENTER") {
+      return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
+    }
     console.error(e);
     return NextResponse.json({ error: "受付処理に失敗しました" }, { status: 500 });
   }

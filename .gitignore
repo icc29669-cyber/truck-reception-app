@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 *.bat
 
 .vercel
+.env.production

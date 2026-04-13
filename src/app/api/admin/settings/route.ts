@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const ALLOWED_KEYS = [
+  "kiosk_center_id",
+  "last_center_sync",
+  "last_driver_sync",
+  "last_holiday_sync",
+  "last_reservation_sync",
+  "holidays",
+];
+
 // GET: 全設定を取得
 export async function GET() {
   try {
@@ -21,6 +30,9 @@ export async function PUT(req: NextRequest) {
     const { key, value } = body;
     if (!key) {
       return NextResponse.json({ error: "keyは必須です" }, { status: 400 });
+    }
+    if (!ALLOWED_KEYS.includes(key)) {
+      return NextResponse.json({ error: "許可されていない設定キーです" }, { status: 400 });
     }
     const setting = await prisma.setting.upsert({
       where: { key },

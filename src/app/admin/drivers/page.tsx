@@ -12,6 +12,8 @@ type Driver = {
   isActive: boolean;
   companyId: number | null;
   company: Company | null;
+  createdAt: string;
+  lastReceptionAt: string | null;
 };
 
 type FormData = {
@@ -209,7 +211,7 @@ export default function DriversPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  {["ID", "氏名", "会社名", "電話番号", "状態", "操作"].map((h) => (
+                  {["ID", "氏名", "会社名", "電話番号", "初回登録", "最終受付", "状態", "操作"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                       {h}
                     </th>
@@ -229,6 +231,18 @@ export default function DriversPage() {
                     <td className="px-4 py-3 font-bold text-gray-900">{d.name}</td>
                     <td className="px-4 py-3 font-semibold text-gray-800">{d.companyName || (d.company?.name ?? "\u2014")}</td>
                     <td className="px-4 py-3 text-gray-600 font-mono">{d.phone || "\u2014"}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                      {d.createdAt ? new Date(d.createdAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "\u2014"}
+                    </td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap">
+                      {d.lastReceptionAt ? (
+                        <span className="text-blue-600 font-semibold">
+                          {new Date(d.lastReceptionAt).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">{"\u2014"}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={

@@ -44,6 +44,8 @@ export interface ReservationCandidate {
   plateHira: string;
   plateNumber: string;
   status: string;
+  /** "local" = reception-app内予約, "berth" = berth-app予約（IDにオフセット+1000000済み） */
+  source?: "local" | "berth";
 }
 
 export interface ReceptionResult {
