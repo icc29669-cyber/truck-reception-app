@@ -46,8 +46,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "設定されたセンターが無効です" }, { status: 404 });
     }
     return NextResponse.json(center);
-  } catch (e) {
+  } catch (e: unknown) {
     console.error(e);
-    return NextResponse.json({ error: "設定の取得に失敗しました" }, { status: 500 });
+    const msg = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ error: "設定の取得に失敗しました", detail: msg }, { status: 500 });
   }
 }
