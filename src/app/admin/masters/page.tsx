@@ -6,7 +6,13 @@ import { useState, useEffect, useCallback } from "react";
 type PlateRegion = { id: number; name: string; kana: string; sortOrder: number; isActive: boolean };
 type PlateHiragana = { id: number; char: string; category: string; sortOrder: number; isActive: boolean };
 type PlateAlphabet = { id: number; char: string; sortOrder: number; isActive: boolean };
-type Center = { id: number; code: string; name: string; secretKey: string; isActive: boolean };
+type Center = {
+  id: number; code: string; name: string; secretKey: string; isActive: boolean;
+  openTime: string; closeTime: string;
+  hasBreak: boolean; breakStart: string; breakEnd: string;
+  closedOnSunday: boolean; closedOnHoliday: boolean;
+  messageOpen: string; messageBreak: string; messageClosed: string; messageOutsideHours: string;
+};
 
 type Tab = "regions" | "hiragana" | "alphabet" | "centers" | "printer" | "sync";
 
@@ -491,7 +497,17 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ code: "", name: "", secretKey: "", isActive: true });
+  const defaultForm = {
+    code: "", name: "", secretKey: "", isActive: true,
+    openTime: "08:00", closeTime: "18:00",
+    hasBreak: false, breakStart: "12:00", breakEnd: "13:00",
+    closedOnSunday: true, closedOnHoliday: true,
+    messageOpen: "いらっしゃいませ",
+    messageBreak: "ただいま昼休みです　しばらくお待ちください",
+    messageClosed: "本日の受付は終了しました",
+    messageOutsideHours: "受付時間外です",
+  };
+  const [form, setForm] = useState(defaultForm);
   const [syncing, setSyncing] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -506,8 +522,21 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openAdd = () => { setEditId(null); setForm({ code: "", name: "", secretKey: "", isActive: true }); setShowModal(true); };
-  const openEdit = (c: Center) => { setEditId(c.id); setForm({ code: c.code || "", name: c.name, secretKey: c.secretKey, isActive: c.isActive }); setShowModal(true); };
+  const openAdd = () => { setEditId(null); setForm({ ...defaultForm }); setShowModal(true); };
+  const openEdit = (c: Center) => {
+    setEditId(c.id);
+    setForm({
+      code: c.code || "", name: c.name, secretKey: c.secretKey, isActive: c.isActive,
+      openTime: c.openTime || "08:00", closeTime: c.closeTime || "18:00",
+      hasBreak: c.hasBreak ?? false, breakStart: c.breakStart || "12:00", breakEnd: c.breakEnd || "13:00",
+      closedOnSunday: c.closedOnSunday ?? true, closedOnHoliday: c.closedOnHoliday ?? true,
+      messageOpen: c.messageOpen || "いらっしゃいませ",
+      messageBreak: c.messageBreak || "ただいま昼休みです　しばらくお待ちください",
+      messageClosed: c.messageClosed || "本日の受付は終了しました",
+      messageOutsideHours: c.messageOutsideHours || "受付時間外です",
+    });
+    setShowModal(true);
+  };
 
   const handleSyncCenters = async () => {
     setSyncing(true);
@@ -574,7 +603,7 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {["CD", "センター名", "シークレットキー", "状態", "操作"].map((h) => (
+                {["CD", "センター名", "営業時間", "休憩", "状態", "操作"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -584,7 +613,8 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
                 <tr key={c.id} className={"hover:bg-blue-50 transition-colors " + (i % 2 === 0 ? "bg-white" : "bg-gray-50/50")}>
                   <td className="px-4 py-3 font-mono text-gray-700 font-bold">{c.code || "—"}</td>
                   <td className="px-4 py-3 font-semibold text-gray-800">{c.name}</td>
-                  <td className="px-4 py-3 font-mono text-gray-500">{c.secretKey ? "****" : "\u2014"}</td>
+                  <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{c.openTime || "08:00"} 〜 {c.closeTime || "18:00"}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">{c.hasBreak ? <span className="text-amber-600 font-bold">{c.breakStart}〜{c.breakEnd}</span> : <span className="text-gray-400">なし</span>}</td>
                   <td className="px-4 py-3">
                     <span className={"px-2 py-1 rounded-full text-xs font-bold " + (c.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
                       {c.isActive ? "有効" : "無効"}
@@ -605,26 +635,93 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/40 z-40 flex items-center justify-center overflow-y-auto py-8">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl mx-4">
             <h3 className="text-lg font-bold text-gray-800 mb-4">{editId ? "センターを編集" : "センターを追加"}</h3>
-            <div className="space-y-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-600">センターCD *</label>
-                <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" placeholder="例: 3101" maxLength={4} />
+            <div className="space-y-5">
+
+              {/* ── 基本情報 ── */}
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">基本情報</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-semibold text-gray-600">センターCD *</label>
+                    <input type="text" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" placeholder="例: 3101" maxLength={4} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-semibold text-gray-600">センター名 *</label>
+                    <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none" placeholder="例: 東京センター" />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-600">シークレットキー</label>
+                  <input type="text" value={form.secretKey} onChange={(e) => setForm({ ...form, secretKey: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" placeholder="キオスク認証用キー" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} id="center-active" className="w-4 h-4" />
+                  <label htmlFor="center-active" className="text-sm font-semibold text-gray-600">有効</label>
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-600">センター名 *</label>
-                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none" placeholder="例: 東京センター" />
+
+              {/* ── 営業時間 ── */}
+              <div className="bg-blue-50 rounded-xl p-4 space-y-3">
+                <div className="text-xs font-bold text-blue-400 uppercase tracking-wider">営業時間</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-semibold text-gray-600">開始時間</label>
+                    <input type="time" value={form.openTime} onChange={(e) => setForm({ ...form, openTime: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-sm font-semibold text-gray-600">終了時間</label>
+                    <input type="time" value={form.closeTime} onChange={(e) => setForm({ ...form, closeTime: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" />
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-600">シークレットキー</label>
-                <input type="text" value={form.secretKey} onChange={(e) => setForm({ ...form, secretKey: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" placeholder="キオスク認証用キー" />
+
+              {/* ── 休憩時間 ── */}
+              <div className="bg-amber-50 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="text-xs font-bold text-amber-500 uppercase tracking-wider">休憩時間</div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.hasBreak} onChange={(e) => setForm({ ...form, hasBreak: e.target.checked })} className="w-4 h-4 accent-amber-500" />
+                    <span className="text-sm font-semibold text-gray-600">休憩あり</span>
+                  </label>
+                </div>
+                {form.hasBreak && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-semibold text-gray-600">休憩開始</label>
+                      <input type="time" value={form.breakStart} onChange={(e) => setForm({ ...form, breakStart: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-sm font-semibold text-gray-600">休憩終了</label>
+                      <input type="time" value={form.breakEnd} onChange={(e) => setForm({ ...form, breakEnd: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" />
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} id="center-active" className="w-4 h-4" />
-                <label htmlFor="center-active" className="text-sm font-semibold text-gray-600">有効</label>
+
+              {/* ── TOP画面メッセージ ── */}
+              <div className="bg-teal-50 rounded-xl p-4 space-y-3">
+                <div className="text-xs font-bold text-teal-500 uppercase tracking-wider">TOP画面メッセージ</div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-600">営業中メッセージ</label>
+                  <input type="text" value={form.messageOpen} onChange={(e) => setForm({ ...form, messageOpen: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-teal-500 outline-none" placeholder="いらっしゃいませ" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-600">休憩中メッセージ</label>
+                  <input type="text" value={form.messageBreak} onChange={(e) => setForm({ ...form, messageBreak: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-amber-500 outline-none" placeholder="ただいま昼休みです" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-600">受付終了メッセージ</label>
+                  <input type="text" value={form.messageClosed} onChange={(e) => setForm({ ...form, messageClosed: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-gray-400 outline-none" placeholder="本日の受付は終了しました" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold text-gray-600">時間外メッセージ</label>
+                  <input type="text" value={form.messageOutsideHours} onChange={(e) => setForm({ ...form, messageOutsideHours: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-gray-400 outline-none" placeholder="受付時間外です" />
+                </div>
               </div>
+
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button onClick={() => setShowModal(false)} className="px-5 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-colors">キャンセル</button>

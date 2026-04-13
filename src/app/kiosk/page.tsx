@@ -3,7 +3,63 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { clearKioskSession, setKioskSession } from "@/lib/kioskState";
 
-type CenterConfig = { id: number; code: string; name: string };
+type CenterConfig = {
+  id: number; code: string; name: string;
+  openTime: string; closeTime: string;
+  hasBreak: boolean; breakStart: string; breakEnd: string;
+  closedOnSunday: boolean; closedOnHoliday: boolean;
+  messageOpen: string; messageBreak: string;
+  messageClosed: string; messageOutsideHours: string;
+};
+
+type TimeStatus = "open" | "break" | "closed" | "outside";
+
+/** 現在時刻からセンターの状態を判定（JST） */
+function getTimeStatus(center: CenterConfig, now: Date): TimeStatus {
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const nowMin = h * 60 + m;
+
+  const [oh, om] = center.openTime.split(":").map(Number);
+  const [ch, cm] = center.closeTime.split(":").map(Number);
+  const openMin = oh * 60 + om;
+  const closeMin = ch * 60 + cm;
+
+  // 営業時間外チェック
+  if (nowMin < openMin || nowMin >= closeMin) return "outside";
+
+  // 休憩時間チェック
+  if (center.hasBreak) {
+    const [bsh, bsm] = center.breakStart.split(":").map(Number);
+    const [beh, bem] = center.breakEnd.split(":").map(Number);
+    const breakStartMin = bsh * 60 + bsm;
+    const breakEndMin = beh * 60 + bem;
+    if (nowMin >= breakStartMin && nowMin < breakEndMin) return "break";
+  }
+
+  return "open";
+}
+
+/** 状態に応じたメッセージを取得 */
+function getMessage(center: CenterConfig, status: TimeStatus): string {
+  switch (status) {
+    case "open":    return center.messageOpen || "いらっしゃいませ";
+    case "break":   return center.messageBreak || "ただいま休憩中です";
+    case "closed":  return center.messageClosed || "本日の受付は終了しました";
+    case "outside": return center.messageOutsideHours || "受付時間外です";
+  }
+}
+
+/** 状態に応じたサブメッセージ */
+function getSubMessage(center: CenterConfig, status: TimeStatus): string {
+  switch (status) {
+    case "open":    return "受付をご案内いたします";
+    case "break":   return `${center.breakEnd} より受付を再開します`;
+    case "closed":  return "またのお越しをお待ちしております";
+    case "outside":
+      return `受付時間: ${center.openTime} 〜 ${center.closeTime}`;
+  }
+}
 
 /* ── ローディングスピナー ── */
 function LoadingSpinner() {
@@ -44,7 +100,6 @@ function KioskTop() {
     return () => clearInterval(t);
   }, []);
 
-  // URLの ?center=3101 またはマスタ設定からセンター取得
   useEffect(() => {
     setLoading(true);
     const centerCode = searchParams.get("center");
@@ -53,10 +108,7 @@ function KioskTop() {
       : "/api/kiosk-config";
 
     fetch(url)
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
       .then((data: CenterConfig) => setCenter(data))
       .catch(() =>
         setError(
@@ -83,6 +135,21 @@ function KioskTop() {
   const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
   const secStr  = pad(now.getSeconds());
 
+  // 時間帯ステータス判定
+  const status: TimeStatus = center ? getTimeStatus(center, now) : "open";
+  const isAccepting = status === "open";
+  const message    = center ? getMessage(center, status) : "いらっしゃいませ";
+  const subMessage = center ? getSubMessage(center, status) : "";
+
+  // ステータスカラー
+  const statusColors = {
+    open:    { bg: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)", shadow: "#0F766E", pulse: true },
+    break:   { bg: "linear-gradient(180deg, #FBBF24 0%, #D97706 100%)", shadow: "#92400E", pulse: false },
+    closed:  { bg: "linear-gradient(180deg, #94A3B8 0%, #64748B 100%)", shadow: "#475569", pulse: false },
+    outside: { bg: "linear-gradient(180deg, #94A3B8 0%, #64748B 100%)", shadow: "#475569", pulse: false },
+  };
+  const colors = statusColors[status];
+
   return (
     <div className="w-screen h-screen overflow-hidden select-none" style={{
       display: "flex", flexDirection: "column", position: "relative",
@@ -95,10 +162,6 @@ function KioskTop() {
         @keyframes kiosk-pulse {
           0%, 100% { box-shadow: 0 8px 0 #0F766E, 0 18px 56px rgba(13,148,136,0.22); }
           50%      { box-shadow: 0 8px 0 #0F766E, 0 18px 72px rgba(13,148,136,0.38), 0 0 0 12px rgba(45,212,191,0.12); }
-        }
-        @keyframes kiosk-colon {
-          0%, 100% { opacity: 1; }
-          50%      { opacity: 0.3; }
         }
       `}</style>
 
@@ -144,12 +207,11 @@ function KioskTop() {
         gap: 40,
       }}>
 
-        {/* ローディング */}
         {loading && !error && <LoadingSpinner />}
 
-        {/* あいさつ（ローディング完了後に表示） */}
         {!loading && (
           <>
+            {/* あいさつ / 時間帯メッセージ */}
             <div style={{ textAlign: "center" }}>
               <div style={{
                 fontSize: 14, color: "#94A3B8",
@@ -159,17 +221,22 @@ function KioskTop() {
                 TRUCK RECEPTION
               </div>
               <div style={{
-                fontSize: 68, fontWeight: 700, color: "#1E293B",
-                letterSpacing: "0.14em", marginBottom: 14,
+                fontSize: 64, fontWeight: 700,
+                color: isAccepting ? "#1E293B" : status === "break" ? "#92400E" : "#64748B",
+                letterSpacing: "0.12em", marginBottom: 14,
+                lineHeight: 1.4,
               }}>
-                いらっしゃいませ
+                {message}
               </div>
-              <div style={{ fontSize: 23, color: "#64748B", letterSpacing: "0.1em", fontWeight: 400 }}>
-                受付をご案内いたします
+              <div style={{
+                fontSize: 23,
+                color: isAccepting ? "#64748B" : status === "break" ? "#B45309" : "#94A3B8",
+                letterSpacing: "0.1em", fontWeight: 400,
+              }}>
+                {subMessage}
               </div>
             </div>
 
-            {/* エラー表示 */}
             {error && (
               <div style={{
                 background: "#FEF2F2", border: "2px solid #FECACA", borderRadius: 14,
@@ -181,47 +248,62 @@ function KioskTop() {
 
             {/* 受付ボタン */}
             <button
-              onPointerDown={start}
+              onPointerDown={isAccepting ? start : undefined}
               style={{
                 width: 800, height: 220,
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
                 borderRadius: 20,
-                background: center
-                  ? "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)"
-                  : "linear-gradient(180deg, #CBD5E1 0%, #94A3B8 100%)",
+                background: center ? colors.bg : "linear-gradient(180deg, #CBD5E1 0%, #94A3B8 100%)",
                 border: "none",
                 boxShadow: center
-                  ? "0 8px 0 #0F766E, 0 18px 56px rgba(13,148,136,0.22)"
+                  ? `0 8px 0 ${colors.shadow}, 0 18px 56px rgba(0,0,0,0.12)`
                   : "0 8px 0 #64748B",
-                cursor: center ? "pointer" : "default",
+                cursor: isAccepting && center ? "pointer" : "default",
                 gap: 12,
                 opacity: center ? 1 : 0.5,
-                animation: center ? "kiosk-pulse 2.4s ease-in-out infinite" : "none",
-                transition: "transform 0.1s ease",
+                animation: isAccepting && center ? "kiosk-pulse 2.4s ease-in-out infinite" : "none",
               }}
-              onPointerUp={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; }}
             >
-              <span style={{
-                fontSize: 66, fontWeight: 800, color: "#fff", letterSpacing: "0.16em",
-                textShadow: "0 2px 8px rgba(0,0,0,0.12)",
-              }}>
-                受付はこちら
-              </span>
-              <span style={{ fontSize: 23, color: "rgba(255,255,255,0.7)", fontWeight: 500, letterSpacing: "0.16em" }}>
-                タッチしてください
-              </span>
+              {isAccepting ? (
+                <>
+                  <span style={{
+                    fontSize: 66, fontWeight: 800, color: "#fff", letterSpacing: "0.16em",
+                    textShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                  }}>
+                    受付はこちら
+                  </span>
+                  <span style={{ fontSize: 23, color: "rgba(255,255,255,0.7)", fontWeight: 500, letterSpacing: "0.16em" }}>
+                    タッチしてください
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span style={{
+                    fontSize: 48, fontWeight: 700, color: "rgba(255,255,255,0.9)", letterSpacing: "0.12em",
+                  }}>
+                    {status === "break" ? "休憩中" : "受付時間外"}
+                  </span>
+                  <span style={{ fontSize: 22, color: "rgba(255,255,255,0.6)", fontWeight: 400, letterSpacing: "0.1em" }}>
+                    {status === "break"
+                      ? `${center?.breakEnd} に再開します`
+                      : `受付時間: ${center?.openTime} 〜 ${center?.closeTime}`}
+                  </span>
+                </>
+              )}
             </button>
 
-            {/* 安全注意 */}
-            <div style={{ fontSize: 18, color: "#94A3B8", letterSpacing: "0.1em" }}>
-              &#x26A0; 保護帽・安全靴を着用の上ご入場ください
-            </div>
+            {/* 営業時間表示（受付時間中のみ） */}
+            {isAccepting && center && (
+              <div style={{ fontSize: 18, color: "#94A3B8", letterSpacing: "0.1em" }}>
+                &#x26A0; 保護帽・安全靴を着用の上ご入場ください
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {/* 管理画面 */}
+      {/* 管理画面リンク */}
       <button
         onPointerDown={() => router.push("/admin")}
         style={{

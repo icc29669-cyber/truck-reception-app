@@ -22,6 +22,10 @@ model Center {
   hasBreak               Boolean  @default(false)
   breakStart             String   @default("12:00")
   breakEnd               String   @default("13:00")
+  messageOpen            String   @default("いらっしゃいませ")
+  messageBreak           String   @default("ただいま昼休みです　しばらくお待ちください")
+  messageClosed          String   @default("本日の受付は終了しました")
+  messageOutsideHours    String   @default("受付時間外です")
   createdAt              DateTime @default(now())
 
   receptions   Reception[]

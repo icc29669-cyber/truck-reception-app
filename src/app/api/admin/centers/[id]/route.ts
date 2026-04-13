@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const TIME_FIELDS = [
+  "openTime", "closeTime", "hasBreak", "breakStart", "breakEnd",
+  "closedOnSunday", "closedOnHoliday",
+  "messageOpen", "messageBreak", "messageClosed", "messageOutsideHours",
+] as const;
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -13,12 +19,10 @@ export async function PUT(
     const body = await req.json();
     const { code, name, secretKey, isActive } = body;
 
-    // コード形式チェック
     if (code !== undefined && !/^\d{4}$/.test(code)) {
       return NextResponse.json({ error: "センターコードは4桁の数字で入力してください" }, { status: 400 });
     }
 
-    // コード重複チェック
     if (code !== undefined) {
       const existing = await prisma.center.findFirst({ where: { code, NOT: { id } } });
       if (existing) {
@@ -26,16 +30,19 @@ export async function PUT(
       }
     }
 
-    const center = await prisma.center.update({
-      where: { id },
-      data: {
-        ...(code !== undefined && { code }),
-        ...(name !== undefined && { name }),
-        ...(secretKey !== undefined && { secretKey }),
-        ...(isActive !== undefined && { isActive }),
-      },
-    });
+    // 動的に更新データ構築
+    const data: Record<string, unknown> = {};
+    if (code !== undefined) data.code = code;
+    if (name !== undefined) data.name = name;
+    if (secretKey !== undefined) data.secretKey = secretKey;
+    if (isActive !== undefined) data.isActive = isActive;
 
+    // 時間・メッセージフィールド
+    for (const field of TIME_FIELDS) {
+      if (body[field] !== undefined) data[field] = body[field];
+    }
+
+    const center = await prisma.center.update({ where: { id }, data });
     return NextResponse.json(center);
   } catch (e) {
     console.error(e);
@@ -49,12 +56,10 @@ export async function DELETE(
 ) {
   try {
     const id = Number(params.id);
-
     const center = await prisma.center.update({
       where: { id },
       data: { isActive: false },
     });
-
     return NextResponse.json(center);
   } catch (e) {
     console.error(e);
