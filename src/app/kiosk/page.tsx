@@ -82,12 +82,11 @@ function getMessage(center: CenterConfig, status: TimeStatus, activeBreak: Break
 }
 
 /** 状態に応じたサブメッセージ */
-function getSubMessage(center: CenterConfig, status: TimeStatus, activeBreak: BreakPeriod | null): string {
-  if ((status === "lunch" || status === "break") && activeBreak) {
-    return `${activeBreak.end} より受付を再開します`;
-  }
+function getSubMessage(center: CenterConfig, status: TimeStatus): string {
   switch (status) {
     case "open":    return "受付をご案内いたします";
+    case "lunch":
+    case "break":   return "";
     case "closed":  return "またのお越しをお待ちしております";
     case "outside": return `受付時間: ${center.openTime} 〜 ${center.closeTime}`;
     default:        return "";
@@ -173,7 +172,7 @@ function KioskTop() {
     ? getTimeStatus(center, now)
     : { status: "open" as TimeStatus, activeBreak: null };
   const message    = center ? getMessage(center, status, activeBreak) : "いらっしゃいませ";
-  const subMessage = center ? getSubMessage(center, status, activeBreak) : "";
+  const subMessage = center ? getSubMessage(center, status) : "";
 
   // ステータスカラー
   const statusColors: Record<TimeStatus, { bg: string; shadow: string }> = {
