@@ -103,6 +103,10 @@ export default function PhonePage() {
         fromFinal ? Promise.resolve([]) : lookupReservation(p, session.centerId, session.centerName, controller.signal),
       ]);
       clearTimeout(timeoutId);
+      // 受付済み・完了済みを除いた有効な予約のみ
+      const activeReservations = reservations.filter(
+        (r: { status: string }) => r.status !== "checked_in" && r.status !== "completed"
+      );
       setKioskSession({
         phone: p,
         driverInput: { ...session.driverInput, phone: p },
@@ -115,12 +119,12 @@ export default function PhonePage() {
       });
       if (fromFinal) {
         router.push("/kiosk/final-confirm");
-      } else if (reservations.length > 0) {
+      } else if (activeReservations.length > 0) {
         router.push("/kiosk/reservation-select");
       } else if (
         result.drivers.length === 1 &&
         result.vehicles.length === 1 &&
-        reservations.length === 0
+        activeReservations.length === 0
       ) {
         const d = result.drivers[0];
         const v = result.vehicles[0];
