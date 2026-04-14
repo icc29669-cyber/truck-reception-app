@@ -4,12 +4,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV_ITEMS = [
+const NAV_MAIN = [
   { href: "/admin", label: "受付一覧", icon: "\u{1F4CB}" },
   { href: "/admin/reservations", label: "予約管理", icon: "\u{1F4C5}" },
-  { href: "/admin/drivers", label: "ドライバー", icon: "\u{1F464}" },
+];
+const NAV_DATA = [
+  { href: "/admin/drivers", label: "ドライバー・会社", icon: "\u{1F464}" },
   { href: "/admin/vehicles", label: "車両", icon: "\u{1F69B}" },
-  { href: "/admin/centers", label: "センター管理", icon: "\u{1F3ED}" },
+];
+const NAV_SETTINGS = [
+  { href: "/admin/centers", label: "センター設定", icon: "\u{1F3ED}" },
   { href: "/admin/settings", label: "システム設定", icon: "\u{1F527}" },
 ];
 
@@ -42,18 +46,48 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Nav Links */}
         <nav className="flex-1 py-3 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {/* 日常業務 */}
+          {NAV_MAIN.map((item) => {
             const active = isActive(item.href);
             return (
-              <Link
-                key={item.href}
-                href={item.href}
+              <Link key={item.href} href={item.href}
                 className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ${
-                  active
-                    ? "bg-blue-50 text-[#1a3a6b] border-r-4 border-[#1a3a6b]"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
-              >
+                  active ? "bg-blue-50 text-[#1a3a6b] border-r-4 border-[#1a3a6b]" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}>
+                <span className="text-lg">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+
+          {/* データ管理 */}
+          <div className="px-5 pt-5 pb-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">データ</span>
+          </div>
+          {NAV_DATA.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link key={item.href} href={item.href}
+                className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ${
+                  active ? "bg-blue-50 text-[#1a3a6b] border-r-4 border-[#1a3a6b]" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}>
+                <span className="text-lg">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+
+          {/* 設定 */}
+          <div className="px-5 pt-5 pb-1">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">設定</span>
+          </div>
+          {NAV_SETTINGS.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link key={item.href} href={item.href}
+                className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ${
+                  active ? "bg-blue-50 text-[#1a3a6b] border-r-4 border-[#1a3a6b]" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}>
                 <span className="text-lg">{item.icon}</span>
                 <span>{item.label}</span>
               </Link>

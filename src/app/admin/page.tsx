@@ -19,9 +19,7 @@ type Reception = {
 };
 
 type Center = { id: number; code: string; name: string };
-type CenterFull = { id: number; code: string; name: string; secretKey: string; isActive: boolean; createdAt: string };
-
-type Tab = "reception" | "centers";
+// 受付一覧専用ページ（センター管理は /admin/centers に分離済み）
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
@@ -31,7 +29,7 @@ function fmtDate(d: Date) {
 }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<Tab>("reception");
+  // 受付一覧専用ページ
 
   /* ─── 受付管理 state ─── */
   const [centers, setCenters] = useState<Center[]>([]);
@@ -50,15 +48,7 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
 
-  /* ─── センターマスタ state ─── */
-  const [allCenters, setAllCenters] = useState<CenterFull[]>([]);
-  const [centersLoading, setCentersLoading] = useState(false);
-  const [centerEdit, setCenterEdit] = useState<CenterFull | null>(null);
-  const [centerForm, setCenterForm] = useState({ code: "", name: "", secretKey: "" });
-  const [centerSaving, setCenterSaving] = useState(false);
-  const [showNewCenter, setShowNewCenter] = useState(false);
-  const [kioskCenterId, setKioskCenterId] = useState<string>("");
-  const [kioskSaving, setKioskSaving] = useState(false);
+  // センターマスタは /admin/centers に移動済み
 
   useEffect(() => {
     const today = fmtDate(new Date());
@@ -153,122 +143,18 @@ export default function AdminPage() {
       })
     : receptions;
 
-  /* ─── センターマスタ管理 ─── */
-  const fetchAllCenters = useCallback(async () => {
-    setCentersLoading(true);
-    try {
-      const res = await fetch("/api/admin/centers");
-      const data = await res.json();
-      setAllCenters(Array.isArray(data) ? data : []);
-    } catch { setAllCenters([]); }
-    finally { setCentersLoading(false); }
-  }, []);
-
-  useEffect(() => {
-    if (tab === "centers") {
-      fetchAllCenters();
-      // キオスク設定を取得
-      fetch("/api/admin/settings").then(r => r.json()).then(data => {
-        if (data.kiosk_center_id) setKioskCenterId(data.kiosk_center_id);
-      }).catch(() => {});
-    }
-  }, [tab, fetchAllCenters]);
-
-  function openCenterEdit(c: CenterFull) {
-    setCenterEdit(c);
-    setCenterForm({ code: c.code, name: c.name, secretKey: c.secretKey });
-  }
-
-  async function saveCenterEdit() {
-    if (!centerEdit) return;
-    setCenterSaving(true);
-    try {
-      const res = await fetch(`/api/admin/centers/${centerEdit.id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(centerForm),
-      });
-      if (!res.ok) { const err = await res.json(); showToast(err.error || "更新失敗"); return; }
-      setCenterEdit(null);
-      fetchAllCenters();
-      // 公開API側のキャッシュも更新
-      fetch("/api/centers").then(r => r.json()).then(d => setCenters(Array.isArray(d) ? d : []));
-      showToast("センターを更新しました");
-    } catch { showToast("通信エラー"); }
-    finally { setCenterSaving(false); }
-  }
-
-  async function createCenter() {
-    setCenterSaving(true);
-    try {
-      const res = await fetch("/api/admin/centers", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(centerForm),
-      });
-      if (!res.ok) { const err = await res.json(); showToast(err.error || "作成失敗"); return; }
-      setShowNewCenter(false);
-      setCenterForm({ code: "", name: "", secretKey: "" });
-      fetchAllCenters();
-      fetch("/api/centers").then(r => r.json()).then(d => setCenters(Array.isArray(d) ? d : []));
-      showToast("センターを追加しました");
-    } catch { showToast("通信エラー"); }
-    finally { setCenterSaving(false); }
-  }
-
-  async function toggleCenterActive(c: CenterFull) {
-    try {
-      await fetch(`/api/admin/centers/${c.id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !c.isActive }),
-      });
-      fetchAllCenters();
-      fetch("/api/centers").then(r => r.json()).then(d => setCenters(Array.isArray(d) ? d : []));
-      showToast(c.isActive ? "無効化しました" : "有効化しました");
-    } catch { showToast("通信エラー"); }
-  }
-
-  async function saveKioskCenter(newId: string) {
-    setKioskCenterId(newId);
-    setKioskSaving(true);
-    try {
-      const res = await fetch("/api/admin/settings", {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: "kiosk_center_id", value: newId }),
-      });
-      if (!res.ok) { showToast("保存に失敗しました"); return; }
-      const c = allCenters.find(c => String(c.id) === newId);
-      showToast(c ? `キオスクセンターを「${c.name}」に設定しました` : "設定を保存しました");
-    } catch { showToast("通信エラー"); }
-    finally { setKioskSaving(false); }
-  }
-
-  const tabBtn = (t: Tab, label: string) => (
-    <button
-      onClick={() => setTab(t)}
-      className="px-6 py-3 font-bold rounded-t-xl transition-colors"
-      style={{
-        background: tab === t ? "#fff" : "transparent",
-        color: tab === t ? "#1a3a6b" : "#94A3B8",
-        borderBottom: tab === t ? "3px solid #1a3a6b" : "3px solid transparent",
-        fontSize: 15,
-      }}
-    >
-      {label}
-    </button>
-  );
-
   return (
     <div style={{ color: "#111827" }}>
       <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* ─── タブ切替 ─── */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl px-2 pt-2">
-          {tabBtn("reception", "受付一覧")}
-          {tabBtn("centers", "センターマスタ")}
+        {/* ── ページタイトル ── */}
+        <div>
+          <h1 className="text-xl font-black text-gray-800">受付一覧</h1>
+          <p className="text-gray-400 text-sm">本日の受付（チェックイン）記録</p>
         </div>
 
-        {/* ═══ 受付一覧タブ ═══ */}
-        {tab === "reception" && (
-          <>
+        {/* ═══ 受付一覧 ═══ */}
+        <>
             {/* フィルターバー */}
             <div className="bg-white rounded-2xl shadow p-5 flex flex-wrap gap-4 items-end">
               <div className="flex flex-col gap-1">
@@ -401,88 +287,7 @@ export default function AdminPage() {
               </div>
             </div>
           </>
-        )}
-
-        {/* ═══ センターマスタタブ ═══ */}
-        {tab === "centers" && (
-          <>
-          {/* キオスク設定 */}
-          <div className="bg-white rounded-2xl shadow p-5">
-            <h2 className="text-lg font-bold text-gray-800 mb-3">キオスク表示センター</h2>
-            <p className="text-sm text-gray-500 mb-4">キオスクTOP画面に表示するセンターを選択してください。この設定はキオスク端末に即時反映されます。</p>
-            <div className="flex items-center gap-4">
-              <select
-                value={kioskCenterId}
-                onChange={(e) => saveKioskCenter(e.target.value)}
-                disabled={kioskSaving}
-                className="border-2 border-gray-200 rounded-lg px-4 py-3 text-base font-bold focus:border-blue-500 outline-none"
-                style={{ minWidth: 320 }}
-              >
-                <option value="">-- 未設定 --</option>
-                {allCenters.filter(c => c.isActive).map(c => (
-                  <option key={c.id} value={String(c.id)}>{c.code} {c.name}</option>
-                ))}
-              </select>
-              {kioskSaving && <span className="text-sm text-gray-400">保存中...</span>}
-            </div>
-          </div>
-
-          {/* センター一覧 */}
-          <div className="bg-white rounded-2xl shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-800">機材センター 一覧</h2>
-              <button onClick={() => { setShowNewCenter(true); setCenterForm({ code: "", name: "", secretKey: "" }); }}
-                className="px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors">
-                + 新規追加
-              </button>
-            </div>
-
-            {centersLoading ? (
-              <div className="py-16 text-center text-gray-400">読込中...</div>
-            ) : allCenters.length === 0 ? (
-              <div className="py-16 text-center text-gray-400">
-                <div className="text-4xl mb-3">🏢</div>
-                <div className="text-lg font-semibold">センターが登録されていません</div>
-              </div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    {["CD", "センター名", "ステータス", "作成日", "操作"].map(h => (
-                      <th key={h} className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {allCenters.map((c, i) => (
-                    <tr key={c.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
-                      <td className="px-6 py-4 font-mono font-black text-lg text-blue-700">{c.code || "—"}</td>
-                      <td className="px-6 py-4 font-bold text-gray-800 text-base">{c.name}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${c.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
-                          {c.isActive ? "有効" : "無効"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-500 text-sm">{new Date(c.createdAt).toLocaleDateString("ja-JP")}</td>
-                      <td className="px-6 py-4 flex gap-2">
-                        <button onClick={() => openCenterEdit(c)}
-                          className="px-4 py-1.5 bg-blue-50 text-blue-700 font-bold rounded-lg hover:bg-blue-100 transition-colors text-sm">
-                          編集
-                        </button>
-                        <button onClick={() => toggleCenterActive(c)}
-                          className={`px-4 py-1.5 font-bold rounded-lg transition-colors text-sm ${c.isActive ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
-                          {c.isActive ? "無効化" : "有効化"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          </>
-        )}
-
+        )
       </div>
 
       {/* ─── 受付編集モーダル ─── */}
@@ -548,48 +353,6 @@ export default function AdminPage() {
               <button onClick={saveEdit} disabled={saving}
                 className="px-6 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors disabled:opacity-50">
                 {saving ? "保存中..." : "保存"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── センター編集モーダル ─── */}
-      {(centerEdit || showNewCenter) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => { setCenterEdit(null); setShowNewCenter(false); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-gray-800">{centerEdit ? "センター編集" : "センター新規追加"}</h3>
-              <button onClick={() => { setCenterEdit(null); setShowNewCenter(false); }} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
-            </div>
-            <div className="space-y-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500">センターコード（4桁数字）</label>
-                <input value={centerForm.code} onChange={(e) => setCenterForm((f) => ({ ...f, code: e.target.value }))}
-                  maxLength={4} placeholder="例: 3101"
-                  className="border-2 border-gray-200 rounded-lg px-3 py-2 text-lg font-mono font-bold focus:border-blue-500 outline-none" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500">センター名</label>
-                <input value={centerForm.name} onChange={(e) => setCenterForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="例: 狭山機材センター"
-                  className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-gray-500">シークレットキー（任意）</label>
-                <input value={centerForm.secretKey} onChange={(e) => setCenterForm((f) => ({ ...f, secretKey: e.target.value }))}
-                  placeholder="API認証用（空欄可）"
-                  className="border-2 border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none" />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6 justify-end">
-              <button onClick={() => { setCenterEdit(null); setShowNewCenter(false); }}
-                className="px-5 py-2 border-2 border-gray-300 text-gray-600 font-bold rounded-lg hover:bg-gray-50 transition-colors">
-                キャンセル
-              </button>
-              <button onClick={centerEdit ? saveCenterEdit : createCenter} disabled={centerSaving}
-                className="px-6 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors disabled:opacity-50">
-                {centerSaving ? "保存中..." : centerEdit ? "更新" : "追加"}
               </button>
             </div>
           </div>
