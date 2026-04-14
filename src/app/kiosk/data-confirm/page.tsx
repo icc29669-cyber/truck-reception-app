@@ -217,7 +217,7 @@ function PlatePanel({ plate, onChange }: {
             </div>
           </div>
         </div>
-        <p style={{marginTop:8,fontSize:14,color:"rgba(0,0,0,0.4)",fontWeight:600}}>各部分をタッチして切り替え</p>
+        <p style={{marginTop:8,fontSize:15,color:"#1a3a6b",fontWeight:800,background:"#DBEAFE",padding:"6px 16px",borderRadius:8,border:"2px solid #93C5FD"}}>▼ 修正したい部分をタッチ</p>
       </div>
 
       {/* 入力パネル */}

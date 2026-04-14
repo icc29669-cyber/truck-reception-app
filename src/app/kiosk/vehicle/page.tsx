@@ -446,47 +446,48 @@ export default function VehiclePage() {
                 </div>
               </div>
 
-              {/* 右：ヒントカード（地名・ひらがなセクション時） — absoluteでレイアウトに影響しない */}
+              {/* 右：ヒントカード（地名・ひらがなセクション時） */}
               {(plateSection === "hira" || plateSection === "region") && (
                 <div style={{
                   position: "absolute",
                   left: "calc(50% + 280px)",
                   top: -20,
                   width: 340,
-                  background: "linear-gradient(160deg, rgba(255,251,235,0.18) 0%, rgba(253,230,138,0.10) 100%)",
-                  border: "2px solid rgba(253,230,138,0.5)",
+                  background: "#FFFBEB",
+                  border: "3px solid #F59E0B",
                   borderRadius: 16,
                   padding: "14px 18px",
-                  display: "flex", flexDirection: "column", gap: 6,
-                  boxShadow: "0 4px 20px rgba(253,230,138,0.12)",
+                  display: "flex", flexDirection: "column", gap: 8,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                   pointerEvents: "none",
                 }}>
                   <div style={{
                     display: "flex", alignItems: "center", gap: 8,
-                    background: "rgba(253,230,138,0.18)", borderRadius: 8,
-                    padding: "5px 10px",
+                    background: "#FEF3C7", borderRadius: 8,
+                    padding: "6px 12px",
                   }}>
                     <span style={{ fontSize: 22 }}>💡</span>
-                    <span style={{ fontSize: 16, color: "#FDE68A", fontWeight: 800, letterSpacing: "0.04em" }}>
+                    <span style={{ fontSize: 16, color: "#92400E", fontWeight: 800, letterSpacing: "0.04em" }}>
                       地名の最初の文字を選ぶ
                     </span>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                     {HIRA_HINTS.map(h => (
                       <div key={h.place} style={{
                         display: "flex", alignItems: "center", gap: 6,
-                        padding: "3px 8px", borderRadius: 6,
-                        background: "rgba(255,255,255,0.06)",
-                        width: "calc(50% - 2px)",
+                        padding: "4px 10px", borderRadius: 8,
+                        background: "#FFF",
+                        border: "1px solid #E5E7EB",
+                        width: "calc(50% - 3px)",
                         boxSizing: "border-box",
                       }}>
-                        <span style={{ fontSize: 17, color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                        <span style={{ fontSize: 17, color: "#1E293B", fontWeight: 600 }}>
                           {h.place}
                         </span>
-                        <span style={{ fontSize: 14, color: "rgba(255,255,255,0.35)" }}>→</span>
+                        <span style={{ fontSize: 14, color: "#94A3B8" }}>→</span>
                         <span style={{
-                          fontSize: 22, fontWeight: 900, color: "#FDE68A",
-                          background: "rgba(253,230,138,0.15)", borderRadius: 6,
+                          fontSize: 22, fontWeight: 900, color: "#D97706",
+                          background: "#FEF3C7", borderRadius: 6,
                           padding: "1px 8px", minWidth: 32, textAlign: "center",
                         }}>
                           {h.hira}

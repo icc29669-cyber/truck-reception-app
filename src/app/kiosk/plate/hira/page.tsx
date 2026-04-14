@@ -82,20 +82,21 @@ export default function HiraPage() {
           <PlateDisplay plate={session.plate} highlight="hira" size="sm" />
           {/* ヒントカード（小） */}
           <div style={{
-            background: "rgba(255,251,235,0.18)",
-            border: "1.5px solid rgba(253,230,138,0.5)",
-            borderRadius: 10,
+            background: "#FFFBEB",
+            border: "2.5px solid #F59E0B",
+            borderRadius: 12,
             padding: "10px 14px",
-            minWidth: 170,
+            minWidth: 180,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           }}>
-            <div style={{ fontSize: 14, color: "#FDE68A", fontWeight: 800, marginBottom: 6, letterSpacing: "0.04em" }}>
+            <div style={{ fontSize: 14, color: "#92400E", fontWeight: 800, marginBottom: 6, letterSpacing: "0.04em" }}>
               💡 地名の最初の文字
             </div>
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.88)", lineHeight: 1.9 }}>
+            <div style={{ fontSize: 14, color: "#1E293B", lineHeight: 1.9 }}>
               {HINTS.map(h => (
                 <span key={h.place} style={{ display: "block" }}>
                   {h.place} →{" "}
-                  <span style={{ fontWeight: 900, color: "#FDE68A" }}>「{h.hira}」</span>
+                  <span style={{ fontWeight: 900, color: "#D97706" }}>「{h.hira}」</span>
                 </span>
               ))}
             </div>
