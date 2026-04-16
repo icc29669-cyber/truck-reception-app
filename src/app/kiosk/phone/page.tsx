@@ -121,43 +121,8 @@ export default function PhonePage() {
         router.push("/kiosk/final-confirm");
       } else if (activeReservations.length > 0) {
         router.push("/kiosk/reservation-select");
-      } else if (
-        result.drivers.length === 1 &&
-        result.vehicles.length === 1 &&
-        activeReservations.length === 0
-      ) {
-        const d = result.drivers[0];
-        const v = result.vehicles[0];
-        setKioskSession({
-          selectedDriver: d,
-          selectedVehicle: v,
-          driverInput: {
-            ...session.driverInput,
-            phone: p,
-            companyName: d.companyName,
-            driverName: d.name,
-            maxLoad: v.maxLoad,
-          },
-          plate: v.plate,
-        });
-        router.push("/kiosk/data-confirm");
-      } else if (
-        result.drivers.length === 1 &&
-        result.vehicles.length === 0 &&
-        reservations.length === 0
-      ) {
-        const d = result.drivers[0];
-        setKioskSession({
-          selectedDriver: d,
-          driverInput: {
-            ...session.driverInput,
-            phone: p,
-            companyName: d.companyName,
-            driverName: d.name,
-          },
-        });
-        router.push("/kiosk/data-confirm");
       } else {
+        // 1件でも選択画面を表示する（自動スキップしない）
         router.push("/kiosk/person");
       }
     } catch {
