@@ -77,12 +77,12 @@ export default function CautionPage() {
           </div>
         </div>
 
-        {/* 装備イラスト（カードなし・背景に直接配置） */}
+        {/* 装備イラスト */}
         <div style={{
           flex: 1,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 0,
-          width: "100%", maxWidth: 1400,
+          display: "flex", alignItems: "stretch", justifyContent: "center",
+          gap: 20,
+          width: "100%", maxWidth: 1600,
           minHeight: 0,
           position: "relative",
         }}>
@@ -90,87 +90,95 @@ export default function CautionPage() {
           <div style={{
             flex: 1,
             display: "flex", flexDirection: "column", alignItems: "center",
-            justifyContent: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.24s both",
             position: "relative",
-            height: "100%",
+            minWidth: 0,
           }}>
             <div style={{
               flex: 1, width: "100%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+              overflow: "hidden", paddingBottom: 12,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/helmet.png"
                 alt="ヘルメット"
                 style={{
-                  maxWidth: "92%", maxHeight: "92%",
+                  maxWidth: "100%", maxHeight: "100%",
                   objectFit: "contain",
-                  filter: "drop-shadow(0 20px 32px rgba(26,58,107,0.18))",
+                  filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.22))",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 6, paddingTop: 8, flexShrink: 0,
+              gap: 6, flexShrink: 0,
+              paddingTop: 16, marginTop: 8,
+              borderTop: "3px solid #D97706",
+              minWidth: 240,
             }}>
-              <div style={{ width: 64, height: 4, background: "#D97706", borderRadius: 2 }} />
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
+              <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.12em", lineHeight: 1 }}>
                 ヘルメット
               </div>
-              <div style={{ fontSize: 12, color: "#92400E", letterSpacing: "0.24em", fontWeight: 700 }}>
+              <div style={{ fontSize: 12, color: "#92400E", letterSpacing: "0.3em", fontWeight: 700 }}>
                 HARD HAT
               </div>
             </div>
           </div>
 
-          {/* プラス（装飾） */}
+          {/* プラス（大きめのアンバーバッジ） */}
           <div style={{
-            fontSize: 56, color: "rgba(217,119,6,0.6)", fontWeight: 200,
-            fontFamily: "Inter, sans-serif",
+            display: "flex", alignItems: "center", justifyContent: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.3s both",
-            paddingBottom: 60,
-            flexShrink: 0,
-            margin: "0 -20px",
+            flexShrink: 0, paddingBottom: 80,
           }}>
-            +
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%",
+              background: "#FEF3C7", border: "2px solid #F59E0B",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#D97706", fontSize: 32, fontWeight: 800,
+              fontFamily: "Inter, sans-serif",
+              boxShadow: "0 4px 12px rgba(217,119,6,0.15)",
+            }}>
+              +
+            </div>
           </div>
 
           {/* 安全靴 */}
           <div style={{
             flex: 1,
             display: "flex", flexDirection: "column", alignItems: "center",
-            justifyContent: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.36s both",
             position: "relative",
-            height: "100%",
+            minWidth: 0,
           }}>
             <div style={{
               flex: 1, width: "100%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+              overflow: "hidden", paddingBottom: 12,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/safety-shoes.png"
                 alt="安全靴"
                 style={{
-                  maxWidth: "92%", maxHeight: "92%",
+                  maxWidth: "100%", maxHeight: "100%",
                   objectFit: "contain",
-                  filter: "drop-shadow(0 20px 32px rgba(26,58,107,0.18))",
+                  filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.22))",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 6, paddingTop: 8, flexShrink: 0,
+              gap: 6, flexShrink: 0,
+              paddingTop: 16, marginTop: 8,
+              borderTop: "3px solid #1a3a6b",
+              minWidth: 240,
             }}>
-              <div style={{ width: 64, height: 4, background: "#1a3a6b", borderRadius: 2 }} />
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
+              <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.12em", lineHeight: 1 }}>
                 安全靴
               </div>
-              <div style={{ fontSize: 12, color: "#475569", letterSpacing: "0.24em", fontWeight: 700 }}>
+              <div style={{ fontSize: 12, color: "#475569", letterSpacing: "0.3em", fontWeight: 700 }}>
                 SAFETY SHOES
               </div>
             </div>
