@@ -17,7 +17,7 @@ export default function CautionPage() {
         }
       `}</style>
 
-      {/* ━━ ヘッダー（他画面と統一: navy #1a3a6b） ━━ */}
+      {/* ━━ ヘッダー ━━ */}
       <div style={{
         background: "#1a3a6b", height: 84, flexShrink: 0,
         display: "flex", alignItems: "center", padding: "0 32px", gap: 24,
@@ -46,75 +46,88 @@ export default function CautionPage() {
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        padding: "20px 80px 40px", gap: 0,
+        padding: "12px 80px 32px", gap: 0,
       }}>
 
         {/* 見出し */}
         <div style={{
-          fontSize: 48, fontWeight: 900, color: "#1E293B",
+          fontSize: 44, fontWeight: 900, color: "#1E293B",
           letterSpacing: "0.08em", textAlign: "center",
-          marginBottom: 8,
         }}>
           場内では必ず着用してください
         </div>
         <div style={{
-          fontSize: 18, color: "#94A3B8",
+          fontSize: 16, color: "#94A3B8",
           letterSpacing: "0.24em", fontWeight: 600,
-          marginBottom: 20,
+          marginTop: 6, marginBottom: 16,
         }}>
           PLEASE WEAR PROTECTIVE GEAR
         </div>
 
-        {/* 装備イラスト（透過PNG・ベージュ背景にそのまま乗せる） */}
+        {/* 装備：2カラム（画像 + ラベル） */}
         <div style={{
-          width: 680, height: 340,
-          position: "relative",
-          marginBottom: 12,
+          display: "flex", alignItems: "flex-end", gap: 60,
+          marginBottom: 20,
         }}>
-          <Image
-            src="/images/safety-equipment.png"
-            alt="ヘルメットと安全靴"
-            fill
-            style={{ objectFit: "contain" }}
-            priority
-          />
-        </div>
-
-        {/* ラベル帯（イラストと対応） */}
-        <div style={{
-          display: "flex", gap: 140,
-          marginBottom: 28,
-        }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32, fontWeight: 900, color: "#1E293B", letterSpacing: "0.08em" }}>
+          {/* ヘルメット */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 300, height: 240, position: "relative" }}>
+              <Image
+                src="/images/helmet.png"
+                alt="ヘルメット"
+                fill
+                style={{ objectFit: "contain" }}
+                priority
+              />
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.08em" }}>
               ヘルメット
             </div>
-            <div style={{ fontSize: 15, color: "#92400E", marginTop: 4, letterSpacing: "0.14em", fontWeight: 600 }}>
+            <div style={{ fontSize: 13, color: "#92400E", letterSpacing: "0.14em", fontWeight: 600 }}>
               HARD HAT
             </div>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 32, fontWeight: 900, color: "#1E293B", letterSpacing: "0.08em" }}>
+
+          {/* プラス記号 */}
+          <div style={{
+            fontSize: 48, color: "#D97706", fontWeight: 300,
+            paddingBottom: 80,
+          }}>
+            +
+          </div>
+
+          {/* 安全靴 */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 300, height: 240, position: "relative" }}>
+              <Image
+                src="/images/safety-shoes.png"
+                alt="安全靴"
+                fill
+                style={{ objectFit: "contain" }}
+                priority
+              />
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.08em" }}>
               安全靴
             </div>
-            <div style={{ fontSize: 15, color: "#475569", marginTop: 4, letterSpacing: "0.14em", fontWeight: 600 }}>
+            <div style={{ fontSize: 13, color: "#475569", letterSpacing: "0.14em", fontWeight: 600 }}>
               SAFETY SHOES
             </div>
           </div>
         </div>
 
         {/* セパレータ */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, width: "100%", maxWidth: 680, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, width: "100%", maxWidth: 680, marginBottom: 18 }}>
           <div style={{ flex: 1, height: 2, background: "#E8D8B8" }} />
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#D97706" }} />
           <div style={{ flex: 1, height: 2, background: "#E8D8B8" }} />
         </div>
 
-        {/* 確認ボタン（他のキオスク画面と同じteal系） */}
+        {/* 確認ボタン */}
         <button
           onPointerDown={() => router.push("/kiosk/phone")}
           style={{
-            width: 780, height: 120, fontSize: 42, fontWeight: 900,
+            width: 780, height: 110, fontSize: 40, fontWeight: 900,
             background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
             color: "#fff", border: "none", borderRadius: 18,
             cursor: "pointer",
@@ -124,7 +137,7 @@ export default function CautionPage() {
           }}
         >
           確認しました
-          <span style={{ fontSize: 36, marginLeft: 4 }}>→</span>
+          <span style={{ fontSize: 34, marginLeft: 4 }}>→</span>
         </button>
       </div>
     </div>
