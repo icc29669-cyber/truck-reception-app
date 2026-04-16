@@ -219,18 +219,20 @@ export default function CautionPage() {
         <button
           onPointerDown={() => router.push("/kiosk/phone")}
           style={{
-            width: 720, height: 92, fontSize: 30, fontWeight: 900,
+            width: 720, height: 96, fontSize: 32, fontWeight: 900,
             background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
-            color: "#fff", border: "none", borderRadius: 16,
+            color: "#fff", border: "none", borderRadius: 18,
             cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
             gap: 14, letterSpacing: "0.1em",
             animation: "caution-enter-up 0.34s ease-out 0.52s both, caution-pulse 3.2s ease-in-out 1.2s infinite",
-            marginTop: 12, flexShrink: 0,
+            marginTop: 28, flexShrink: 0,
           }}
         >
+          <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.28em", opacity: 0.75, marginRight: 8 }}>OK</span>
+          <span style={{ width: 1, height: 28, background: "rgba(255,255,255,0.35)" }} />
           確認しました
-          <span style={{ fontSize: 24, marginLeft: 4 }}>→</span>
+          <span style={{ fontSize: 26, marginLeft: 6 }}>→</span>
         </button>
       </div>
     </div>
