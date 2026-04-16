@@ -386,42 +386,56 @@ export default function VehiclePage() {
         <StepDots current={3} />
       </div>
 
-      {/* タイトル（ベージュ背景上）*/}
-      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: (mode === "input" && inputStep === "plate") ? "12px 0 8px" : "20px 0 16px" }}>
-        <span style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.12em" }}>
-          {mode === "select" ? "ご使用の車両を選んでください" :
-           mode === "confirm" ? "車両の確認" :
-           inputStep === "plate" ? "車両ナンバーを入力" : "最大積載量を入力"}
-        </span>
+      {/* ━━ プレート入力モードのタイトル行（左: コンテキスト / 中央: プレート） ━━ */}
+      {mode === "input" && inputStep === "plate" && (() => {
+        const color = detectPlateColor(plate.classNum, plate.hira);
+        const { bg, text, dim, border } = COLOR_CONFIG[color];
+        const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
+        const len = plate.number.length;
+        const hl = (s: PlateSection): React.CSSProperties => plateSection === s
+          ? { boxShadow: "inset 0 0 0 3px #FFE600, 0 0 8px 2px rgba(255,230,0,0.3)", borderRadius: 8, background: "rgba(255,230,0,0.15)", cursor: "pointer" }
+          : { borderRadius: 6, cursor: "pointer" };
 
-        {/* 車番プレート（入力モード・plate ステップ時） */}
-        {mode === "input" && inputStep === "plate" && (() => {
-          const color = detectPlateColor(plate.classNum, plate.hira);
-          const { bg, text, dim, border } = COLOR_CONFIG[color];
-          const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
-          const len = plate.number.length;
-          const plateFilled = !!(plate.region && plate.classNum && plate.hira && plate.number.length >= 1);
-          const hl = (s: PlateSection): React.CSSProperties => plateSection === s
-            ? { boxShadow: "inset 0 0 0 3px #FFE600, 0 0 8px 2px rgba(255,230,0,0.3)", borderRadius: 8, background: "rgba(255,230,0,0.15)", cursor: "pointer" }
-            : { borderRadius: 6, cursor: "pointer" };
-          return (
-            <div style={{ position: "relative", display: "flex", justifyContent: "center" }}>
+        // セクション別の具体的指示
+        const instruction =
+          plateSection === "region" ? "地名の最初の文字を選んでください" :
+          plateSection === "classNum" ? "分類番号を入力してください（3桁）" :
+          plateSection === "hira" ? "ひらがなを選んでください" :
+          "一連番号を入力してください（1〜4桁）";
+
+        return (
+          <div className="flex flex-shrink-0" style={{ padding: "16px 40px 12px", gap: 24, alignItems: "center" }}>
+            {/* 左：コンテキスト */}
+            <div style={{ width: 300, flexShrink: 0 }}>
+              <div style={{ fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800, marginBottom: 6 }}>
+                STEP 3 / 4
+              </div>
+              <div style={{ fontSize: 34, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em", lineHeight: 1.2 }}>
+                車両ナンバーを<br />登録します
+              </div>
+              <div style={{ fontSize: 12, color: "#94A3B8", letterSpacing: "0.18em", fontWeight: 700, marginTop: 6 }}>
+                REGISTER YOUR VEHICLE
+              </div>
+            </div>
+
+            {/* 中央：プレート + 指示 */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
               {/* プレート */}
-              <div style={{ width: 520, height: 230, background: bg, border: `5px solid ${border}`, borderRadius: 14, display: "flex", flexDirection: "column", padding: "8px 18px 10px", boxSizing: "border-box", boxShadow: "0 6px 24px rgba(0,0,0,0.35)" }}>
+              <div style={{ width: 520, height: 220, background: bg, border: `5px solid ${border}`, borderRadius: 14, display: "flex", flexDirection: "column", padding: "8px 18px 10px", boxSizing: "border-box", boxShadow: "0 6px 24px rgba(0,0,0,0.35)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                   <div onPointerDown={() => handleSectionChange("region")} style={hl("region")}>
-                    <span style={{ fontSize: 42, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim, padding: "0 6px", display: "block" }}>{plate.region || "地名"}</span>
+                    <span style={{ fontSize: 40, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim, padding: "0 6px", display: "block" }}>{plate.region || "地名"}</span>
                   </div>
                   <div onPointerDown={() => handleSectionChange("classNum")} style={{ minWidth: 132, textAlign: "center", ...hl("classNum") }}>
-                    <span style={{ fontSize: 42, fontWeight: 900, fontFamily: pf, letterSpacing: 3, color: plate.classNum ? text : dim, padding: "0 6px", display: "block" }}>{plate.classNum || "・・・"}</span>
+                    <span style={{ fontSize: 40, fontWeight: 900, fontFamily: pf, letterSpacing: 3, color: plate.classNum ? text : dim, padding: "0 6px", display: "block" }}>{plate.classNum || "・・・"}</span>
                   </div>
                 </div>
                 <div style={{ flex: 1, display: "flex", alignItems: "center", position: "relative" }}>
                   <div onPointerDown={() => handleSectionChange("hira")} style={{ position: "absolute", left: 4, ...hl("hira") }}>
-                    <span style={{ fontSize: 62, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1, display: "block" }}>{plate.hira || "あ"}</span>
+                    <span style={{ fontSize: 58, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1, display: "block" }}>{plate.hira || "あ"}</span>
                   </div>
                   <div onPointerDown={() => handleSectionChange("number")} style={{ flex: 1, marginLeft: 72, display: "flex", alignItems: "center", justifyContent: "center", transform: "scaleX(0.85)", transformOrigin: "center", alignSelf: "center", overflow: "hidden", ...hl("number") }}>
-                    <span style={{ fontSize: 112, color: plate.number ? text : dim, fontFamily: pf, fontWeight: 900, display: "flex", alignItems: "center", lineHeight: 1 }}>
+                    <span style={{ fontSize: 104, color: plate.number ? text : dim, fontFamily: pf, fontWeight: 900, display: "flex", alignItems: "center", lineHeight: 1 }}>
                       {[0,1,2,3].map(pos => {
                         const hasDigit = pos >= (4 - len);
                         const ch = hasDigit ? plate.number[pos - (4 - len)] : null;
@@ -436,71 +450,86 @@ export default function VehiclePage() {
                   </div>
                 </div>
               </div>
+              {/* 具体的指示 */}
+              <div style={{
+                fontSize: 18, fontWeight: 700, color: "#0D9488",
+                letterSpacing: "0.08em",
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <span style={{ fontSize: 18 }}>👉</span>
+                {instruction}
+              </div>
+            </div>
 
-              {/* 右：ヒントカード（地名・ひらがなセクション時） */}
-              {(plateSection === "hira" || plateSection === "region") && (
+            {/* 右：ヒントカード（地名セクション時のみ） */}
+            <div style={{ width: 260, flexShrink: 0 }}>
+              {plateSection === "region" ? (
                 <div style={{
-                  position: "absolute",
-                  left: "calc(50% + 280px)",
-                  top: -20,
-                  width: 340,
                   background: "#FFFBEB",
-                  border: "3px solid #F59E0B",
-                  borderRadius: 16,
-                  padding: "14px 18px",
-                  display: "flex", flexDirection: "column", gap: 8,
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                  pointerEvents: "none",
+                  border: "2px solid #FCD34D",
+                  borderRadius: 12,
+                  padding: "12px 14px",
                 }}>
                   <div style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    background: "#FEF3C7", borderRadius: 8,
-                    padding: "6px 12px",
+                    fontSize: 12, color: "#92400E", fontWeight: 800,
+                    letterSpacing: "0.12em", marginBottom: 8,
+                    display: "flex", alignItems: "center", gap: 4,
                   }}>
-                    <span style={{ fontSize: 22 }}>💡</span>
-                    <span style={{ fontSize: 16, color: "#92400E", fontWeight: 800, letterSpacing: "0.04em" }}>
-                      地名の最初の文字を選ぶ
-                    </span>
+                    <span style={{ fontSize: 14 }}>💡</span>
+                    読みの頭文字 例
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                    {HIRA_HINTS.map(h => (
-                      <div key={h.place} style={{
-                        display: "flex", alignItems: "center", gap: 6,
-                        padding: "4px 10px", borderRadius: 8,
-                        background: "#FFF",
-                        border: "1px solid #E5E7EB",
-                        width: "calc(50% - 3px)",
-                        boxSizing: "border-box",
-                      }}>
-                        <span style={{ fontSize: 17, color: "#1E293B", fontWeight: 600 }}>
-                          {h.place}
-                        </span>
-                        <span style={{ fontSize: 14, color: "#94A3B8" }}>→</span>
-                        <span style={{
-                          fontSize: 22, fontWeight: 900, color: "#D97706",
-                          background: "#FEF3C7", borderRadius: 6,
-                          padding: "1px 8px", minWidth: 32, textAlign: "center",
-                        }}>
-                          {h.hira}
-                        </span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 14 }}>
+                    {HIRA_HINTS.slice(0, 6).map(h => (
+                      <div key={h.place} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ color: "#1E293B", fontWeight: 600, minWidth: 48 }}>{h.place}</span>
+                        <span style={{ color: "#94A3B8" }}>→</span>
+                        <span style={{ color: "#D97706", fontWeight: 900, fontSize: 16 }}>{h.hira}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
-          );
-        })()}
-
-        {/* 最大積載量表示（入力モード・maxload ステップ時） */}
-        {mode === "input" && inputStep === "maxload" && (
-          <div className="rounded-2xl border-4 flex items-center px-8 transition-colors" style={{ width: 700, height: 90, borderColor: maxLoad ? "#F59E0B" : "rgba(255,255,255,0.55)", background: "#FFFFFF", justifyContent: "flex-end" }}>
-            <span style={{ fontSize: 56, fontWeight: 900, color: maxLoad ? "#111827" : "#94a3b8" }}>
-              {maxLoad ? `${Number(maxLoad).toLocaleString()} kg` : "（最大積載量を入力）"}
-            </span>
           </div>
-        )}
-      </div>
+        );
+      })()}
+
+      {/* ━━ 選択・確認モードのタイトル ━━ */}
+      {mode !== "input" && (
+        <div className="flex flex-col items-center flex-shrink-0" style={{ padding: "20px 0 16px" }}>
+          <span style={{ fontSize: 44, fontWeight: 800, color: "#1E293B", letterSpacing: "0.08em" }}>
+            {mode === "select" ? "ご使用の車両を選んでください" : "車両の確認"}
+          </span>
+        </div>
+      )}
+
+      {/* ━━ 積載量入力モードのタイトル ━━ */}
+      {mode === "input" && inputStep === "maxload" && (
+        <div className="flex flex-shrink-0" style={{ padding: "16px 40px 12px", gap: 24, alignItems: "center" }}>
+          <div style={{ width: 300, flexShrink: 0 }}>
+            <div style={{ fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800, marginBottom: 6 }}>
+              STEP 3 / 4
+            </div>
+            <div style={{ fontSize: 30, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em", lineHeight: 1.2 }}>
+              最大積載量を<br />登録します
+            </div>
+            <div style={{ fontSize: 12, color: "#94A3B8", letterSpacing: "0.18em", fontWeight: 700, marginTop: 6 }}>
+              MAX LOAD WEIGHT
+            </div>
+          </div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <div className="rounded-2xl border-4 flex items-center px-8" style={{ width: 620, height: 84, borderColor: maxLoad ? "#F59E0B" : "#CBD5E1", background: "#FFFFFF", justifyContent: "flex-end" }}>
+              <span style={{ fontSize: 50, fontWeight: 900, color: maxLoad ? "#111827" : "#94a3b8" }}>
+                {maxLoad ? `${Number(maxLoad).toLocaleString()} kg` : "（未入力）"}
+              </span>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#0D9488", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 8 }}>
+              <span>👉</span>最大積載量を数字で入力してください（kg）
+            </div>
+          </div>
+          <div style={{ width: 260, flexShrink: 0 }} />
+        </div>
+      )}
 
       {/* ━━ メインコンテンツ ━━ */}
       <div className="flex-1 overflow-hidden">
