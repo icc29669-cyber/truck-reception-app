@@ -171,16 +171,8 @@ export default function PersonPage() {
       const n = s.driverCandidates?.length ?? 0;
       if (n === 0) {
         setMode("input");
-      } else if (n === 1) {
-        // 1人だけなら確認画面を飛ばして自動選択
-        const c = s.driverCandidates[0];
-        setKioskSession({
-          selectedDriver: c,
-          driverInput: { ...s.driverInput, companyName: c.companyName, driverName: c.name },
-        });
-        router.push("/kiosk/vehicle");
-        return;
       } else {
+        // 1件でも必ず選択画面を表示（自動スキップしない）
         setMode("select");
       }
     }

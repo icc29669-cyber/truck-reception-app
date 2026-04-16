@@ -309,17 +309,8 @@ export default function VehiclePage() {
       const n = s.vehicleCandidates?.length ?? 0;
       if (n === 0) {
         setMode("input");
-      } else if (n === 1) {
-        // 1台だけなら確認画面を飛ばして自動選択
-        const c = s.vehicleCandidates[0];
-        setKioskSession({
-          selectedVehicle: c,
-          plate: c.plate,
-          driverInput: { ...s.driverInput, maxLoad: c.maxLoad },
-        });
-        router.push("/kiosk/final-confirm");
-        return;
       } else {
+        // 1件でも必ず選択画面を表示（自動スキップしない）
         setMode("select");
       }
     }
