@@ -248,18 +248,49 @@ export default function PhonePage() {
 
       {/* ━━ メインコンテンツ（タイトル＋番号＋テンキー一体） ━━ */}
       <div style={{
-        flex: 1, display: "flex", flexDirection: "column",
+        flex: 1, display: "flex", flexDirection: "row",
         alignItems: "center", justifyContent: "center",
-        gap: 28, paddingBottom: 16,
+        gap: 24, paddingBottom: 16, paddingLeft: 40, paddingRight: 40,
       }}>
 
-        {/* タイトル */}
-        <div style={{
-          fontSize: 44, fontWeight: 800, color: "#1E293B",
-          letterSpacing: "0.08em",
-        }}>
-          電話番号を入力してください
+        {/* 左：コンテキストヘッダー */}
+        <div style={{ width: 300, flexShrink: 0 }}>
+          <div style={{ fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800, marginBottom: 6 }}>
+            STEP 1 / 4
+          </div>
+          <div style={{ fontSize: 36, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em", lineHeight: 1.2 }}>
+            電話番号を<br />登録します
+          </div>
+          <div style={{ fontSize: 12, color: "#94A3B8", letterSpacing: "0.18em", fontWeight: 700, marginTop: 6 }}>
+            ENTER PHONE NUMBER
+          </div>
+          <div style={{
+            marginTop: 20,
+            background: "#FFFBEB",
+            border: "2px solid #FCD34D",
+            borderRadius: 12,
+            padding: "12px 14px",
+            fontSize: 13, color: "#92400E", fontWeight: 700,
+            lineHeight: 1.6,
+          }}>
+            <div style={{ fontSize: 12, letterSpacing: "0.12em", fontWeight: 800, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ fontSize: 14 }}>💡</span>使い方
+            </div>
+            <div>携帯電話（090/080/070）<br />の番号を 11桁入力</div>
+          </div>
         </div>
+
+        {/* 中央：入力エリア */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 20, minWidth: 0 }}>
+          {/* 具体的指示 */}
+          <div style={{
+            fontSize: 20, fontWeight: 700, color: "#0D9488",
+            letterSpacing: "0.08em",
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
+            <span style={{ fontSize: 20 }}>👉</span>
+            携帯電話の番号（11桁）を入力してください
+          </div>
 
         {/* 番号表示エリア */}
         <div style={{
@@ -471,6 +502,7 @@ export default function PhonePage() {
             </button>
           </div>
 
+        </div>
         </div>
       </div>
     </div>

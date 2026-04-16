@@ -274,14 +274,33 @@ export default function PersonPage() {
         <StepDots current={2} />
       </div>
 
-      {/* タイトル（ベージュ背景上）*/}
-      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: mode === "input" ? "16px 0 10px" : "20px 0 16px" }}>
-        <span style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.12em" }}>
-          {mode === "select" ? "お名前を選んでください" :
-           mode === "confirm" ? "ご本人の確認" :
-           inputField === "company" ? "運送会社名を入力してください" :
-           "お名前を入力してください"}
-        </span>
+      {/* タイトル行（左: コンテキスト / 中央: 指示） */}
+      <div className="flex flex-shrink-0" style={{ padding: "16px 40px 12px", gap: 24, alignItems: mode === "input" ? "flex-start" : "center" }}>
+        {/* 左：コンテキストヘッダー */}
+        <div style={{ width: 300, flexShrink: 0 }}>
+          <div style={{ fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800, marginBottom: 6 }}>
+            STEP 2 / 4
+          </div>
+          <div style={{ fontSize: 34, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em", lineHeight: 1.2 }}>
+            お名前を<br />登録します
+          </div>
+          <div style={{ fontSize: 12, color: "#94A3B8", letterSpacing: "0.18em", fontWeight: 700, marginTop: 6 }}>
+            REGISTER NAME
+          </div>
+        </div>
+        {/* 中央：具体的指示 */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div style={{
+            fontSize: 20, fontWeight: 700, color: "#0D9488",
+            letterSpacing: "0.08em",
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
+            <span style={{ fontSize: 20 }}>👉</span>
+            {mode === "select" ? "ご自身のお名前をタップしてください" :
+             mode === "confirm" ? "表示された内容でよろしいですか？" :
+             inputField === "company" ? "運送会社名をカタカナで入力してください" :
+             "お名前をカタカナで入力してください"}
+          </div>
 
         {/* 入力モードのみ：会社名 + お名前 を並べて表示 */}
         {mode === "input" && (
@@ -346,6 +365,7 @@ export default function PersonPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* ━━ メインコンテンツ ━━ */}
