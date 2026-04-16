@@ -61,19 +61,29 @@ export default function CautionPage() {
         <div style={{
           textAlign: "center",
           animation: "caution-enter-up 0.34s ease-out 0.12s both",
-          marginBottom: 8,
+          marginBottom: 4,
+          display: "flex", flexDirection: "column", alignItems: "center",
         }}>
           <div style={{
-            fontSize: 42, fontWeight: 900, color: "#0F172A",
-            letterSpacing: "0.06em", lineHeight: 1.15,
+            fontSize: 12, color: "#D97706",
+            letterSpacing: "0.4em", fontWeight: 800, marginBottom: 10,
+            padding: "4px 14px",
+            background: "#FEF3C7", borderRadius: 4,
+            border: "1px solid #FCD34D",
           }}>
-            場内では必ず着用してください
+            ご入場のお客様へ
           </div>
           <div style={{
-            fontSize: 13, color: "#94A3B8",
-            letterSpacing: "0.28em", fontWeight: 600, marginTop: 6,
+            fontSize: 46, fontWeight: 900, color: "#0F172A",
+            letterSpacing: "0.08em", lineHeight: 1.2,
           }}>
-            PLEASE WEAR PROTECTIVE GEAR
+            場内では必ず<span style={{ color: "#D97706" }}>着用</span>してください
+          </div>
+          <div style={{
+            fontSize: 12, color: "#94A3B8",
+            letterSpacing: "0.32em", fontWeight: 700, marginTop: 4,
+          }}>
+            PLEASE WEAR PROTECTIVE GEAR BEFORE ENTERING
           </div>
         </div>
 
