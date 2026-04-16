@@ -237,24 +237,36 @@ export default function CautionPage() {
         </div>
 
         {/* 確認ボタン */}
-        <button
-          onPointerDown={() => router.push("/kiosk/phone")}
-          style={{
-            width: 720, height: 96, fontSize: 32, fontWeight: 900,
-            background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
-            color: "#fff", border: "none", borderRadius: 18,
-            cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: 14, letterSpacing: "0.1em",
-            animation: "caution-enter-up 0.34s ease-out 0.52s both, caution-pulse 3.2s ease-in-out 1.2s infinite",
-            marginTop: 28, flexShrink: 0,
-          }}
-        >
-          <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.28em", opacity: 0.75, marginRight: 8 }}>OK</span>
-          <span style={{ width: 1, height: 28, background: "rgba(255,255,255,0.35)" }} />
-          確認しました
-          <span style={{ fontSize: 26, marginLeft: 6 }}>→</span>
-        </button>
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: 6, marginTop: 24, flexShrink: 0,
+          animation: "caution-enter-up 0.34s ease-out 0.52s both",
+        }}>
+          <button
+            onPointerDown={() => router.push("/kiosk/phone")}
+            style={{
+              width: 720, height: 96, fontSize: 32, fontWeight: 900,
+              background: "linear-gradient(180deg, #2DD4BF 0%, #0D9488 100%)",
+              color: "#fff", border: "none", borderRadius: 18,
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              gap: 14, letterSpacing: "0.1em",
+              animation: "caution-pulse 3.2s ease-in-out 1.2s infinite",
+            }}
+          >
+            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.28em", opacity: 0.75, marginRight: 8 }}>OK</span>
+            <span style={{ width: 1, height: 28, background: "rgba(255,255,255,0.35)" }} />
+            確認しました
+            <span style={{ fontSize: 26, marginLeft: 6 }}>→</span>
+          </button>
+          <div style={{
+            fontSize: 11, color: "#94A3B8", letterSpacing: "0.18em", fontWeight: 600,
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
+            <span style={{ fontSize: 13 }}>👆</span>
+            タッチして次に進みます
+          </div>
+        </div>
       </div>
     </div>
   );
