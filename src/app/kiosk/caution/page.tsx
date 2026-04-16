@@ -108,7 +108,16 @@ export default function CautionPage() {
               flex: 1, width: "100%",
               display: "flex", alignItems: "flex-end", justifyContent: "center",
               overflow: "hidden", paddingBottom: 12,
+              position: "relative",
             }}>
+              {/* 背景円（ステージ） */}
+              <div style={{
+                position: "absolute", bottom: "10%",
+                width: "70%", aspectRatio: "1",
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(251,191,36,0.18) 0%, rgba(251,191,36,0.05) 50%, transparent 75%)",
+                pointerEvents: "none",
+              }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/helmet.png"
@@ -117,6 +126,7 @@ export default function CautionPage() {
                   maxWidth: "100%", maxHeight: "100%",
                   objectFit: "contain",
                   filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.22))",
+                  position: "relative",
                 }}
               />
             </div>
@@ -166,7 +176,16 @@ export default function CautionPage() {
               flex: 1, width: "100%",
               display: "flex", alignItems: "flex-end", justifyContent: "center",
               overflow: "hidden", paddingBottom: 12,
+              position: "relative",
             }}>
+              {/* 背景円（ステージ） */}
+              <div style={{
+                position: "absolute", bottom: "10%",
+                width: "70%", aspectRatio: "1",
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(26,58,107,0.12) 0%, rgba(26,58,107,0.03) 50%, transparent 75%)",
+                pointerEvents: "none",
+              }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/safety-shoes.png"
@@ -175,6 +194,7 @@ export default function CautionPage() {
                   maxWidth: "100%", maxHeight: "100%",
                   objectFit: "contain",
                   filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.22))",
+                  position: "relative",
                 }}
               />
             </div>
