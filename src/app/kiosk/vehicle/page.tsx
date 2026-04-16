@@ -507,7 +507,7 @@ export default function VehiclePage() {
 
         {/* ── 選択モード ── */}
         {mode === "select" && (
-          <div className="h-full flex flex-col px-10 pt-8 pb-6 gap-4">
+          <div className="h-full flex flex-col px-10 pt-8 pb-6 gap-4 overflow-y-auto">
             <p style={{ fontSize: 28, fontWeight: 600, color: "#374151", flexShrink: 0 }}>
               以前ご使用の車両記録が見つかりました。今回ご使用の車両をタップしてください。
             </p>
@@ -515,20 +515,26 @@ export default function VehiclePage() {
               {candidates.slice(0, 4).map((c, i) => (
                 <VehicleCard key={c.id} candidate={c} isFirst={i === 0} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
               ))}
-            </div>
-            <div className="flex-1 flex items-end">
-              <button
-                onPointerDown={() => setMode("input")}
-                className="w-full flex items-center justify-center gap-3 font-bold rounded-2xl active:bg-blue-50 transition-all select-none touch-none"
-                style={{
-                  height: 110, border: "3px dashed #1565C0",
-                  background: "rgba(255,255,255,0.7)", color: "#1565C0", fontSize: 34,
-                  boxShadow: "0 4px 12px rgba(21,101,192,0.12)",
-                }}
-              >
-                <span style={{ fontSize: 42 }}>＋</span>
-                一覧にない場合は新しく入力する
-              </button>
+              {/* 新しく入力するカード（車両カードと同じサイズ） */}
+              <div className="w-full flex items-center gap-3">
+                <button
+                  onPointerDown={() => setMode("input")}
+                  className="flex-1 flex items-center justify-center gap-4 font-bold select-none touch-none transition-all duration-75 active:bg-blue-50"
+                  style={{
+                    height: 140, borderRadius: 22,
+                    background: "rgba(255,255,255,0.7)",
+                    border: "3px dashed #1565C0",
+                    color: "#1565C0",
+                    fontSize: 32,
+                    boxShadow: "0 4px 14px rgba(21,101,192,0.08)",
+                  }}
+                >
+                  <span style={{ fontSize: 42 }}>＋</span>
+                  一覧にない場合は新しく入力する
+                </button>
+                {/* 削除ボタンの幅と合わせる（ダミースペース） */}
+                <div style={{ width: 100, flexShrink: 0 }} />
+              </div>
             </div>
           </div>
         )}

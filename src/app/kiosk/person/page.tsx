@@ -357,7 +357,7 @@ export default function PersonPage() {
             <p style={{ fontSize: 28, fontWeight: 600, color: "#374151", flexShrink: 0 }}>
               以前ご来場時の記録が見つかりました。ご自身をタップしてください。
             </p>
-            {/* 候補カード（全件・スクロール対応） */}
+            {/* 候補カード + 新しく入力するカード（同じサイズ・スクロール対応） */}
             <div className="flex-1 overflow-y-auto" style={{ paddingRight: 4 }}>
               <div className="flex flex-col gap-4">
                 {candidates.map((c, i) => (
@@ -369,20 +369,28 @@ export default function PersonPage() {
                     onDelete={() => setDeleteTarget(c)}
                   />
                 ))}
+                {/* 新しく入力するカード（候補カードと同じサイズ） */}
+                <div className="w-full flex items-center gap-3">
+                  <button
+                    onPointerDown={() => { setCompany(""); setName(""); setMode("input"); }}
+                    className="flex-1 flex items-center justify-center gap-4 font-bold select-none touch-none transition-all duration-75 active:bg-blue-50"
+                    style={{
+                      height: 152, borderRadius: 22,
+                      background: "rgba(255,255,255,0.7)",
+                      border: "3px dashed #1565C0",
+                      color: "#1565C0",
+                      fontSize: 32,
+                      boxShadow: "0 4px 14px rgba(21,101,192,0.08)",
+                    }}
+                  >
+                    <span style={{ fontSize: 42 }}>＋</span>
+                    一覧にない場合は新しく入力する
+                  </button>
+                  {/* 削除ボタンの幅と合わせる（ダミースペース） */}
+                  <div style={{ width: 100, flexShrink: 0 }} />
+                </div>
               </div>
             </div>
-            {/* 新しく入力するボタン（常に下部表示） */}
-            <button
-              onPointerDown={() => { setCompany(""); setName(""); setMode("input"); }}
-              className="w-full flex items-center justify-center gap-3 font-bold rounded-2xl active:bg-blue-50 transition-all select-none touch-none flex-shrink-0"
-              style={{
-                height: 100, border: "2px dashed #1565C0",
-                background: "rgba(255,255,255,0.7)", color: "#1565C0", fontSize: 32,
-              }}
-            >
-              <span style={{ fontSize: 40 }}>＋</span>
-              一覧にない場合は新しく入力する
-            </button>
           </div>
         )}
 
