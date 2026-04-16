@@ -530,7 +530,7 @@ export default function VehiclePage() {
                   }}
                 >
                   <span style={{ fontSize: 42 }}>＋</span>
-                  一覧にない場合は新しく入力する
+                  違う場合は　車両を入力する
                 </button>
                 {/* 削除ボタンの幅と合わせる（ダミースペース） */}
                 <div style={{ width: 100, flexShrink: 0 }} />
