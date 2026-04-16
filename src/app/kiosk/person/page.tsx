@@ -384,7 +384,7 @@ export default function PersonPage() {
                     }}
                   >
                     <span style={{ fontSize: 42 }}>＋</span>
-                    違う場合は　お名前を入力する
+                    新しく入力する
                   </button>
                   {/* 削除ボタンの幅と合わせる（ダミースペース） */}
                   <div style={{ width: 100, flexShrink: 0 }} />
