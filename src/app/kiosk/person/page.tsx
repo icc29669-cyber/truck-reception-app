@@ -274,33 +274,35 @@ export default function PersonPage() {
         <StepDots current={2} />
       </div>
 
-      {/* タイトル行（左: コンテキスト / 中央: 指示） */}
-      <div className="flex flex-shrink-0" style={{ padding: "16px 40px 12px", gap: 24, alignItems: mode === "input" ? "flex-start" : "center" }}>
-        {/* 左：コンテキストヘッダー */}
-        <div style={{ width: 300, flexShrink: 0 }}>
-          <div style={{ fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800, marginBottom: 6 }}>
+      {/* サブヘッダー（STEP + タイトル + 指示） */}
+      <div className="flex items-center flex-shrink-0" style={{ padding: "14px 40px 10px", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
+          <div style={{
+            fontSize: 12, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+            padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
+          }}>
             STEP 2 / 4
           </div>
-          <div style={{ fontSize: 34, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em", lineHeight: 1.2 }}>
-            お名前を<br />登録します
-          </div>
-          <div style={{ fontSize: 12, color: "#94A3B8", letterSpacing: "0.18em", fontWeight: 700, marginTop: 6 }}>
-            REGISTER NAME
+          <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
+            お名前を登録します
           </div>
         </div>
-        {/* 中央：具体的指示 */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <div style={{
-            fontSize: 20, fontWeight: 700, color: "#0D9488",
-            letterSpacing: "0.08em",
-            display: "flex", alignItems: "center", gap: 8,
-          }}>
-            <span style={{ fontSize: 20 }}>👉</span>
-            {mode === "select" ? "ご自身のお名前をタップしてください" :
-             mode === "confirm" ? "表示された内容でよろしいですか？" :
-             inputField === "company" ? "運送会社名をカタカナで入力してください" :
-             "お名前をカタカナで入力してください"}
-          </div>
+        <div style={{ flex: 1 }} />
+        <div style={{
+          fontSize: 16, fontWeight: 700, color: "#0D9488", letterSpacing: "0.06em",
+          display: "flex", alignItems: "center", gap: 6,
+        }}>
+          <span style={{ fontSize: 16 }}>👉</span>
+          {mode === "select" ? "ご自身のお名前をタップしてください" :
+           mode === "confirm" ? "表示された内容でよろしいですか？" :
+           inputField === "company" ? "運送会社名をカタカナで入力してください" :
+           "お名前をカタカナで入力してください"}
+        </div>
+      </div>
+
+      {/* タイトル行（入力モードの会社名/お名前表示のみ） */}
+      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: mode === "input" ? "0 40px 10px" : "0" }}>
+        <div style={{ display: "none" }}>
 
         {/* 入力モードのみ：会社名 + お名前 を並べて表示 */}
         {mode === "input" && (
