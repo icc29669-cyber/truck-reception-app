@@ -86,25 +86,27 @@ export default function CautionPage() {
           display: "flex", flexDirection: "column", alignItems: "center",
         }}>
           <div style={{
-            fontSize: 12, color: "#D97706",
-            letterSpacing: "0.4em", fontWeight: 800, marginBottom: 10,
-            padding: "4px 14px",
+            fontSize: 14, color: "#D97706",
+            letterSpacing: "0.32em", fontWeight: 800, marginBottom: 10,
+            padding: "5px 16px",
             background: "#FEF3C7", borderRadius: 4,
             border: "1px solid #FCD34D",
           }}>
-            ご入場のお客様へ
+            入場前の確認
           </div>
           <div style={{
-            fontSize: 46, fontWeight: 900, color: "#0F172A",
-            letterSpacing: "0.08em", lineHeight: 1.2,
+            fontSize: 42, fontWeight: 900, color: "#0F172A",
+            letterSpacing: "0.06em", lineHeight: 1.25,
           }}>
-            場内では必ず<span style={{ color: "#D97706" }}>着用</span>してください
+            <span style={{ color: "#D97706" }}>ヘルメット</span>と<span style={{ color: "#0F172A" }}>安全靴</span>を必ず<span style={{
+              borderBottom: "4px solid #FCD34D", paddingBottom: 2,
+            }}>着用</span>してください
           </div>
           <div style={{
-            fontSize: 12, color: "#94A3B8",
-            letterSpacing: "0.32em", fontWeight: 700, marginTop: 4,
+            fontSize: 15, color: "#64748B",
+            letterSpacing: "0.18em", fontWeight: 700, marginTop: 8,
           }}>
-            PLEASE WEAR PROTECTIVE GEAR BEFORE ENTERING
+            PLEASE WEAR HARD HAT & SAFETY SHOES BEFORE ENTERING
           </div>
         </div>
 
@@ -161,25 +163,24 @@ export default function CautionPage() {
               <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.12em", lineHeight: 1 }}>
                 ヘルメット
               </div>
-              <div style={{ fontSize: 12, color: "#92400E", letterSpacing: "0.3em", fontWeight: 700 }}>
+              <div style={{ fontSize: 15, color: "#92400E", letterSpacing: "0.18em", fontWeight: 700 }}>
                 HARD HAT
               </div>
             </div>
           </div>
 
-          {/* プラス（大きめのアンバーバッジ） */}
+          {/* プラス（控えめに） */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.3s both",
             flexShrink: 0, paddingBottom: 80,
           }}>
             <div style={{
-              width: 56, height: 56, borderRadius: "50%",
-              background: "#FEF3C7", border: "2px solid #F59E0B",
+              width: 44, height: 44, borderRadius: "50%",
+              background: "#FFFBEB", border: "1.5px solid #FCD34D",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#D97706", fontSize: 32, fontWeight: 800,
+              color: "#D97706", fontSize: 24, fontWeight: 700,
               fontFamily: "Inter, sans-serif",
-              boxShadow: "0 4px 12px rgba(217,119,6,0.15)",
             }}>
               +
             </div>
@@ -229,7 +230,7 @@ export default function CautionPage() {
               <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.12em", lineHeight: 1 }}>
                 安全靴
               </div>
-              <div style={{ fontSize: 12, color: "#475569", letterSpacing: "0.3em", fontWeight: 700 }}>
+              <div style={{ fontSize: 15, color: "#475569", letterSpacing: "0.18em", fontWeight: 700 }}>
                 SAFETY SHOES
               </div>
             </div>
@@ -260,10 +261,10 @@ export default function CautionPage() {
             <span style={{ fontSize: 26, marginLeft: 6 }}>→</span>
           </button>
           <div style={{
-            fontSize: 11, color: "#94A3B8", letterSpacing: "0.18em", fontWeight: 600,
+            fontSize: 14, color: "#64748B", letterSpacing: "0.14em", fontWeight: 600,
             display: "flex", alignItems: "center", gap: 8,
           }}>
-            <span style={{ fontSize: 13 }}>👆</span>
+            <span style={{ fontSize: 16 }}>👆</span>
             タッチして次に進みます
           </div>
         </div>
