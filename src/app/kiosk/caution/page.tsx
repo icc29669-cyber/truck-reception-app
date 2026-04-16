@@ -90,39 +90,40 @@ export default function CautionPage() {
         }}>
           {/* ヘルメットカード */}
           <div style={{
-            width: 480, height: 420,
-            background: "#FFFFFF", borderRadius: 28,
-            boxShadow: "0 16px 48px rgba(26,58,107,0.10), 0 3px 8px rgba(26,58,107,0.05)",
+            width: 560, height: 560,
+            background: "#FFFFFF", borderRadius: 32,
+            boxShadow: "0 20px 56px rgba(26,58,107,0.12), 0 4px 12px rgba(26,58,107,0.06)",
             display: "flex", flexDirection: "column",
-            padding: "20px 20px 16px",
+            padding: "28px 28px 24px",
             animation: "caution-enter-scale 0.38s ease-out 0.24s both",
             position: "relative",
+            overflow: "hidden",
           }}>
             <div style={{
               flex: 1,
               display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
+              overflow: "hidden", marginBottom: 8,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/helmet.png"
                 alt="ヘルメット"
                 style={{
-                  maxWidth: "100%", maxHeight: "100%",
-                  width: "auto", height: "auto",
+                  width: "100%", height: "100%",
                   objectFit: "contain",
+                  transform: "scale(1.15)",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 4, paddingTop: 8,
+              gap: 4,
             }}>
-              <div style={{ width: 64, height: 4, background: "#D97706", borderRadius: 2, marginBottom: 6 }} />
-              <div style={{ fontSize: 30, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
+              <div style={{ width: 72, height: 5, background: "#D97706", borderRadius: 3, marginBottom: 8 }} />
+              <div style={{ fontSize: 38, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
                 ヘルメット
               </div>
-              <div style={{ fontSize: 11, color: "#92400E", letterSpacing: "0.24em", fontWeight: 700 }}>
+              <div style={{ fontSize: 13, color: "#92400E", letterSpacing: "0.24em", fontWeight: 700 }}>
                 HARD HAT
               </div>
             </div>
@@ -139,39 +140,40 @@ export default function CautionPage() {
 
           {/* 安全靴カード */}
           <div style={{
-            width: 480, height: 420,
-            background: "#FFFFFF", borderRadius: 28,
-            boxShadow: "0 16px 48px rgba(26,58,107,0.10), 0 3px 8px rgba(26,58,107,0.05)",
+            width: 560, height: 560,
+            background: "#FFFFFF", borderRadius: 32,
+            boxShadow: "0 20px 56px rgba(26,58,107,0.12), 0 4px 12px rgba(26,58,107,0.06)",
             display: "flex", flexDirection: "column",
-            padding: "20px 20px 16px",
+            padding: "28px 28px 24px",
             animation: "caution-enter-scale 0.38s ease-out 0.36s both",
             position: "relative",
+            overflow: "hidden",
           }}>
             <div style={{
               flex: 1,
               display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
+              overflow: "hidden", marginBottom: 8,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/safety-shoes.png"
                 alt="安全靴"
                 style={{
-                  maxWidth: "100%", maxHeight: "100%",
-                  width: "auto", height: "auto",
+                  width: "100%", height: "100%",
                   objectFit: "contain",
+                  transform: "scale(1.15)",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 4, paddingTop: 8,
+              gap: 4,
             }}>
-              <div style={{ width: 64, height: 4, background: "#1a3a6b", borderRadius: 2, marginBottom: 6 }} />
-              <div style={{ fontSize: 30, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
+              <div style={{ width: 72, height: 5, background: "#1a3a6b", borderRadius: 3, marginBottom: 8 }} />
+              <div style={{ fontSize: 38, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
                 安全靴
               </div>
-              <div style={{ fontSize: 11, color: "#475569", letterSpacing: "0.24em", fontWeight: 700 }}>
+              <div style={{ fontSize: 13, color: "#475569", letterSpacing: "0.24em", fontWeight: 700 }}>
                 SAFETY SHOES
               </div>
             </div>
