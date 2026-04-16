@@ -1,29 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-
-/* ━━ 警告三角アイコン（JIS準拠の注意サイン） ━━ */
-function WarningIcon({ size = 120 }: { size?: number }) {
-  return (
-    <svg width={size} height={size * 0.9} viewBox="0 0 120 108" fill="none">
-      {/* 黒縁 */}
-      <path d="M60 4 L116 100 L4 100 Z" fill="#000" />
-      {/* 黄色 */}
-      <path d="M60 14 L107 96 L13 96 Z" fill="#FACC15" />
-      {/* エクスクラメーション */}
-      <rect x="55" y="38" width="10" height="36" rx="2" fill="#000" />
-      <circle cx="60" cy="84" r="5" fill="#000" />
-    </svg>
-  );
-}
-
-/* ━━ チェックマーク ━━ */
-function CheckIcon({ size = 32, color = "#0D9488" }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M5 13l4 4L19 7" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+import Image from "next/image";
 
 export default function CautionPage() {
   const router = useRouter();
@@ -34,8 +11,8 @@ export default function CautionPage() {
     }}>
       {/* ━━ 警告ストライプ（上部） ━━ */}
       <div style={{
-        height: 20, flexShrink: 0,
-        background: "repeating-linear-gradient(-45deg, #FACC15 0 24px, #000 24px 48px)",
+        height: 16, flexShrink: 0,
+        background: "repeating-linear-gradient(-45deg, #FACC15 0 22px, #000 22px 44px)",
       }} />
 
       {/* ━━ ヘッダー ━━ */}
@@ -65,103 +42,104 @@ export default function CautionPage() {
 
       {/* ━━ メインコンテンツ ━━ */}
       <div style={{
-        flex: 1, display: "flex", flexDirection: "column",
+        flex: 1, display: "flex", flexDirection: "row",
         alignItems: "center", justifyContent: "center",
-        padding: "0 80px", gap: 0,
+        padding: "0 60px", gap: 40,
       }}>
+        {/* 左：画像 */}
+        <div style={{
+          flexShrink: 0,
+          width: 520, height: 360,
+          position: "relative",
+        }}>
+          <Image
+            src="/images/safety-equipment.png"
+            alt="ヘルメットと安全靴"
+            fill
+            style={{ objectFit: "contain" }}
+            priority
+          />
+        </div>
 
-        {/* 警告アイコン + メイン見出し */}
-        <div style={{ display: "flex", alignItems: "center", gap: 36, marginBottom: 48 }}>
-          <WarningIcon size={110} />
+        {/* 右：メッセージ + ボタン */}
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          gap: 24, maxWidth: 560,
+        }}>
           <div>
             <div style={{
-              fontSize: 20, fontWeight: 800, color: "#B45309",
-              letterSpacing: "0.28em", marginBottom: 8,
+              fontSize: 18, fontWeight: 800, color: "#B45309",
+              letterSpacing: "0.28em", marginBottom: 10,
             }}>
               CAUTION
             </div>
             <div style={{
-              fontSize: 52, fontWeight: 900, color: "#0F172A",
-              letterSpacing: "0.04em", lineHeight: 1.1,
+              fontSize: 46, fontWeight: 900, color: "#0F172A",
+              letterSpacing: "0.04em", lineHeight: 1.2,
+              marginBottom: 14,
             }}>
-              安全装備の着用
+              場内では必ず<br />着用してください
+            </div>
+            <div style={{
+              fontSize: 17, color: "#64748B",
+              letterSpacing: "0.08em", lineHeight: 1.7,
+            }}>
+              安全のため、ヘルメットと安全靴の着用を<br />
+              お願いしております。ご協力よろしくお願いします。
             </div>
           </div>
-        </div>
 
-        {/* 必須アイテムリスト */}
-        <div style={{
-          width: "100%", maxWidth: 820,
-          background: "#F8FAFC",
-          border: "2px solid #E2E8F0",
-          borderRadius: 16,
-          padding: "28px 48px",
-          marginBottom: 48,
-        }}>
+          {/* 必須装備リスト */}
           <div style={{
-            fontSize: 18, fontWeight: 700, color: "#64748B",
-            letterSpacing: "0.1em", marginBottom: 16,
+            background: "#FEF3C7",
+            border: "2px solid #F59E0B",
+            borderRadius: 12,
+            padding: "14px 20px",
+            display: "flex", gap: 28,
           }}>
-            場内では必ず着用してください
-          </div>
-          <div style={{ display: "flex", gap: 0, alignItems: "stretch" }}>
-            {/* ヘルメット */}
-            <div style={{
-              flex: 1, display: "flex", alignItems: "center", gap: 16,
-              padding: "12px 0",
-            }}>
-              <CheckIcon size={36} color="#0D9488" />
-              <div>
-                <div style={{ fontSize: 32, fontWeight: 900, color: "#0F172A", lineHeight: 1 }}>
-                  ヘルメット
-                </div>
-                <div style={{ fontSize: 14, color: "#64748B", marginTop: 4, letterSpacing: "0.08em" }}>
-                  保護帽
-                </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 8, height: 8, borderRadius: "50%",
+                background: "#D97706",
+              }} />
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#78350F" }}>
+                ヘルメット
               </div>
             </div>
-            {/* 縦区切り */}
-            <div style={{ width: 1, background: "#E2E8F0", margin: "8px 24px" }} />
-            {/* 安全靴 */}
-            <div style={{
-              flex: 1, display: "flex", alignItems: "center", gap: 16,
-              padding: "12px 0",
-            }}>
-              <CheckIcon size={36} color="#0D9488" />
-              <div>
-                <div style={{ fontSize: 32, fontWeight: 900, color: "#0F172A", lineHeight: 1 }}>
-                  安全靴
-                </div>
-                <div style={{ fontSize: 14, color: "#64748B", marginTop: 4, letterSpacing: "0.08em" }}>
-                  Safety Shoes
-                </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 8, height: 8, borderRadius: "50%",
+                background: "#D97706",
+              }} />
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#78350F" }}>
+                安全靴
               </div>
             </div>
           </div>
-        </div>
 
-        {/* 確認ボタン */}
-        <button
-          onPointerDown={() => router.push("/kiosk/phone")}
-          style={{
-            width: 620, height: 104, fontSize: 36, fontWeight: 900,
-            background: "#0F172A", color: "#fff",
-            border: "none", borderRadius: 14,
-            cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: 14, letterSpacing: "0.08em",
-            boxShadow: "0 6px 0 #000",
-          }}
-        >
-          着用を確認しました
-          <span style={{ fontSize: 30, marginLeft: 4 }}>→</span>
-        </button>
+          {/* 確認ボタン */}
+          <button
+            onPointerDown={() => router.push("/kiosk/phone")}
+            style={{
+              width: "100%", height: 96, fontSize: 30, fontWeight: 900,
+              background: "#0F172A", color: "#fff",
+              border: "none", borderRadius: 14,
+              cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              gap: 14, letterSpacing: "0.08em",
+              boxShadow: "0 6px 0 #000",
+            }}
+          >
+            着用を確認しました
+            <span style={{ fontSize: 26, marginLeft: 4 }}>→</span>
+          </button>
+        </div>
       </div>
 
       {/* ━━ 警告ストライプ（下部） ━━ */}
       <div style={{
-        height: 20, flexShrink: 0,
-        background: "repeating-linear-gradient(-45deg, #FACC15 0 24px, #000 24px 48px)",
+        height: 16, flexShrink: 0,
+        background: "repeating-linear-gradient(-45deg, #FACC15 0 22px, #000 22px 44px)",
       }} />
     </div>
   );
