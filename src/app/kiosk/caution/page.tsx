@@ -93,16 +93,13 @@ export default function CautionPage() {
             width: 560, height: 560,
             background: "#FFFFFF", borderRadius: 32,
             boxShadow: "0 20px 56px rgba(26,58,107,0.12), 0 4px 12px rgba(26,58,107,0.06)",
-            display: "flex", flexDirection: "column",
-            padding: "28px 28px 24px",
             animation: "caution-enter-scale 0.38s ease-out 0.24s both",
             position: "relative",
-            overflow: "hidden",
           }}>
+            {/* 画像：カードを飛び出すサイズで配置 */}
             <div style={{
-              flex: 1,
+              position: "absolute", top: -40, left: -20, right: -20, bottom: 110,
               display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden", marginBottom: 8,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -111,15 +108,20 @@ export default function CautionPage() {
                 style={{
                   width: "100%", height: "100%",
                   objectFit: "contain",
-                  transform: "scale(1.15)",
+                  filter: "drop-shadow(0 12px 24px rgba(26,58,107,0.15))",
                 }}
               />
             </div>
+            {/* ラベル：カード下部に固定 */}
             <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0,
+              height: 110, borderTop: "1px solid #F1F5F9",
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 4,
+              justifyContent: "center", gap: 4,
+              background: "linear-gradient(180deg, #FFFFFF 0%, #FEFDF9 100%)",
+              borderRadius: "0 0 32px 32px",
             }}>
-              <div style={{ width: 72, height: 5, background: "#D97706", borderRadius: 3, marginBottom: 8 }} />
+              <div style={{ width: 72, height: 5, background: "#D97706", borderRadius: 3, marginBottom: 6 }} />
               <div style={{ fontSize: 38, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
                 ヘルメット
               </div>
@@ -143,16 +145,12 @@ export default function CautionPage() {
             width: 560, height: 560,
             background: "#FFFFFF", borderRadius: 32,
             boxShadow: "0 20px 56px rgba(26,58,107,0.12), 0 4px 12px rgba(26,58,107,0.06)",
-            display: "flex", flexDirection: "column",
-            padding: "28px 28px 24px",
             animation: "caution-enter-scale 0.38s ease-out 0.36s both",
             position: "relative",
-            overflow: "hidden",
           }}>
             <div style={{
-              flex: 1,
+              position: "absolute", top: -40, left: -20, right: -20, bottom: 110,
               display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden", marginBottom: 8,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -161,15 +159,19 @@ export default function CautionPage() {
                 style={{
                   width: "100%", height: "100%",
                   objectFit: "contain",
-                  transform: "scale(1.15)",
+                  filter: "drop-shadow(0 12px 24px rgba(26,58,107,0.15))",
                 }}
               />
             </div>
             <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0,
+              height: 110, borderTop: "1px solid #F1F5F9",
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 4,
+              justifyContent: "center", gap: 4,
+              background: "linear-gradient(180deg, #FFFFFF 0%, #FEFDF9 100%)",
+              borderRadius: "0 0 32px 32px",
             }}>
-              <div style={{ width: 72, height: 5, background: "#1a3a6b", borderRadius: 3, marginBottom: 8 }} />
+              <div style={{ width: 72, height: 5, background: "#1a3a6b", borderRadius: 3, marginBottom: 6 }} />
               <div style={{ fontSize: 38, fontWeight: 900, color: "#0F172A", letterSpacing: "0.08em", lineHeight: 1 }}>
                 安全靴
               </div>
