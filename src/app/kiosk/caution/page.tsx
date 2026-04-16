@@ -44,6 +44,27 @@ export default function CautionPage() {
         <div style={{ fontSize: 18, color: "rgba(255,255,255,0.78)", letterSpacing: "0.24em", fontWeight: 700 }}>
           SAFETY CHECK
         </div>
+
+        {/* 右端：ステップインジケータ */}
+        <div style={{ flex: 1 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: "0.2em", fontWeight: 700, marginRight: 4 }}>
+            STEP
+          </span>
+          {[1, 2, 3, 4, 5].map((s) => (
+            <div key={s} style={{
+              width: s === 1 ? 24 : 8, height: 8, borderRadius: 4,
+              background: s === 1 ? "#FACC15" : "rgba(255,255,255,0.22)",
+              transition: "all 0.2s ease",
+            }} />
+          ))}
+          <span style={{
+            fontSize: 13, color: "rgba(255,255,255,0.8)",
+            fontWeight: 800, marginLeft: 10, letterSpacing: "0.04em",
+          }}>
+            1 <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>/ 5</span>
+          </span>
+        </div>
       </div>
 
       {/* ━━ アンバー警戒帯 ━━ */}
