@@ -274,34 +274,35 @@ export default function PersonPage() {
         <StepDots current={2} />
       </div>
 
-      {/* サブヘッダー（STEP + 動的タイトル + 大きな指示） */}
-      <div className="flex items-center flex-shrink-0" style={{ padding: "14px 40px 12px", gap: 20 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
+      {/* サブヘッダー：左にSTEP、中央に大きな指示 */}
+      <div className="flex items-center flex-shrink-0" style={{ padding: "10px 40px 12px", position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 14, position: "absolute", left: 40 }}>
           <div style={{
             fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
             padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
           }}>
             STEP 2 / 4
           </div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
-            {mode === "select" ? "お名前を選んでください" :
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
+            {mode === "select" ? "お名前選択" :
              mode === "confirm" ? "ご本人の確認" :
-             inputField === "company" ? "運送会社を入力" :
-             "お名前を入力"}
+             "お名前の入力"}
           </div>
         </div>
-        <div style={{ flex: 1 }} />
-        <div style={{
-          fontSize: 22, fontWeight: 800, color: "#0D9488", letterSpacing: "0.04em",
-          display: "flex", alignItems: "center", gap: 10,
-          background: "#F0FDFA", padding: "10px 18px", borderRadius: 12,
-          border: "2px solid #5EEAD4",
-        }}>
-          <span style={{ fontSize: 24 }}>👉</span>
-          {mode === "select" ? "ご自身のお名前をタップ" :
-           mode === "confirm" ? "表示された内容でよろしいですか？" :
-           inputField === "company" ? "運送会社名をカタカナで入力" :
-           "お名前をカタカナで入力"}
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <div style={{
+            fontSize: 26, fontWeight: 900, color: "#0D9488", letterSpacing: "0.04em",
+            display: "flex", alignItems: "center", gap: 14,
+            background: "#F0FDFA", padding: "12px 28px", borderRadius: 14,
+            border: "3px solid #5EEAD4",
+            boxShadow: "0 4px 12px rgba(13,148,136,0.12)",
+          }}>
+            <span style={{ fontSize: 28 }}>👉</span>
+            {mode === "select" ? "ご自身のお名前をタッチしてください" :
+             mode === "confirm" ? "表示された内容でよろしいですか？" :
+             inputField === "company" ? "運送会社名をカタカナで入力してください" :
+             "お名前をカタカナで入力してください"}
+          </div>
         </div>
       </div>
 
