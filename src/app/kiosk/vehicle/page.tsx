@@ -405,36 +405,34 @@ export default function VehiclePage() {
 
         return (
           <>
-            {/* サブヘッダー：左にSTEP、中央に大きな指示 */}
-            <div className="flex items-center flex-shrink-0" style={{ padding: "10px 40px 12px", gap: 20, position: "relative" }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 14, position: "absolute", left: 40 }}>
-                <div style={{
-                  fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
-                  padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
-                }}>
-                  STEP 3 / 4
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>
-                  ナンバープレート
-                </div>
+            {/* サブヘッダー：STEPバッジ+見出し（統合型） */}
+            <div className="flex items-center flex-shrink-0" style={{ padding: "18px 40px 14px", gap: 18 }}>
+              <div style={{
+                fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+                padding: "5px 12px", background: "#E2E8F0", borderRadius: 4,
+                flexShrink: 0,
+              }}>
+                STEP 3 / 4
               </div>
-              {/* 中央に大きな指示 */}
-              <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-                <div style={{
-                  fontSize: 26, fontWeight: 900, color: "#0D9488", letterSpacing: "0.04em",
-                  display: "flex", alignItems: "center", gap: 14,
-                  background: "#F0FDFA", padding: "12px 28px", borderRadius: 14,
-                  border: "3px solid #5EEAD4",
-                  boxShadow: "0 4px 12px rgba(13,148,136,0.12)",
-                }}>
-                  <span style={{
-                    fontSize: 26, fontWeight: 900, color: "#fff",
-                    background: "#0D9488", borderRadius: "50%",
-                    width: 40, height: 40, display: "flex",
-                    alignItems: "center", justifyContent: "center",
-                  }}>{sectionNum}</span>
-                  {instruction}
-                </div>
+              <div style={{
+                fontSize: 28, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+                display: "flex", alignItems: "baseline", gap: 12,
+              }}>
+                <span style={{
+                  fontSize: 22, fontWeight: 900, color: "#fff",
+                  background: "#0D9488", borderRadius: "50%",
+                  width: 36, height: 36, display: "inline-flex",
+                  alignItems: "center", justifyContent: "center",
+                  alignSelf: "center",
+                }}>{sectionNum}</span>
+                {instruction.split("を").length > 1 ? (
+                  <>
+                    {instruction.split("を")[0]}
+                    <span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>
+                      を{instruction.split("を").slice(1).join("を")}
+                    </span>
+                  </>
+                ) : instruction}
               </div>
             </div>
 
@@ -536,24 +534,41 @@ export default function VehiclePage() {
               {candidates.slice(0, 4).map((c, i) => (
                 <VehicleCard key={c.id} candidate={c} isFirst={i === 0} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
               ))}
-              {/* 新しく入力するカード（車両カードと同じサイズ） */}
+              {/* 新しく入力するカード（候補カードと統一感のあるデザイン） */}
               <div className="w-full flex items-center gap-3">
                 <button
                   onPointerDown={() => setMode("input")}
-                  className="flex-1 flex items-center justify-center gap-4 font-bold select-none touch-none transition-all duration-75 active:bg-blue-50"
+                  className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75 active:scale-[0.99]"
                   style={{
                     height: 140, borderRadius: 22,
-                    background: "rgba(255,255,255,0.7)",
-                    border: "3px dashed #1565C0",
-                    color: "#1565C0",
-                    fontSize: 32,
-                    boxShadow: "0 4px 14px rgba(21,101,192,0.08)",
+                    background: "#fff",
+                    border: "2px solid #D1D5DB",
+                    borderLeft: "6px solid #1565C0",
+                    paddingLeft: 26, paddingRight: 28,
+                    boxShadow: "0 4px 14px rgba(0,0,0,0.09)",
                   }}
                 >
-                  <span style={{ fontSize: 42 }}>＋</span>
-                  新しく入力する
+                  {/* +アイコンバッジ（プレートと同じ配置） */}
+                  <div className="flex-shrink-0 mr-8" style={{
+                    width: 200, height: 100, borderRadius: 10,
+                    background: "#EFF6FF",
+                    border: "3px dashed #60A5FA",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    gap: 8,
+                  }}>
+                    <span style={{ fontSize: 56, color: "#1565C0", fontWeight: 300, lineHeight: 1 }}>+</span>
+                  </div>
+                  {/* テキスト情報 */}
+                  <div className="flex flex-col flex-1">
+                    <span style={{ fontSize: 32, fontWeight: 900, color: "#1565C0", letterSpacing: "0.06em" }}>
+                      新しく入力する
+                    </span>
+                    <span style={{ fontSize: 22, fontWeight: 600, color: "#6B7280", marginTop: 4 }}>
+                      上記にない車両の場合
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 36, color: "#1565C0", flexShrink: 0 }}>▶</span>
                 </button>
-                {/* 削除ボタンの幅と合わせる（ダミースペース） */}
                 <div style={{ width: 100, flexShrink: 0 }} />
               </div>
             </div>
@@ -652,19 +667,23 @@ export default function VehiclePage() {
                             if (k === null) return <div key={ci} style={{ width: 180, height: 100, flexShrink: 0 }} />;
                             const col = HIRA_COL_COLORS[ci];
                             const isTopRow = ri === 0;
+                            const hasRegions = (REGION_MAP[k] && REGION_MAP[k].length > 0);
                             return (
                               <button
                                 key={ci}
-                                onPointerDown={() => setKanaFilter(k)}
-                                className="flex items-center justify-center font-bold rounded-xl border-2 transition-all active:translate-y-[3px] select-none touch-none"
+                                onPointerDown={hasRegions ? () => setKanaFilter(k) : undefined}
+                                disabled={!hasRegions}
+                                className={`flex items-center justify-center font-bold rounded-xl border-2 transition-all select-none touch-none ${hasRegions ? "active:translate-y-[3px]" : ""}`}
                                 style={{
                                   width: 180, height: 100, fontSize: 42, flexShrink: 0,
-                                  background: col.bg,
-                                  borderColor: col.border,
-                                  boxShadow: `0 4px 0 ${col.shadow}`,
-                                  color: "#26251e",
+                                  background: hasRegions ? col.bg : "#F1F5F9",
+                                  borderColor: hasRegions ? col.border : "#E2E8F0",
+                                  boxShadow: hasRegions ? `0 4px 0 ${col.shadow}` : "none",
+                                  color: hasRegions ? "#26251e" : "#CBD5E1",
                                   fontWeight: isTopRow ? 900 : 700,
                                   position: "relative",
+                                  cursor: hasRegions ? "pointer" : "not-allowed",
+                                  opacity: hasRegions ? 1 : 0.5,
                                 }}
                               >
                                 {k}

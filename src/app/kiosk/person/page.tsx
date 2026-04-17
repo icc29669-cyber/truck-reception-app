@@ -274,35 +274,28 @@ export default function PersonPage() {
         <StepDots current={2} />
       </div>
 
-      {/* サブヘッダー：左にSTEP、中央に大きな指示 */}
-      <div className="flex items-center flex-shrink-0" style={{ padding: "10px 40px 12px", position: "relative" }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 14, position: "absolute", left: 40 }}>
-          <div style={{
-            fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
-            padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
-          }}>
-            STEP 2 / 4
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>
-            {mode === "select" ? "お名前選択" :
-             mode === "confirm" ? "ご本人の確認" :
-             "お名前の入力"}
-          </div>
+      {/* サブヘッダー：STEPバッジ+見出し（統合型、ひと目で分かる） */}
+      <div className="flex items-center flex-shrink-0" style={{ padding: "18px 40px 16px", gap: 18 }}>
+        <div style={{
+          fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+          padding: "5px 12px", background: "#E2E8F0", borderRadius: 4,
+          flexShrink: 0,
+        }}>
+          STEP 2 / 4
         </div>
-        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          <div style={{
-            fontSize: 26, fontWeight: 900, color: "#0D9488", letterSpacing: "0.04em",
-            display: "flex", alignItems: "center", gap: 14,
-            background: "#F0FDFA", padding: "12px 28px", borderRadius: 14,
-            border: "3px solid #5EEAD4",
-            boxShadow: "0 4px 12px rgba(13,148,136,0.12)",
-          }}>
-            <span style={{ fontSize: 28 }}>👉</span>
-            {mode === "select" ? "ご自身のお名前をタッチしてください" :
-             mode === "confirm" ? "表示された内容でよろしいですか？" :
-             inputField === "company" ? "運送会社名をカタカナで入力してください" :
-             "お名前をカタカナで入力してください"}
-          </div>
+        <div style={{
+          fontSize: 30, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+          display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap",
+        }}>
+          {mode === "select" ? (
+            <>ご自身のお名前<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>をタッチしてください</span></>
+          ) : mode === "confirm" ? (
+            <>ご本人の確認<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>— 表示内容でよろしいですか？</span></>
+          ) : inputField === "company" ? (
+            <>運送会社名<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
+          ) : (
+            <>お名前<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
+          )}
         </div>
       </div>
 
@@ -400,22 +393,39 @@ export default function PersonPage() {
                     onDelete={() => setDeleteTarget(c)}
                   />
                 ))}
-                {/* 新しく入力するカード（候補カードと同じサイズ） */}
+                {/* 新しく入力するカード（候補カードと統一感） */}
                 <div className="w-full flex items-center gap-3">
                   <button
                     onPointerDown={() => { setCompany(""); setName(""); setMode("input"); }}
-                    className="flex-1 flex items-center justify-center gap-4 font-bold select-none touch-none transition-all duration-75 active:bg-blue-50"
+                    className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75 active:scale-[0.99]"
                     style={{
                       height: 152, borderRadius: 22,
-                      background: "rgba(255,255,255,0.7)",
-                      border: "3px dashed #1565C0",
-                      color: "#1565C0",
-                      fontSize: 32,
-                      boxShadow: "0 4px 14px rgba(21,101,192,0.08)",
+                      background: "#fff",
+                      border: "2px solid #D1D5DB",
+                      borderLeft: "6px solid #1565C0",
+                      paddingLeft: 26, paddingRight: 28,
+                      boxShadow: "0 4px 14px rgba(0,0,0,0.09)",
                     }}
                   >
-                    <span style={{ fontSize: 42 }}>＋</span>
-                    新しく入力する
+                    {/* +アイコン（人アイコンと同じ配置） */}
+                    <div style={{
+                      width: 64, height: 64, borderRadius: "50%",
+                      background: "#EFF6FF",
+                      border: "3px dashed #60A5FA",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 36, flexShrink: 0, marginRight: 24,
+                      color: "#1565C0", fontWeight: 300, lineHeight: 1,
+                    }}>+</div>
+                    {/* テキスト情報 */}
+                    <div className="flex flex-col flex-1">
+                      <span style={{ fontSize: 22, fontWeight: 600, color: "#6B7280", lineHeight: 1.3 }}>
+                        上記にない場合
+                      </span>
+                      <span style={{ fontSize: 36, fontWeight: 900, color: "#1565C0", lineHeight: 1.2, letterSpacing: "0.04em" }}>
+                        新しく入力する
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 36, color: "#1565C0", flexShrink: 0 }}>▶</span>
                   </button>
                   {/* 削除ボタンの幅と合わせる（ダミースペース） */}
                   <div style={{ width: 100, flexShrink: 0 }} />

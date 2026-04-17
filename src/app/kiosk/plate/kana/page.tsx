@@ -105,20 +105,18 @@ export default function PlateKanaPage() {
                   return (
                     <button
                       key={ci}
-                      onPointerDown={() => hasItems ? setSelectedKana(kana) : undefined}
+                      onPointerDown={hasItems ? () => setSelectedKana(kana) : undefined}
                       disabled={!hasItems}
-                      className={`rounded-xl text-3xl font-bold flex items-center justify-center transition-all duration-75
-                        ${isSelected
-                          ? "bg-blue-600 text-white border-blue-700 shadow-lg"
-                          : hasItems
-                            ? "bg-white text-gray-800 active:bg-blue-100 shadow-sm"
-                            : "bg-gray-100 text-gray-300"
-                        }`}
+                      className="rounded-xl text-3xl font-bold flex items-center justify-center transition-all duration-75"
                       style={{
                         width: BTN_SIZE,
                         height: BTN_SIZE,
-                        border: "3px solid",
-                        borderColor: isSelected ? "#1d4ed8" : "#e5e7eb",
+                        border: `3px solid ${isSelected ? "#1d4ed8" : hasItems ? "#e5e7eb" : "#F1F5F9"}`,
+                        background: isSelected ? "#2563eb" : hasItems ? "#fff" : "#F8FAFC",
+                        color: isSelected ? "#fff" : hasItems ? "#26251e" : "#D1D5DB",
+                        cursor: hasItems ? "pointer" : "not-allowed",
+                        opacity: hasItems ? 1 : 0.4,
+                        boxShadow: isSelected ? "0 4px 12px rgba(37,99,235,0.3)" : hasItems ? "0 2px 4px rgba(0,0,0,0.04)" : "none",
                       }}
                     >
                       {kana}
