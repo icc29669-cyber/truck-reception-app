@@ -6,7 +6,7 @@ export default function CautionPage() {
 
   return (
     <div className="w-screen h-screen overflow-hidden select-none" style={{
-      display: "flex", flexDirection: "column", background: "#F5F0E8",
+      display: "flex", flexDirection: "column", background: "#f2f1ed",
     }}>
       <style>{`
         @keyframes caution-pulse {
@@ -95,10 +95,10 @@ export default function CautionPage() {
             入場前の確認
           </div>
           <div style={{
-            fontSize: 42, fontWeight: 900, color: "#0F172A",
+            fontSize: 42, fontWeight: 900, color: "#26251e",
             letterSpacing: "0.06em", lineHeight: 1.25,
           }}>
-            <span style={{ color: "#D97706" }}>ヘルメット</span>と<span style={{ color: "#0F172A" }}>安全靴</span>を必ず<span style={{
+            <span style={{ color: "#D97706" }}>ヘルメット</span>と<span style={{ color: "#26251e" }}>安全靴</span>を必ず<span style={{
               borderBottom: "4px solid #FCD34D", paddingBottom: 2,
             }}>着用</span>してください
           </div>
@@ -160,7 +160,7 @@ export default function CautionPage() {
               borderTop: "3px solid #D97706",
               minWidth: 240,
             }}>
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.12em", lineHeight: 1 }}>
+              <div style={{ fontSize: 36, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
                 ヘルメット
               </div>
               <div style={{ fontSize: 15, color: "#92400E", letterSpacing: "0.18em", fontWeight: 700 }}>
@@ -227,7 +227,7 @@ export default function CautionPage() {
               borderTop: "3px solid #1a3a6b",
               minWidth: 240,
             }}>
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#0F172A", letterSpacing: "0.12em", lineHeight: 1 }}>
+              <div style={{ fontSize: 36, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
                 安全靴
               </div>
               <div style={{ fontSize: 15, color: "#475569", letterSpacing: "0.18em", fontWeight: 700 }}>

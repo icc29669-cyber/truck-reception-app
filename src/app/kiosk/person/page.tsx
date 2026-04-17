@@ -92,7 +92,7 @@ function CandidateCard({
           <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", lineHeight: 1.3 }}>
             {candidate.companyName || "（会社名なし）"}
           </span>
-          <span style={{ fontSize: 40, fontWeight: 900, color: "#111827", lineHeight: 1.2, letterSpacing: "0.04em" }}>
+          <span style={{ fontSize: 40, fontWeight: 900, color: "#26251e", lineHeight: 1.2, letterSpacing: "0.04em" }}>
             {candidate.name || "（名前なし）"}
           </span>
         </div>
@@ -255,9 +255,9 @@ export default function PersonPage() {
     }
   }
 
-  const bgStyle = "#F5F0E8";
+  const bgStyle = "#f2f1ed";
 
-  if (!mounted) return <div className="w-screen h-screen" style={{ background: "#F5F0E8" }} />;
+  if (!mounted) return <div className="w-screen h-screen" style={{ background: "#f2f1ed" }} />;
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden" style={{ background: bgStyle }}>
@@ -283,7 +283,7 @@ export default function PersonPage() {
           }}>
             STEP 2 / 4
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>
             {mode === "select" ? "お名前選択" :
              mode === "confirm" ? "ご本人の確認" :
              "お名前の入力"}
@@ -336,7 +336,7 @@ export default function PersonPage() {
               </div>
               <div style={{
                 fontSize: 36, fontWeight: 900, lineHeight: 1,
-                color: company ? "#111827" : "#CBD5E1",
+                color: company ? "#26251e" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
                 {company || "（ここに表示されます）"}
@@ -369,7 +369,7 @@ export default function PersonPage() {
               </div>
               <div style={{
                 fontSize: 36, fontWeight: 900, lineHeight: 1,
-                color: name ? "#111827" : "#CBD5E1",
+                color: name ? "#26251e" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
                 {name || (company.trim() ? "（次にここを入力）" : "（会社名の入力後に有効になります）")}
@@ -452,7 +452,7 @@ export default function PersonPage() {
                   <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200, flexShrink: 0 }}>
                     運送会社名
                   </span>
-                  <span style={{ fontSize: 36, fontWeight: 700, color: "#111827" }}>
+                  <span style={{ fontSize: 36, fontWeight: 700, color: "#26251e" }}>
                     {confirmTarget.companyName || "（未登録）"}
                   </span>
                 </div>
@@ -461,7 +461,7 @@ export default function PersonPage() {
                   <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200, flexShrink: 0 }}>
                     お名前
                   </span>
-                  <span style={{ fontSize: 52, fontWeight: 900, color: "#111827", letterSpacing: "0.06em" }}>
+                  <span style={{ fontSize: 52, fontWeight: 900, color: "#26251e", letterSpacing: "0.06em" }}>
                     {confirmTarget.name}
                   </span>
                 </div>
@@ -549,7 +549,7 @@ export default function PersonPage() {
               maxWidth: 600,
             }}
           >
-            <span style={{ fontSize: 32, fontWeight: 800, color: "#1E293B" }}>
+            <span style={{ fontSize: 32, fontWeight: 800, color: "#26251e" }}>
               この記録を削除しますか？
             </span>
             <div style={{
@@ -557,7 +557,7 @@ export default function PersonPage() {
               width: "100%", textAlign: "center",
             }}>
               <div style={{ fontSize: 22, color: "#64748B" }}>{deleteTarget.companyName}</div>
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#111827", marginTop: 4 }}>{deleteTarget.name}</div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: "#26251e", marginTop: 4 }}>{deleteTarget.name}</div>
             </div>
             <span style={{ fontSize: 20, color: "#94A3B8" }}>
               次回の受付時に表示されなくなります

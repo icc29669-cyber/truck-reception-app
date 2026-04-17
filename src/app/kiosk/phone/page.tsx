@@ -160,7 +160,7 @@ export default function PhonePage() {
     <div style={{
       width: "100vw", height: "100vh",
       display: "flex", flexDirection: "column",
-      background: "#F5F0E8",
+      background: "#f2f1ed",
       overflow: "hidden", userSelect: "none",
     }}>
 
@@ -258,7 +258,7 @@ export default function PhonePage() {
           }}>
             STEP 1 / 4
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>
             電話番号
           </div>
         </div>
@@ -303,7 +303,7 @@ export default function PhonePage() {
             fontSize: 68, fontWeight: 900,
             letterSpacing: "0.16em",
             fontVariantNumeric: "tabular-nums",
-            color: phone ? "#0F172A" : "#C8C3BA",
+            color: phone ? "#26251e" : "#C8C3BA",
             transition: "color 0.2s ease",
           }}>
             {phone ? fmtPhone(phone) : "090-0000-0000"}
@@ -375,7 +375,7 @@ export default function PhonePage() {
                       width: W, height: H,
                       fontSize: 52, fontWeight: 900,
                       background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",
-                      color: "#1E293B",
+                      color: "#26251e",
                       border: "1.5px solid #E2E8F0",
                       borderRadius: 16,
                       boxShadow: "0 4px 0 #CBD5E1, 0 6px 14px rgba(0,0,0,0.05)",
@@ -398,7 +398,7 @@ export default function PhonePage() {
                   width: W * 3 + GAP * 2, height: H,
                   fontSize: 52, fontWeight: 900,
                   background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",
-                  color: "#1E293B",
+                  color: "#26251e",
                   border: "1.5px solid #E2E8F0",
                   borderRadius: 16,
                   boxShadow: "0 4px 0 #CBD5E1, 0 6px 14px rgba(0,0,0,0.05)",

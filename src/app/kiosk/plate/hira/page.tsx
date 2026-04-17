@@ -60,7 +60,7 @@ export default function HiraPage() {
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "#F5F0E8" }}
+      style={{ background: "#f2f1ed" }}
     >
       {/* ━━ ヘッダー ━━ */}
       <div
@@ -92,7 +92,7 @@ export default function HiraPage() {
             <div style={{ fontSize: 14, color: "#92400E", fontWeight: 800, marginBottom: 6, letterSpacing: "0.04em" }}>
               💡 地名の最初の文字
             </div>
-            <div style={{ fontSize: 14, color: "#1E293B", lineHeight: 1.9 }}>
+            <div style={{ fontSize: 14, color: "#26251e", lineHeight: 1.9 }}>
               {HINTS.map(h => (
                 <span key={h.place} style={{ display: "block" }}>
                   {h.place} →{" "}
@@ -137,7 +137,7 @@ export default function HiraPage() {
                         borderRadius: 14,
                         border: `2px solid ${col.border}`,
                         background: col.bg,
-                        color: "#111827",
+                        color: "#26251e",
                         boxShadow: `0 5px 0 ${col.shadow}`,
                         display: "flex",
                         alignItems: "center",

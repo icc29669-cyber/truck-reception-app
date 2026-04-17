@@ -252,7 +252,7 @@ function FieldRow({ label, value, onEdit, tall = false }: {
       {/* 値 */}
       <span style={{
         flex: 1, fontSize: 46, fontWeight: 800,
-        color: value ? "#1E293B" : "#EF4444",
+        color: value ? "#26251e" : "#EF4444",
         letterSpacing: "0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         lineHeight: 1.2,
       }}>
@@ -330,7 +330,7 @@ export default function FinalConfirmPage() {
     }
   }
 
-  if (!sessionData) return <div className="w-screen h-screen" style={{ background: "#F5F0E8" }} />;
+  if (!sessionData) return <div className="w-screen h-screen" style={{ background: "#f2f1ed" }} />;
 
   const { driverInput, plate, phone, selectedReservation } = sessionData;
   const plateStr = formatPlate(plate);
@@ -342,7 +342,7 @@ export default function FinalConfirmPage() {
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "#F5F0E8" }}>
+      style={{ background: "#f2f1ed" }}>
 
       {/* ━━ ヘッダー（TOP同様の薄いバー）━━ */}
       <div className="flex items-center flex-shrink-0 px-14"
@@ -359,7 +359,7 @@ export default function FinalConfirmPage() {
       </div>
       {/* タイトル（ベージュ背景上）*/}
       <div style={{ textAlign: "center", padding: "16px 0 10px" }}>
-        <div style={{ fontSize: 48, fontWeight: 800, color: "#1E293B", letterSpacing: "0.1em" }}>
+        <div style={{ fontSize: 48, fontWeight: 800, color: "#26251e", letterSpacing: "0.1em" }}>
           内容をご確認ください
         </div>
         <div style={{ fontSize: 20, color: "#64748B", marginTop: 2, letterSpacing: "0.08em" }}>
@@ -442,7 +442,7 @@ export default function FinalConfirmPage() {
                     </span>
                     <span style={{
                       flex: 1, fontSize: 40, fontWeight: 800,
-                      color: value ? "#1E293B" : "#EF4444",
+                      color: value ? "#26251e" : "#EF4444",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>
                       {value || "未入力"}

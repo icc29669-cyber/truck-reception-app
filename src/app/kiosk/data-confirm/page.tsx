@@ -343,7 +343,7 @@ function PlatePanel({ plate, onChange }: {
                                 width:72,height:72,fontSize:26,
                                 background:unusable?"#e2e8f0":jigyoyo?"#dbeafe":rental?"#ffedd5":"white",
                                 borderColor:unusable?"#cbd5e1":jigyoyo?"#93c5fd":rental?"#fb923c":"#e2e8f0",
-                                color:unusable?"#94a3b8":jigyoyo?"#1d4ed8":rental?"#ea580c":"#1e293b",
+                                color:unusable?"#94a3b8":jigyoyo?"#1d4ed8":rental?"#ea580c":"#26251e",
                                 opacity:unusable?0.4:1,
                               }}>{k}</button>
                           );
@@ -441,7 +441,7 @@ export default function DataConfirmPage() {
   const plateStr = formatPlate(plate);
   const isComplete = !!company && !!name && !!maxLoad && !!plateStr;
 
-  if (!mounted) return <div className="w-screen h-screen" style={{background:"#F5F0E8"}}/>;
+  if (!mounted) return <div className="w-screen h-screen" style={{background:"#f2f1ed"}}/>;
 
   // 数字パネル用
   const numBtnBase = "flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] transition-all duration-75 select-none touch-none";
@@ -456,7 +456,7 @@ export default function DataConfirmPage() {
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{background:"#F5F0E8"}}>
+      style={{background:"#f2f1ed"}}>
 
       {/* ━━ ヘッダー ━━ */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0"
@@ -509,13 +509,13 @@ export default function DataConfirmPage() {
               </div>
               {/* 値 */}
               {tab.id==="plate" && plateStr ? (
-                <span style={{fontSize:26,fontWeight:900,color:"#1e293b",letterSpacing:2}}>
+                <span style={{fontSize:26,fontWeight:900,color:"#26251e",letterSpacing:2}}>
                   {plateStr}
                 </span>
               ) : (
                 <span style={{
                   fontSize:32,fontWeight:900,lineHeight:1.15,
-                  color:filled?"#1e293b":"#f87171",
+                  color:filled?"#26251e":"#f87171",
                   overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"100%",
                 }}>
                   {tab.value||"—"}
@@ -533,7 +533,7 @@ export default function DataConfirmPage() {
         {active==="company" && (
           <div className="h-full flex flex-col px-8 pt-4 pb-3 gap-3">
             <div style={{background:company?"#FFF9C4":"#f8fafc",border:`3px solid ${company?"#F59E0B":"#e2e8f0"}`,borderRadius:14,padding:"10px 24px",minHeight:68,display:"flex",alignItems:"center",flexShrink:0}}>
-              <span style={{fontSize:44,fontWeight:900,color:company?"#1e293b":"#94a3b8"}}>{company||"（会社名を入力）"}</span>
+              <span style={{fontSize:44,fontWeight:900,color:company?"#26251e":"#94a3b8"}}>{company||"（会社名を入力）"}</span>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-auto">
               <KatakanaKeyboard value={company} onChange={saveCompany} onComplete={()=>setActive("name")} />
@@ -545,7 +545,7 @@ export default function DataConfirmPage() {
         {active==="name" && (
           <div className="h-full flex flex-col px-8 pt-4 pb-3 gap-3">
             <div style={{background:name?"#FFF9C4":"#f8fafc",border:`3px solid ${name?"#F59E0B":"#e2e8f0"}`,borderRadius:14,padding:"10px 24px",minHeight:68,display:"flex",alignItems:"center",flexShrink:0}}>
-              <span style={{fontSize:44,fontWeight:900,color:name?"#1e293b":"#94a3b8"}}>{name||"（お名前を入力）"}</span>
+              <span style={{fontSize:44,fontWeight:900,color:name?"#26251e":"#94a3b8"}}>{name||"（お名前を入力）"}</span>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-auto">
               <KatakanaKeyboard value={name} onChange={saveName} onComplete={()=>setActive("maxLoad")} />
@@ -562,7 +562,7 @@ export default function DataConfirmPage() {
                 最大積載量を<br/>入力してください
               </p>
               <div style={{background:maxLoad?"#FFF9C4":"#f8fafc",border:`3px solid ${maxLoad?"#F59E0B":"#e2e8f0"}`,borderRadius:16,padding:"16px 28px",display:"flex",alignItems:"center",gap:12}}>
-                <span style={{fontSize:80,fontWeight:900,color:maxLoad?"#1e293b":"#94a3b8"}}>
+                <span style={{fontSize:80,fontWeight:900,color:maxLoad?"#26251e":"#94a3b8"}}>
                   {maxLoad ? Number(maxLoad).toLocaleString() : "0"}
                 </span>
                 <span style={{fontSize:40,fontWeight:700,color:"#64748b"}}>kg</span>

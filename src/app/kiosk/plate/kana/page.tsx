@@ -63,7 +63,7 @@ export default function PlateKanaPage() {
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "#F5F0E8" }}
+      style={{ background: "#f2f1ed" }}
     >
       {/* ヘッダー */}
       <div

@@ -116,7 +116,7 @@ export default function ReservationSelectPage() {
   return (
     <div
       className="w-screen h-screen flex flex-col select-none overflow-hidden"
-      style={{ background: "#F5F0E8" }}
+      style={{ background: "#f2f1ed" }}
     >
       {/* ヘッダー */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0" style={{ background: "#1a3a6b", height: 84 }}>
@@ -135,7 +135,7 @@ export default function ReservationSelectPage() {
       <div className="flex flex-col items-center flex-shrink-0" style={{ marginTop: 8, marginBottom: 24 }}>
         {reservations.length > 0 ? (
           <>
-            <span style={{ fontSize: 44, fontWeight: 800, color: "#1E293B", letterSpacing: "0.08em" }}>
+            <span style={{ fontSize: 44, fontWeight: 800, color: "#26251e", letterSpacing: "0.08em" }}>
               予約が見つかりました
             </span>
             <span style={{ fontSize: 24, color: "#64748B", marginTop: 8 }}>
@@ -231,13 +231,13 @@ export default function ReservationSelectPage() {
                   <div className="flex items-center gap-4" style={{ marginTop: 4 }}>
                     <div className="flex items-center gap-2">
                       <span style={{ fontSize: 15, color: "#94A3B8", flexShrink: 0 }}>会社</span>
-                      <span style={{ fontSize: 26, fontWeight: 800, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 26, fontWeight: 800, color: "#26251e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {r.companyName}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span style={{ fontSize: 15, color: "#94A3B8", flexShrink: 0 }}>氏名</span>
-                      <span style={{ fontSize: 26, fontWeight: 800, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 26, fontWeight: 800, color: "#26251e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {r.driverName}
                       </span>
                     </div>

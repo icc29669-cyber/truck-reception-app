@@ -137,7 +137,7 @@ export default function CompletePage() {
   return (
     <div className="w-screen h-screen overflow-hidden select-none" onPointerDown={pauseCountdown} style={{
       display: "flex", flexDirection: "column",
-      background: "#F5F0E8",
+      background: "#f2f1ed",
     }}>
 
       {/* 受付完了 グリーンライン */}
@@ -162,7 +162,7 @@ export default function CompletePage() {
 
         {/* タイトル */}
         <div style={{
-          fontSize: 62, fontWeight: 800, color: "#1E293B",
+          fontSize: 62, fontWeight: 800, color: "#26251e",
           letterSpacing: "0.14em",
         }}>
           受付完了
@@ -177,7 +177,7 @@ export default function CompletePage() {
               display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
             }}>
               <span style={{ fontSize: 14, color: "#94A3B8", letterSpacing: "0.14em", fontWeight: 500 }}>受付日時</span>
-              <span style={{ fontSize: 44, fontWeight: 700, color: "#1E293B", fontVariantNumeric: "tabular-nums" }}>
+              <span style={{ fontSize: 44, fontWeight: 700, color: "#26251e", fontVariantNumeric: "tabular-nums" }}>
                 {dateStr}
               </span>
             </div>
@@ -202,7 +202,7 @@ export default function CompletePage() {
         {/* 案内メッセージ */}
         <div style={{ textAlign: "center" }}>
           <div style={{
-            fontSize: 46, fontWeight: 900, color: "#1E293B",
+            fontSize: 46, fontWeight: 900, color: "#26251e",
             letterSpacing: "0.06em", lineHeight: 1.65,
           }}>
             受付票を取り<br />受付カウンターへお進みください

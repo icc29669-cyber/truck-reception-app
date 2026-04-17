@@ -185,7 +185,7 @@ function KioskTop() {
   const colors = statusColors[status];
 
   // メッセージ文字色
-  const msgColor = status === "open" ? "#1E293B"
+  const msgColor = status === "open" ? "#26251e"
     : (status === "lunch" || status === "break") ? "#92400E"
     : "#64748B";
   const subColor = status === "open" ? "#64748B"
@@ -195,7 +195,7 @@ function KioskTop() {
   return (
     <div className="w-screen h-screen overflow-hidden select-none" style={{
       display: "flex", flexDirection: "column", position: "relative",
-      background: "#F5F0E8",
+      background: "#f2f1ed",
     }}>
 
       {/* ── キーフレーム ── */}

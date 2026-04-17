@@ -137,7 +137,7 @@ function VehicleCard({
 
         {/* テキスト情報 */}
         <div className="flex flex-col flex-1">
-          <span style={{ fontSize: 32, fontWeight: 900, color: "#111827", letterSpacing: "0.06em" }}>
+          <span style={{ fontSize: 32, fontWeight: 900, color: "#26251e", letterSpacing: "0.06em" }}>
             {formatPlate(candidate.plate) || candidate.vehicleNumber}
           </span>
           <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
@@ -367,9 +367,9 @@ export default function VehiclePage() {
     router.push("/kiosk/final-confirm");
   }
 
-  const bgStyle = "#F5F0E8";
+  const bgStyle = "#f2f1ed";
 
-  if (!mounted) return <div className="w-screen h-screen" style={{ background: "#F5F0E8" }} />;
+  if (!mounted) return <div className="w-screen h-screen" style={{ background: "#f2f1ed" }} />;
 
   return (
     <div className="w-screen h-screen flex flex-col select-none overflow-hidden" style={{ background: bgStyle }}>
@@ -414,7 +414,7 @@ export default function VehiclePage() {
                 }}>
                   STEP 3 / 4
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
+                <div style={{ fontSize: 22, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>
                   ナンバープレート
                 </div>
               </div>
@@ -480,7 +480,7 @@ export default function VehiclePage() {
       {/* ━━ 選択・確認モードのタイトル ━━ */}
       {mode !== "input" && (
         <div className="flex flex-col items-center flex-shrink-0" style={{ padding: "20px 0 16px" }}>
-          <span style={{ fontSize: 44, fontWeight: 800, color: "#1E293B", letterSpacing: "0.08em" }}>
+          <span style={{ fontSize: 44, fontWeight: 800, color: "#26251e", letterSpacing: "0.08em" }}>
             {mode === "select" ? "ご使用の車両を選んでください" : "車両の確認"}
           </span>
         </div>
@@ -497,7 +497,7 @@ export default function VehiclePage() {
               }}>
                 STEP 3 / 4
               </div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>
                 最大積載量
               </div>
             </div>
@@ -515,7 +515,7 @@ export default function VehiclePage() {
           </div>
           <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 12px" }}>
             <div className="rounded-2xl border-4 flex items-center px-8" style={{ width: 620, height: 84, borderColor: maxLoad ? "#F59E0B" : "#CBD5E1", background: "#FFFFFF", justifyContent: "flex-end" }}>
-              <span style={{ fontSize: 50, fontWeight: 900, color: maxLoad ? "#111827" : "#94a3b8" }}>
+              <span style={{ fontSize: 50, fontWeight: 900, color: maxLoad ? "#26251e" : "#94a3b8" }}>
                 {maxLoad ? `${Number(maxLoad).toLocaleString()} kg` : "（未入力）"}
               </span>
             </div>
@@ -582,14 +582,14 @@ export default function VehiclePage() {
                 <div className="flex flex-col gap-4">
                   <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
                     <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200 }}>車番</span>
-                    <span style={{ fontSize: 40, fontWeight: 900, color: "#111827" }}>
+                    <span style={{ fontSize: 40, fontWeight: 900, color: "#26251e" }}>
                       {formatPlate(confirmTarget.plate) || confirmTarget.vehicleNumber}
                     </span>
                   </div>
                   <div style={{ height: 1, background: "#E5E7EB" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
                     <span style={{ fontSize: 22, fontWeight: 600, color: "#9CA3AF", width: 200 }}>最大積載量</span>
-                    <span style={{ fontSize: 40, fontWeight: 900, color: "#111827" }}>
+                    <span style={{ fontSize: 40, fontWeight: 900, color: "#26251e" }}>
                       {confirmTarget.maxLoad ? Number(confirmTarget.maxLoad).toLocaleString() + " kg" : "未登録"}
                     </span>
                   </div>
@@ -662,7 +662,7 @@ export default function VehiclePage() {
                                   background: col.bg,
                                   borderColor: col.border,
                                   boxShadow: `0 4px 0 ${col.shadow}`,
-                                  color: "#1e293b",
+                                  color: "#26251e",
                                   fontWeight: isTopRow ? 900 : 700,
                                   position: "relative",
                                 }}
@@ -705,7 +705,7 @@ export default function VehiclePage() {
                     </div>
                     <div className="flex flex-wrap" style={{ gap: 14 }}>
                       {(REGION_MAP[kanaFilter] || []).map(r => (
-                        <button key={r} onPointerDown={() => { savePlate({ region: r }); setKanaFilter(null); setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("classNum"), 100); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_5px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-none" style={{ height: 120, padding: "0 36px", fontSize: 44, minWidth: 190, color: "#111827" }}>{r}</button>
+                        <button key={r} onPointerDown={() => { savePlate({ region: r }); setKanaFilter(null); setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("classNum"), 100); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_5px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-none" style={{ height: 120, padding: "0 36px", fontSize: 44, minWidth: 190, color: "#26251e" }}>{r}</button>
                       ))}
                     </div>
                   </div>
@@ -769,7 +769,7 @@ export default function VehiclePage() {
                             const bg = jigyoyo ? "#dbeafe" : rental ? "#ffedd5" : col.bg;
                             const borderColor = jigyoyo ? "#93c5fd" : rental ? "#fb923c" : col.border;
                             const shadow = jigyoyo ? "#93c5fd" : rental ? "#fb923c" : col.shadow;
-                            const color = jigyoyo ? "#1d4ed8" : rental ? "#ea580c" : "#1e293b";
+                            const color = jigyoyo ? "#1d4ed8" : rental ? "#ea580c" : "#26251e";
                             return (
                               <button
                                 key={ci}
@@ -880,14 +880,14 @@ export default function VehiclePage() {
               maxWidth: 600,
             }}
           >
-            <span style={{ fontSize: 32, fontWeight: 800, color: "#1E293B" }}>
+            <span style={{ fontSize: 32, fontWeight: 800, color: "#26251e" }}>
               この車両を削除しますか？
             </span>
             <div style={{
               background: "#F8FAFC", borderRadius: 16, padding: "20px 32px",
               width: "100%", textAlign: "center",
             }}>
-              <div style={{ fontSize: 28, fontWeight: 900, color: "#111827" }}>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#26251e" }}>
                 {formatPlate(deleteTarget.plate) || deleteTarget.vehicleNumber}
               </div>
               <div style={{ fontSize: 20, color: "#64748B", marginTop: 4 }}>
