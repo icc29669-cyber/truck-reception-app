@@ -52,8 +52,7 @@ export default function NameInputPage() {
 
         {/* 入力表示エリア */}
         <div
-          suppressHydrationWarning
-          className="w-full rounded-3xl border-4 flex items-center px-8 transition-colors"
+          className="w-full rounded-3xl border-4 flex items-center px-8 transition-colors flex-shrink-0"
           style={{
             minHeight: 100,
             background: value ? "#FFF9C4" : "#ffffff",
@@ -61,7 +60,6 @@ export default function NameInputPage() {
           }}
         >
           <span
-            suppressHydrationWarning
             className="font-black text-gray-900"
             style={{ fontSize: 56, minHeight: 60 }}
           >
@@ -70,7 +68,7 @@ export default function NameInputPage() {
         </div>
 
         {/* キーボード */}
-        <div className="w-full overflow-y-auto flex-1">
+        <div className="w-full overflow-y-auto overflow-x-auto flex-1">
           <KatakanaKeyboard
             value={value}
             onChange={setValue}
