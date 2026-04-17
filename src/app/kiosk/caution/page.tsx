@@ -123,7 +123,7 @@ export default function CautionPage() {
             position: "relative",
           }}>
             <div style={{
-              width: 460, height: 380, position: "relative",
+              width: 540, height: 440, position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {/* 背景円 */}
@@ -185,7 +185,7 @@ export default function CautionPage() {
             position: "relative",
           }}>
             <div style={{
-              width: 460, height: 380, position: "relative",
+              width: 540, height: 440, position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {/* 背景円 */}
