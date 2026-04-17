@@ -110,20 +110,24 @@ export default function CautionPage() {
           </div>
         </div>
 
-        {/* 装備イラスト（大きめ配置） */}
+        {/* 装備イラスト（画面全体を使う大きさ） */}
         <div style={{
+          flex: 1, minHeight: 0,
           display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 48, marginTop: 8,
+          gap: "min(4vw, 48px)",
           width: "100%",
         }}>
           {/* ヘルメット */}
           <div style={{
             display: "flex", flexDirection: "column", alignItems: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.24s both",
-            position: "relative",
+            position: "relative", height: "100%",
+            justifyContent: "center",
           }}>
             <div style={{
-              width: 540, height: 440, position: "relative",
+              width: "min(42vw, 680px)",
+              height: "min(52vh, 520px)",
+              position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {/* 背景円 */}
@@ -162,15 +166,16 @@ export default function CautionPage() {
           {/* プラス（イラスト中央と水平揃え） */}
           <div style={{
             display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", height: "100%",
             animation: "caution-enter-scale 0.38s ease-out 0.3s both",
             flexShrink: 0,
-            paddingTop: 0, paddingBottom: 90, // ラベル分を考慮してイラスト中央に合わせる
+            paddingBottom: 110, // ラベル分を考慮してイラスト中央に合わせる
           }}>
             <div style={{
-              width: 64, height: 64, borderRadius: "50%",
+              width: 72, height: 72, borderRadius: "50%",
               background: "#FFFBEB", border: "2.5px solid #FCD34D",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#D97706", fontSize: 38, fontWeight: 700,
+              color: "#D97706", fontSize: 44, fontWeight: 700,
               fontFamily: "Inter, sans-serif",
               boxShadow: "0 4px 12px rgba(217,119,6,0.14)",
             }}>
@@ -182,10 +187,13 @@ export default function CautionPage() {
           <div style={{
             display: "flex", flexDirection: "column", alignItems: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.36s both",
-            position: "relative",
+            position: "relative", height: "100%",
+            justifyContent: "center",
           }}>
             <div style={{
-              width: 540, height: 440, position: "relative",
+              width: "min(42vw, 680px)",
+              height: "min(52vh, 520px)",
+              position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {/* 背景円 */}
