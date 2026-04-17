@@ -274,91 +274,104 @@ export default function PersonPage() {
         <StepDots current={2} />
       </div>
 
-      {/* サブヘッダー（STEP + タイトル + 指示） */}
-      <div className="flex items-center flex-shrink-0" style={{ padding: "14px 40px 10px", gap: 20 }}>
+      {/* サブヘッダー（STEP + 動的タイトル + 大きな指示） */}
+      <div className="flex items-center flex-shrink-0" style={{ padding: "14px 40px 12px", gap: 20 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
           <div style={{
-            fontSize: 12, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+            fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
             padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
           }}>
             STEP 2 / 4
           </div>
           <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
-            お名前を登録します
+            {mode === "select" ? "お名前を選んでください" :
+             mode === "confirm" ? "ご本人の確認" :
+             inputField === "company" ? "運送会社を入力" :
+             "お名前を入力"}
           </div>
         </div>
         <div style={{ flex: 1 }} />
         <div style={{
-          fontSize: 16, fontWeight: 700, color: "#0D9488", letterSpacing: "0.06em",
-          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 22, fontWeight: 800, color: "#0D9488", letterSpacing: "0.04em",
+          display: "flex", alignItems: "center", gap: 10,
+          background: "#F0FDFA", padding: "10px 18px", borderRadius: 12,
+          border: "2px solid #5EEAD4",
         }}>
-          <span style={{ fontSize: 16 }}>👉</span>
-          {mode === "select" ? "ご自身のお名前をタップしてください" :
+          <span style={{ fontSize: 24 }}>👉</span>
+          {mode === "select" ? "ご自身のお名前をタップ" :
            mode === "confirm" ? "表示された内容でよろしいですか？" :
-           inputField === "company" ? "運送会社名をカタカナで入力してください" :
-           "お名前をカタカナで入力してください"}
+           inputField === "company" ? "運送会社名をカタカナで入力" :
+           "お名前をカタカナで入力"}
         </div>
       </div>
 
-      {/* 入力モードのみ：会社名 + お名前 を並べて表示 */}
+      {/* 入力モード：会社名 + お名前 を並べて表示（高齢者配慮でハイライト強化） */}
       {mode === "input" && (
-        <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 12px" }}>
+        <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 14px" }}>
           <div suppressHydrationWarning style={{
-            width: 1200, maxWidth: "100%", display: "flex", alignItems: "center", gap: 12,
+            width: 1200, maxWidth: "100%", display: "flex", alignItems: "center", gap: 14,
           }}>
             {/* ① 運送会社名フィールド */}
             <div
               onPointerDown={() => setInputField("company")}
               style={{
-                flex: 1, borderRadius: 14, height: 88,
-                background: "#fff",
-                border: `3px solid ${inputField === "company" ? "#F59E0B" : "#E2E8F0"}`,
+                flex: 1, borderRadius: 16, height: 108,
+                background: inputField === "company" ? "#FFFBEB" : "#fff",
+                border: `4px solid ${inputField === "company" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
-                padding: "0 22px", cursor: "pointer",
-                opacity: inputField === "company" ? 1 : 0.6,
+                padding: "0 24px", cursor: "pointer",
+                opacity: inputField === "company" ? 1 : 0.55,
+                boxShadow: inputField === "company" ? "0 6px 16px rgba(245,158,11,0.25)" : "none",
+                transition: "all 0.15s",
               }}
             >
               <div style={{
-                fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", marginBottom: 4,
+                fontSize: 16, fontWeight: 800, letterSpacing: "0.1em", marginBottom: 6,
                 color: inputField === "company" ? "#D97706" : "#94A3B8",
+                display: "flex", alignItems: "center", gap: 6,
               }}>
-                ① 運送会社名
+                {inputField === "company" && <span style={{ fontSize: 18 }}>▼</span>}
+                ① 運送会社名　<span style={{ fontSize: 13, fontWeight: 600, color: "#94A3B8" }}>例: ニホンセイフティー</span>
               </div>
               <div style={{
-                fontSize: 32, fontWeight: 900, lineHeight: 1,
+                fontSize: 36, fontWeight: 900, lineHeight: 1,
                 color: company ? "#111827" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {company || "－"}
+                {company || "（ここに表示されます）"}
               </div>
             </div>
 
-            <div style={{ fontSize: 28, color: "#94A3B8", flexShrink: 0 }}>▶</div>
+            <div style={{ fontSize: 32, color: "#94A3B8", flexShrink: 0, fontWeight: 900 }}>▶</div>
 
             {/* ② お名前フィールド */}
             <div
               onPointerDown={() => { if (company.trim()) setInputField("name"); }}
               style={{
-                flex: 1, borderRadius: 14, height: 88,
-                background: "#fff",
-                border: `3px solid ${inputField === "name" ? "#F59E0B" : "#E2E8F0"}`,
+                flex: 1, borderRadius: 16, height: 108,
+                background: inputField === "name" ? "#FFFBEB" : "#fff",
+                border: `4px solid ${inputField === "name" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
-                padding: "0 22px", cursor: company.trim() ? "pointer" : "default",
-                opacity: inputField === "name" ? 1 : company.trim() ? 0.6 : 0.3,
+                padding: "0 24px", cursor: company.trim() ? "pointer" : "default",
+                opacity: inputField === "name" ? 1 : company.trim() ? 0.55 : 0.3,
+                boxShadow: inputField === "name" ? "0 6px 16px rgba(245,158,11,0.25)" : "none",
+                transition: "all 0.15s",
               }}
             >
               <div style={{
-                fontSize: 13, fontWeight: 700, letterSpacing: "0.12em", marginBottom: 4,
+                fontSize: 16, fontWeight: 800, letterSpacing: "0.1em", marginBottom: 6,
                 color: inputField === "name" ? "#D97706" : "#94A3B8",
+                display: "flex", alignItems: "center", gap: 6,
               }}>
-                ② お名前
+                {inputField === "name" && <span style={{ fontSize: 18 }}>▼</span>}
+                ② ドライバー お名前　<span style={{ fontSize: 13, fontWeight: 600, color: "#94A3B8" }}>例: タナカ タロウ</span>
               </div>
               <div style={{
-                fontSize: 32, fontWeight: 900, lineHeight: 1,
+                fontSize: 36, fontWeight: 900, lineHeight: 1,
                 color: name ? "#111827" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {name || "－"}
+                {name || (company.trim() ? "（次にここを入力）" : "（会社名の入力後に有効になります）")}
               </div>
             </div>
           </div>

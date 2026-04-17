@@ -246,30 +246,31 @@ export default function PhonePage() {
         <StepDots current={1} />
       </div>
 
-      {/* ━━ サブヘッダー（STEP + タイトル + 指示） ━━ */}
+      {/* ━━ サブヘッダー ━━ */}
       <div style={{
         display: "flex", alignItems: "center", flexShrink: 0,
-        padding: "14px 40px 10px", gap: 20,
+        padding: "14px 40px 12px", gap: 20,
       }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
           <div style={{
-            fontSize: 12, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+            fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
             padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
           }}>
             STEP 1 / 4
           </div>
           <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
-            電話番号を登録します
+            電話番号を入力
           </div>
         </div>
         <div style={{ flex: 1 }} />
         <div style={{
-          fontSize: 16, fontWeight: 700, color: "#0D9488",
-          letterSpacing: "0.06em",
-          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 22, fontWeight: 800, color: "#0D9488", letterSpacing: "0.04em",
+          display: "flex", alignItems: "center", gap: 10,
+          background: "#F0FDFA", padding: "10px 18px", borderRadius: 12,
+          border: "2px solid #5EEAD4",
         }}>
-          <span style={{ fontSize: 16 }}>👉</span>
-          携帯電話の番号（11桁）を入力してください
+          <span style={{ fontSize: 24 }}>👉</span>
+          携帯電話の番号（11桁）を入力
         </div>
       </div>
 

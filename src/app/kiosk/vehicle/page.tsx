@@ -404,25 +404,27 @@ export default function VehiclePage() {
 
         return (
           <>
-            {/* サブヘッダー：STEP+タイトル+指示 */}
-            <div className="flex items-center flex-shrink-0" style={{ padding: "14px 40px 8px", gap: 20 }}>
+            {/* サブヘッダー */}
+            <div className="flex items-center flex-shrink-0" style={{ padding: "14px 40px 10px", gap: 20 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
                 <div style={{
-                  fontSize: 12, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+                  fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
                   padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
                 }}>
                   STEP 3 / 4
                 </div>
                 <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
-                  車両ナンバーを登録します
+                  ナンバープレートを入力
                 </div>
               </div>
               <div style={{ flex: 1 }} />
               <div style={{
-                fontSize: 16, fontWeight: 700, color: "#0D9488", letterSpacing: "0.06em",
-                display: "flex", alignItems: "center", gap: 6,
+                fontSize: 22, fontWeight: 800, color: "#0D9488", letterSpacing: "0.04em",
+                display: "flex", alignItems: "center", gap: 10,
+                background: "#F0FDFA", padding: "10px 18px", borderRadius: 12,
+                border: "2px solid #5EEAD4",
               }}>
-                <span style={{ fontSize: 16 }}>👉</span>
+                <span style={{ fontSize: 24 }}>👉</span>
                 {instruction}
               </div>
             </div>
@@ -481,18 +483,23 @@ export default function VehiclePage() {
           <div className="flex items-center flex-shrink-0" style={{ padding: "14px 40px 10px", gap: 20 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
               <div style={{
-                fontSize: 12, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+                fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
                 padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
               }}>
                 STEP 3 / 4
               </div>
               <div style={{ fontSize: 28, fontWeight: 900, color: "#1E293B", letterSpacing: "0.04em" }}>
-                最大積載量を登録します
+                最大積載量を入力
               </div>
             </div>
             <div style={{ flex: 1 }} />
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#0D9488", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 16 }}>👉</span>最大積載量を数字で入力してください（kg）
+            <div style={{
+              fontSize: 22, fontWeight: 800, color: "#0D9488", letterSpacing: "0.04em",
+              display: "flex", alignItems: "center", gap: 10,
+              background: "#F0FDFA", padding: "10px 18px", borderRadius: 12,
+              border: "2px solid #5EEAD4",
+            }}>
+              <span style={{ fontSize: 24 }}>👉</span>最大積載量を数字で入力（kg）
             </div>
           </div>
           <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 12px" }}>
