@@ -110,10 +110,10 @@ export default function CautionPage() {
           </div>
         </div>
 
-        {/* 装備イラスト（中央配置でバランス重視） */}
+        {/* 装備イラスト（大きめ配置） */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 40, marginTop: 20, marginBottom: 24,
+          gap: 48, marginTop: 8,
           width: "100%",
         }}>
           {/* ヘルメット */}
@@ -123,7 +123,7 @@ export default function CautionPage() {
             position: "relative",
           }}>
             <div style={{
-              width: 340, height: 280, position: "relative",
+              width: 460, height: 380, position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {/* 背景円 */}
@@ -139,21 +139,21 @@ export default function CautionPage() {
                 style={{
                   maxWidth: "95%", maxHeight: "95%",
                   objectFit: "contain",
-                  filter: "drop-shadow(0 20px 32px rgba(26,58,107,0.22))",
+                  filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.25))",
                   position: "relative",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 4, paddingTop: 14, marginTop: 8,
-              borderTop: "3px solid #D97706",
-              minWidth: 220,
+              gap: 4, paddingTop: 16, marginTop: 8,
+              borderTop: "4px solid #D97706",
+              minWidth: 280,
             }}>
-              <div style={{ fontSize: 32, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
+              <div style={{ fontSize: 38, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
                 ヘルメット
               </div>
-              <div style={{ fontSize: 13, color: "#92400E", letterSpacing: "0.18em", fontWeight: 700 }}>
+              <div style={{ fontSize: 15, color: "#92400E", letterSpacing: "0.18em", fontWeight: 700 }}>
                 HARD HAT
               </div>
             </div>
@@ -164,15 +164,15 @@ export default function CautionPage() {
             display: "flex", flexDirection: "column", alignItems: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.3s both",
             flexShrink: 0,
-            paddingTop: 0, paddingBottom: 60, // ラベル分を考慮してイラスト中央に合わせる
+            paddingTop: 0, paddingBottom: 90, // ラベル分を考慮してイラスト中央に合わせる
           }}>
             <div style={{
-              width: 52, height: 52, borderRadius: "50%",
-              background: "#FFFBEB", border: "2px solid #FCD34D",
+              width: 64, height: 64, borderRadius: "50%",
+              background: "#FFFBEB", border: "2.5px solid #FCD34D",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#D97706", fontSize: 30, fontWeight: 700,
+              color: "#D97706", fontSize: 38, fontWeight: 700,
               fontFamily: "Inter, sans-serif",
-              boxShadow: "0 2px 8px rgba(217,119,6,0.12)",
+              boxShadow: "0 4px 12px rgba(217,119,6,0.14)",
             }}>
               +
             </div>
@@ -185,7 +185,7 @@ export default function CautionPage() {
             position: "relative",
           }}>
             <div style={{
-              width: 340, height: 280, position: "relative",
+              width: 460, height: 380, position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {/* 背景円 */}
@@ -201,21 +201,21 @@ export default function CautionPage() {
                 style={{
                   maxWidth: "95%", maxHeight: "95%",
                   objectFit: "contain",
-                  filter: "drop-shadow(0 20px 32px rgba(26,58,107,0.22))",
+                  filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.25))",
                   position: "relative",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 4, paddingTop: 14, marginTop: 8,
-              borderTop: "3px solid #1a3a6b",
-              minWidth: 220,
+              gap: 4, paddingTop: 16, marginTop: 8,
+              borderTop: "4px solid #1a3a6b",
+              minWidth: 280,
             }}>
-              <div style={{ fontSize: 32, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
+              <div style={{ fontSize: 38, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
                 安全靴
               </div>
-              <div style={{ fontSize: 13, color: "#475569", letterSpacing: "0.18em", fontWeight: 700 }}>
+              <div style={{ fontSize: 15, color: "#475569", letterSpacing: "0.18em", fontWeight: 700 }}>
                 SAFETY SHOES
               </div>
             </div>
