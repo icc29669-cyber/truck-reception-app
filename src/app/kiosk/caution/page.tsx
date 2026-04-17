@@ -74,8 +74,8 @@ export default function CautionPage() {
       <div style={{
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        padding: "16px 40px 20px",
-        minHeight: 0,
+        padding: "24px 40px 24px",
+        minHeight: 0, gap: 8,
       }}>
 
         {/* 見出し */}
@@ -110,35 +110,26 @@ export default function CautionPage() {
           </div>
         </div>
 
-        {/* 装備イラスト（中央寄せで近付ける） */}
+        {/* 装備イラスト（中央配置でバランス重視） */}
         <div style={{
-          flex: 1,
-          display: "flex", alignItems: "stretch", justifyContent: "center",
-          gap: 20,
-          width: "100%", maxWidth: 1400,
-          minHeight: 0,
-          position: "relative",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          gap: 40, marginTop: 20, marginBottom: 24,
+          width: "100%",
         }}>
-          {/* ヘルメット（右寄せ=中央側に寄る） */}
+          {/* ヘルメット */}
           <div style={{
-            flex: 1,
             display: "flex", flexDirection: "column", alignItems: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.24s both",
             position: "relative",
-            minWidth: 0,
           }}>
             <div style={{
-              flex: 1, width: "100%",
-              display: "flex", alignItems: "flex-end", justifyContent: "flex-end",
-              overflow: "hidden", paddingBottom: 12, paddingRight: "5%",
-              position: "relative",
+              width: 340, height: 280, position: "relative",
+              display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              {/* 背景円（ステージ、右寄り） */}
+              {/* 背景円 */}
               <div style={{
-                position: "absolute", bottom: "10%", right: "5%",
-                width: "70%", aspectRatio: "1",
-                borderRadius: "50%",
-                background: "radial-gradient(circle, rgba(251,191,36,0.18) 0%, rgba(251,191,36,0.05) 50%, transparent 75%)",
+                position: "absolute", inset: 0,
+                background: "radial-gradient(circle, rgba(251,191,36,0.20) 0%, rgba(251,191,36,0.06) 50%, transparent 75%)",
                 pointerEvents: "none",
               }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -146,66 +137,61 @@ export default function CautionPage() {
                 src="/images/helmet.png"
                 alt="ヘルメット"
                 style={{
-                  maxWidth: "100%", maxHeight: "100%",
+                  maxWidth: "95%", maxHeight: "95%",
                   objectFit: "contain",
-                  filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.22))",
+                  filter: "drop-shadow(0 20px 32px rgba(26,58,107,0.22))",
                   position: "relative",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 6, flexShrink: 0,
-              paddingTop: 16, marginTop: 8,
+              gap: 4, paddingTop: 14, marginTop: 8,
               borderTop: "3px solid #D97706",
-              minWidth: 240,
+              minWidth: 220,
             }}>
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
+              <div style={{ fontSize: 32, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
                 ヘルメット
               </div>
-              <div style={{ fontSize: 15, color: "#92400E", letterSpacing: "0.18em", fontWeight: 700 }}>
+              <div style={{ fontSize: 13, color: "#92400E", letterSpacing: "0.18em", fontWeight: 700 }}>
                 HARD HAT
               </div>
             </div>
           </div>
 
-          {/* プラス（控えめに） */}
+          {/* プラス（イラスト中央と水平揃え） */}
           <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex", flexDirection: "column", alignItems: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.3s both",
-            flexShrink: 0, paddingBottom: 80,
+            flexShrink: 0,
+            paddingTop: 0, paddingBottom: 60, // ラベル分を考慮してイラスト中央に合わせる
           }}>
             <div style={{
-              width: 44, height: 44, borderRadius: "50%",
-              background: "#FFFBEB", border: "1.5px solid #FCD34D",
+              width: 52, height: 52, borderRadius: "50%",
+              background: "#FFFBEB", border: "2px solid #FCD34D",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#D97706", fontSize: 24, fontWeight: 700,
+              color: "#D97706", fontSize: 30, fontWeight: 700,
               fontFamily: "Inter, sans-serif",
+              boxShadow: "0 2px 8px rgba(217,119,6,0.12)",
             }}>
               +
             </div>
           </div>
 
-          {/* 安全靴（左寄せ=中央側に寄る） */}
+          {/* 安全靴 */}
           <div style={{
-            flex: 1,
             display: "flex", flexDirection: "column", alignItems: "center",
             animation: "caution-enter-scale 0.38s ease-out 0.36s both",
             position: "relative",
-            minWidth: 0,
           }}>
             <div style={{
-              flex: 1, width: "100%",
-              display: "flex", alignItems: "flex-end", justifyContent: "flex-start",
-              overflow: "hidden", paddingBottom: 12, paddingLeft: "5%",
-              position: "relative",
+              width: 340, height: 280, position: "relative",
+              display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              {/* 背景円（ステージ、左寄り） */}
+              {/* 背景円 */}
               <div style={{
-                position: "absolute", bottom: "10%", left: "5%",
-                width: "70%", aspectRatio: "1",
-                borderRadius: "50%",
-                background: "radial-gradient(circle, rgba(26,58,107,0.12) 0%, rgba(26,58,107,0.03) 50%, transparent 75%)",
+                position: "absolute", inset: 0,
+                background: "radial-gradient(circle, rgba(26,58,107,0.14) 0%, rgba(26,58,107,0.04) 50%, transparent 75%)",
                 pointerEvents: "none",
               }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -213,24 +199,23 @@ export default function CautionPage() {
                 src="/images/safety-shoes.png"
                 alt="安全靴"
                 style={{
-                  maxWidth: "100%", maxHeight: "100%",
+                  maxWidth: "95%", maxHeight: "95%",
                   objectFit: "contain",
-                  filter: "drop-shadow(0 24px 40px rgba(26,58,107,0.22))",
+                  filter: "drop-shadow(0 20px 32px rgba(26,58,107,0.22))",
                   position: "relative",
                 }}
               />
             </div>
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 6, flexShrink: 0,
-              paddingTop: 16, marginTop: 8,
+              gap: 4, paddingTop: 14, marginTop: 8,
               borderTop: "3px solid #1a3a6b",
-              minWidth: 240,
+              minWidth: 220,
             }}>
-              <div style={{ fontSize: 36, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
+              <div style={{ fontSize: 32, fontWeight: 900, color: "#26251e", letterSpacing: "0.12em", lineHeight: 1 }}>
                 安全靴
               </div>
-              <div style={{ fontSize: 15, color: "#475569", letterSpacing: "0.18em", fontWeight: 700 }}>
+              <div style={{ fontSize: 13, color: "#475569", letterSpacing: "0.18em", fontWeight: 700 }}>
                 SAFETY SHOES
               </div>
             </div>
@@ -240,7 +225,7 @@ export default function CautionPage() {
         {/* 確認ボタン */}
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
-          gap: 6, marginTop: 24, flexShrink: 0,
+          gap: 6, flexShrink: 0,
           animation: "caution-enter-up 0.34s ease-out 0.52s both",
         }}>
           <button
