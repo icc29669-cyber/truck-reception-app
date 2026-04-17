@@ -300,20 +300,17 @@ export default function PersonPage() {
         </div>
       </div>
 
-      {/* タイトル行（入力モードの会社名/お名前表示のみ） */}
-      <div className="flex flex-col items-center flex-shrink-0" style={{ padding: mode === "input" ? "0 40px 10px" : "0" }}>
-        <div style={{ display: "none" }}>
-
-        {/* 入力モードのみ：会社名 + お名前 を並べて表示 */}
-        {mode === "input" && (
+      {/* 入力モードのみ：会社名 + お名前 を並べて表示 */}
+      {mode === "input" && (
+        <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 12px" }}>
           <div suppressHydrationWarning style={{
-            width: 1200, display: "flex", alignItems: "center", gap: 12,
+            width: 1200, maxWidth: "100%", display: "flex", alignItems: "center", gap: 12,
           }}>
             {/* ① 運送会社名フィールド */}
             <div
               onPointerDown={() => setInputField("company")}
               style={{
-                flex: 1, borderRadius: 14, height: 96,
+                flex: 1, borderRadius: 14, height: 88,
                 background: "#fff",
                 border: `3px solid ${inputField === "company" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
@@ -328,7 +325,7 @@ export default function PersonPage() {
                 ① 運送会社名
               </div>
               <div style={{
-                fontSize: 36, fontWeight: 900, lineHeight: 1,
+                fontSize: 32, fontWeight: 900, lineHeight: 1,
                 color: company ? "#111827" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
@@ -336,14 +333,13 @@ export default function PersonPage() {
               </div>
             </div>
 
-            {/* 矢印 */}
             <div style={{ fontSize: 28, color: "#94A3B8", flexShrink: 0 }}>▶</div>
 
             {/* ② お名前フィールド */}
             <div
               onPointerDown={() => { if (company.trim()) setInputField("name"); }}
               style={{
-                flex: 1, borderRadius: 14, height: 96,
+                flex: 1, borderRadius: 14, height: 88,
                 background: "#fff",
                 border: `3px solid ${inputField === "name" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
@@ -358,7 +354,7 @@ export default function PersonPage() {
                 ② お名前
               </div>
               <div style={{
-                fontSize: 36, fontWeight: 900, lineHeight: 1,
+                fontSize: 32, fontWeight: 900, lineHeight: 1,
                 color: name ? "#111827" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
@@ -366,9 +362,8 @@ export default function PersonPage() {
               </div>
             </div>
           </div>
-        )}
         </div>
-      </div>
+      )}
 
       {/* ━━ メインコンテンツ ━━ */}
       <div className="flex-1 overflow-hidden">
