@@ -256,10 +256,23 @@ function PlatePanel({ plate, onChange }: {
             ) : (
               <div>
                 <div className="flex items-center gap-4 mb-3">
-                  <button onPointerDown={()=>setKanaFilter(null)}
-                    className="flex items-center justify-center font-bold rounded-xl border-2 border-gray-300 bg-white active:bg-gray-100"
-                    style={{height:48,padding:"0 20px",fontSize:20}}>← 戻る</button>
-                  <span style={{fontSize:22,fontWeight:700,color:"#475569"}}>「{kanaFilter}」から始まる地名</span>
+                  <button
+                    onPointerDown={()=>setKanaFilter(null)}
+                    className="flex items-center justify-center font-bold rounded-xl select-none touch-none active:scale-95"
+                    style={{
+                      height: 52, padding: "0 20px", fontSize: 18, fontWeight: 800,
+                      border: "3px solid #F59E0B",
+                      background: "#FFFBEB",
+                      color: "#92400E",
+                      display: "flex", alignItems: "center", gap: 8,
+                    }}
+                  >
+                    <span style={{ fontSize: 20 }}>◀</span>
+                    別の文字を選ぶ
+                  </button>
+                  <span style={{fontSize:22,fontWeight:700,color:"#475569"}}>
+                    「<span style={{ color: "#D97706", fontWeight: 900 }}>{kanaFilter}</span>」から始まる地名
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {regionList.map(r=>(

@@ -685,8 +685,23 @@ export default function VehiclePage() {
                 ) : (
                   <div>
                     <div className="flex items-center gap-4 mb-4">
-                      <button onPointerDown={() => setKanaFilter(null)} className="flex items-center justify-center font-bold rounded-xl border-2 border-gray-300 bg-white active:bg-gray-100 select-none touch-none" style={{ height: 68, padding: "0 32px", fontSize: 26 }}>← 戻る</button>
-                      <span style={{ fontSize: 26, fontWeight: 700, color: "#475569" }}>「{kanaFilter}」から始まる地名</span>
+                      <button
+                        onPointerDown={() => setKanaFilter(null)}
+                        className="flex items-center justify-center font-bold rounded-xl select-none touch-none transition-all active:scale-95"
+                        style={{
+                          height: 68, padding: "0 28px", fontSize: 22, fontWeight: 800,
+                          border: "3px solid #F59E0B",
+                          background: "#FFFBEB",
+                          color: "#92400E",
+                          display: "flex", alignItems: "center", gap: 10,
+                        }}
+                      >
+                        <span style={{ fontSize: 26 }}>◀</span>
+                        別の文字を選ぶ
+                      </button>
+                      <span style={{ fontSize: 26, fontWeight: 700, color: "#475569" }}>
+                        「<span style={{ color: "#D97706", fontWeight: 900 }}>{kanaFilter}</span>」から始まる地名
+                      </span>
                     </div>
                     <div className="flex flex-wrap" style={{ gap: 14 }}>
                       {(REGION_MAP[kanaFilter] || []).map(r => (
