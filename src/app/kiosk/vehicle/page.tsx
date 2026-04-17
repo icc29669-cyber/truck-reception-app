@@ -405,30 +405,30 @@ export default function VehiclePage() {
 
         return (
           <>
-            {/* サブヘッダー：STEPバッジ+見出し（統合型） */}
-            <div className="flex items-center flex-shrink-0" style={{ padding: "18px 40px 14px", gap: 18 }}>
+            {/* サブヘッダー：STEPバッジ+大きな見出し */}
+            <div className="flex items-center flex-shrink-0" style={{ padding: "20px 40px 16px", gap: 22 }}>
               <div style={{
-                fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
-                padding: "5px 12px", background: "#E2E8F0", borderRadius: 4,
+                fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+                padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
                 flexShrink: 0,
               }}>
                 STEP 3 / 4
               </div>
               <div style={{
-                fontSize: 28, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
-                display: "flex", alignItems: "baseline", gap: 12,
+                fontSize: 36, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+                display: "flex", alignItems: "baseline", gap: 14,
               }}>
                 <span style={{
-                  fontSize: 22, fontWeight: 900, color: "#fff",
+                  fontSize: 28, fontWeight: 900, color: "#fff",
                   background: "#0D9488", borderRadius: "50%",
-                  width: 36, height: 36, display: "inline-flex",
+                  width: 48, height: 48, display: "inline-flex",
                   alignItems: "center", justifyContent: "center",
                   alignSelf: "center",
                 }}>{sectionNum}</span>
                 {instruction.split("を").length > 1 ? (
                   <>
                     {instruction.split("を")[0]}
-                    <span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>
+                    <span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>
                       を{instruction.split("を").slice(1).join("を")}
                     </span>
                   </>
@@ -487,28 +487,22 @@ export default function VehiclePage() {
       {/* ━━ 積載量入力モード ━━ */}
       {mode === "input" && inputStep === "maxload" && (
         <>
-          <div className="flex items-center flex-shrink-0" style={{ padding: "10px 40px 12px", position: "relative" }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 14, position: "absolute", left: 40 }}>
-              <div style={{
-                fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
-                padding: "4px 10px", background: "#E2E8F0", borderRadius: 4,
-              }}>
-                STEP 3 / 4
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>
-                最大積載量
-              </div>
+          <div className="flex items-center flex-shrink-0" style={{ padding: "20px 40px 18px", gap: 22 }}>
+            <div style={{
+              fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+              padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
+              flexShrink: 0,
+            }}>
+              STEP 3 / 4
             </div>
-            <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-              <div style={{
-                fontSize: 26, fontWeight: 900, color: "#0D9488", letterSpacing: "0.04em",
-                display: "flex", alignItems: "center", gap: 14,
-                background: "#F0FDFA", padding: "12px 28px", borderRadius: 14,
-                border: "3px solid #5EEAD4",
-                boxShadow: "0 4px 12px rgba(13,148,136,0.12)",
-              }}>
-                <span style={{ fontSize: 28 }}>👉</span>最大積載量を数字で入力してください（kg）
-              </div>
+            <div style={{
+              fontSize: 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+              display: "flex", alignItems: "baseline", gap: 14,
+            }}>
+              最大積載量
+              <span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>
+                を数字で入力してください（kg）
+              </span>
             </div>
           </div>
           <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 12px" }}>

@@ -35,28 +35,42 @@ export default function MaxLoadPage() {
       className="w-screen h-screen flex flex-col select-none"
       style={{ background: "#f2f1ed" }}
     >
-      {/* ヘッダー */}
+      {/* ヘッダー（他画面と統一） */}
       <div
-        className="flex items-center justify-between px-8 py-3 flex-shrink-0"
-        style={{ background: "#1a3a6b" }}
+        className="flex items-center justify-between px-8 flex-shrink-0"
+        style={{ background: "#1a3a6b", height: 84 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/vehicle-select")}
-          className="min-h-[56px] px-8 rounded-xl border-2 text-2xl font-bold active:opacity-80 transition-opacity"
-          style={{ borderColor: "white", color: "white", background: "transparent" }}
+          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+          style={{ height: 60, width: 160, fontSize: 28 }}
         >
-          戻る
+          ◀ 戻る
         </button>
-        <h1 className="text-3xl font-bold text-white flex-1 text-center">
-          最大積載量の入力
-        </h1>
         <PlateDisplay plate={getKioskSession().plate} size="sm" />
       </div>
 
+      {/* サブヘッダー：STEPバッジ+大きな見出し */}
+      <div className="flex items-center flex-shrink-0" style={{ padding: "20px 40px 18px", gap: 22 }}>
+        <div style={{
+          fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+          padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
+          flexShrink: 0,
+        }}>
+          STEP 3 / 4
+        </div>
+        <div style={{
+          fontSize: 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+          display: "flex", alignItems: "baseline", gap: 14,
+        }}>
+          最大積載量
+          <span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>
+            を数字で入力してください（kg）
+          </span>
+        </div>
+      </div>
+
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-8">
-        <p className="text-4xl font-bold text-gray-800 text-center">
-          最大積載量を入力してください
-        </p>
 
         {/* 入力表示エリア */}
         <div

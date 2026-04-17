@@ -246,24 +246,24 @@ export default function PhonePage() {
         <StepDots current={1} />
       </div>
 
-      {/* ━━ サブヘッダー：STEPバッジ+大きな見出し（ひとつに統合） ━━ */}
+      {/* ━━ サブヘッダー：STEPバッジ+大きな見出し ━━ */}
       <div style={{
         display: "flex", alignItems: "center", flexShrink: 0,
-        padding: "18px 40px 16px", gap: 18,
+        padding: "20px 40px 18px", gap: 22,
       }}>
         <div style={{
-          fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
-          padding: "5px 12px", background: "#E2E8F0", borderRadius: 4,
+          fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+          padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
           flexShrink: 0,
         }}>
           STEP 1 / 4
         </div>
         <div style={{
-          fontSize: 30, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
-          display: "flex", alignItems: "baseline", gap: 10,
+          fontSize: 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+          display: "flex", alignItems: "baseline", gap: 14,
         }}>
           携帯電話の番号
-          <span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>
+          <span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>
             （11桁）を入力してください
           </span>
         </div>

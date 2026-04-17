@@ -274,27 +274,27 @@ export default function PersonPage() {
         <StepDots current={2} />
       </div>
 
-      {/* サブヘッダー：STEPバッジ+見出し（統合型、ひと目で分かる） */}
-      <div className="flex items-center flex-shrink-0" style={{ padding: "18px 40px 16px", gap: 18 }}>
+      {/* サブヘッダー：STEPバッジ+大きな見出し */}
+      <div className="flex items-center flex-shrink-0" style={{ padding: "20px 40px 18px", gap: 22 }}>
         <div style={{
-          fontSize: 13, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
-          padding: "5px 12px", background: "#E2E8F0", borderRadius: 4,
+          fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+          padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
           flexShrink: 0,
         }}>
           STEP 2 / 4
         </div>
         <div style={{
-          fontSize: 30, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
-          display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap",
+          fontSize: 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+          display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap",
         }}>
           {mode === "select" ? (
-            <>ご自身のお名前<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>をタッチしてください</span></>
+            <>ご自身のお名前<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>をタッチしてください</span></>
           ) : mode === "confirm" ? (
-            <>ご本人の確認<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>— 表示内容でよろしいですか？</span></>
+            <>ご本人の確認<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>— 表示内容でよろしいですか？</span></>
           ) : inputField === "company" ? (
-            <>運送会社名<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
+            <>運送会社名<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
           ) : (
-            <>お名前<span style={{ fontSize: 22, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
+            <>お名前<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
           )}
         </div>
       </div>
