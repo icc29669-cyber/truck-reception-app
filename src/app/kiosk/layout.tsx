@@ -7,10 +7,11 @@ import { clearKioskSession } from "@/lib/kioskState";
 /** 無操作タイムアウト（秒） — トップ画面以外で操作がなければ自動リセット */
 const INACTIVITY_TIMEOUT_SEC = 300; // 5分
 
-function requestFullscreen() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(() => {});
+function requestFullscreen(): Promise<void> {
+  if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+    return document.documentElement.requestFullscreen().catch(() => {});
   }
+  return Promise.resolve();
 }
 
 /** ページ遷移中のローディングオーバーレイ */
@@ -39,16 +40,95 @@ function TransitionOverlay() {
   );
 }
 
+/** 全画面起動オーバーレイ（ブラウザの仕様でユーザー操作必須） */
+function FullscreenPrompt({ onStart }: { onStart: () => void }) {
+  return (
+    <div
+      onPointerDown={onStart}
+      style={{
+        position: "fixed", inset: 0, zIndex: 999999,
+        background: "linear-gradient(135deg, #0F172A 0%, #1a3a6b 100%)",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        cursor: "pointer", userSelect: "none",
+        animation: "kiosk-fsprompt-in 0.3s ease-out",
+      }}
+    >
+      <style>{`
+        @keyframes kiosk-fsprompt-in { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes kiosk-fsprompt-pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.85; }
+        }
+      `}</style>
+
+      <div style={{
+        fontSize: 14, color: "rgba(255,255,255,0.45)",
+        letterSpacing: "0.32em", fontWeight: 800, marginBottom: 24,
+      }}>
+        TRUCK RECEPTION SYSTEM
+      </div>
+
+      <div style={{
+        fontSize: 64, fontWeight: 900, color: "#fff",
+        letterSpacing: "0.1em", marginBottom: 16,
+      }}>
+        画面をタッチ
+      </div>
+
+      <div style={{
+        fontSize: 22, color: "rgba(255,255,255,0.65)",
+        letterSpacing: "0.08em", fontWeight: 500, marginBottom: 80,
+      }}>
+        受付を開始します
+      </div>
+
+      <div style={{
+        fontSize: 80,
+        animation: "kiosk-fsprompt-pulse 1.8s ease-in-out infinite",
+      }}>
+        👆
+      </div>
+    </div>
+  );
+}
+
 export default function KioskLayout({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [navigating, setNavigating] = useState(false);
+  const [needsFullscreen, setNeedsFullscreen] = useState(false);
+  const [ready, setReady] = useState(false);
   const prevPathRef = useRef(pathname);
 
   // トップ画面・完了画面ではタイムアウト不要
   const isExemptPage = pathname === "/kiosk" || pathname === "/kiosk/complete";
+
+  // 初期マウント時、全画面でなければプロンプトを表示
+  useEffect(() => {
+    // iframeやプレビュー環境では全画面プロンプトを出さない
+    const isEmbedded = window.self !== window.top;
+    const isSmallScreen = window.innerWidth < 800;
+    if (isEmbedded || isSmallScreen) {
+      setReady(true);
+      return;
+    }
+    // トップ画面でのみプロンプト表示（業務開始時の1回のみ）
+    if (pathname === "/kiosk" && !document.fullscreenElement) {
+      setNeedsFullscreen(true);
+    } else {
+      setReady(true);
+    }
+  }, [pathname]);
+
+  const startFullscreen = useCallback(() => {
+    requestFullscreen().finally(() => {
+      setNeedsFullscreen(false);
+      setReady(true);
+    });
+  }, []);
 
   // ページ遷移検知: pathnameが変わったらオーバーレイを消す
   useEffect(() => {
@@ -103,18 +183,24 @@ export default function KioskLayout({ children }: { children: React.ReactNode })
     };
   }, [isExemptPage, resetTimer]);
 
+  // 全画面の維持（フォーカス戻り時に再トライ）
   useEffect(() => {
-    requestFullscreen();
-    document.addEventListener("visibilitychange", requestFullscreen);
-    return () => document.removeEventListener("visibilitychange", requestFullscreen);
-  }, []);
+    const onVisibilityChange = () => {
+      if (!document.hidden && ready && !document.fullscreenElement) {
+        requestFullscreen();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [ready]);
 
   useEffect(() => {
     const container = ref.current;
     if (!container) return;
 
     const handler = (e: PointerEvent) => {
-      requestFullscreen();
+      // タッチのたびに全画面を維持（ESC後の復帰）
+      if (ready && !document.fullscreenElement) requestFullscreen();
       const btn = (e.target as HTMLElement).closest("button");
       if (!btn || btn.disabled) return;
       btn.classList.remove("btn-flash");
@@ -126,12 +212,13 @@ export default function KioskLayout({ children }: { children: React.ReactNode })
 
     container.addEventListener("pointerdown", handler);
     return () => container.removeEventListener("pointerdown", handler);
-  }, []);
+  }, [ready]);
 
   return (
     <div ref={ref}>
       {children}
       {navigating && <TransitionOverlay />}
+      {needsFullscreen && <FullscreenPrompt onStart={startFullscreen} />}
     </div>
   );
 }

@@ -110,16 +110,16 @@ export default function CautionPage() {
           </div>
         </div>
 
-        {/* 装備イラスト */}
+        {/* 装備イラスト（中央寄せで近付ける） */}
         <div style={{
           flex: 1,
           display: "flex", alignItems: "stretch", justifyContent: "center",
           gap: 20,
-          width: "100%", maxWidth: 1600,
+          width: "100%", maxWidth: 1400,
           minHeight: 0,
           position: "relative",
         }}>
-          {/* ヘルメット */}
+          {/* ヘルメット（右寄せ=中央側に寄る） */}
           <div style={{
             flex: 1,
             display: "flex", flexDirection: "column", alignItems: "center",
@@ -129,13 +129,13 @@ export default function CautionPage() {
           }}>
             <div style={{
               flex: 1, width: "100%",
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-              overflow: "hidden", paddingBottom: 12,
+              display: "flex", alignItems: "flex-end", justifyContent: "flex-end",
+              overflow: "hidden", paddingBottom: 12, paddingRight: "5%",
               position: "relative",
             }}>
-              {/* 背景円（ステージ） */}
+              {/* 背景円（ステージ、右寄り） */}
               <div style={{
-                position: "absolute", bottom: "10%",
+                position: "absolute", bottom: "10%", right: "5%",
                 width: "70%", aspectRatio: "1",
                 borderRadius: "50%",
                 background: "radial-gradient(circle, rgba(251,191,36,0.18) 0%, rgba(251,191,36,0.05) 50%, transparent 75%)",
@@ -186,7 +186,7 @@ export default function CautionPage() {
             </div>
           </div>
 
-          {/* 安全靴 */}
+          {/* 安全靴（左寄せ=中央側に寄る） */}
           <div style={{
             flex: 1,
             display: "flex", flexDirection: "column", alignItems: "center",
@@ -196,13 +196,13 @@ export default function CautionPage() {
           }}>
             <div style={{
               flex: 1, width: "100%",
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-              overflow: "hidden", paddingBottom: 12,
+              display: "flex", alignItems: "flex-end", justifyContent: "flex-start",
+              overflow: "hidden", paddingBottom: 12, paddingLeft: "5%",
               position: "relative",
             }}>
-              {/* 背景円（ステージ） */}
+              {/* 背景円（ステージ、左寄り） */}
               <div style={{
-                position: "absolute", bottom: "10%",
+                position: "absolute", bottom: "10%", left: "5%",
                 width: "70%", aspectRatio: "1",
                 borderRadius: "50%",
                 background: "radial-gradient(circle, rgba(26,58,107,0.12) 0%, rgba(26,58,107,0.03) 50%, transparent 75%)",
