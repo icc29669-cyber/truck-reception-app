@@ -31,6 +31,20 @@ async function ensureSchema() {
       console.log(`  (skip ${col})`);
     }
   }
+
+  // autoincrement シーケンスを MAX(id) に合わせる
+  // スキーマ移行後にシーケンスがズレて P2002 が出るのを防ぐ
+  const seqTables = ["Center","Company","Driver","Vehicle","PlateRegion","PlateHiragana","PlateAlphabet","Reservation","Reception"];
+  for (const t of seqTables) {
+    try {
+      await prisma.$executeRawUnsafe(
+        `SELECT setval(pg_get_serial_sequence('"${t}"', 'id'), COALESCE(MAX(id), 0) + 1, false) FROM "${t}"`
+      );
+    } catch (e) {
+      console.log(`  (skip seq reset: ${t})`);
+    }
+  }
+
   console.log("  DB schema ensured");
 }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -82,5 +83,26 @@ export async function PUT(
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
+  }
+}
+
+// 管理画面からの受付削除(middleware で Basic 認証済み)
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const id = Number(params.id);
+  if (isNaN(id) || id <= 0) {
+    return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
+  }
+  try {
+    await prisma.reception.delete({ where: { id } });
+    return NextResponse.json({ success: true, id });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {
+      return NextResponse.json({ error: "受付が見つかりません" }, { status: 404 });
+    }
+    console.error("admin-receptions-DELETE error:", e);
+    return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
   }
 }

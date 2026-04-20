@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyKioskSecret } from "@/lib/auth";
 import { getJSTDayRange } from "@/lib/jstDate";
+import { getCenterCached } from "@/lib/centerCache";
 
 export const dynamic = "force-dynamic";
 
 const BERTH_API_URL = process.env.BERTH_API_URL || "";
 const BERTH_KIOSK_SECRET = process.env.BERTH_KIOSK_SECRET || "";
-const BERTH_TIMEOUT = 3000; // 3秒（旧: 8秒）
+const BERTH_TIMEOUT = 2000;
 
 /** 車番文字列をプレート4要素に分解 */
 function parseVehicleNumber(v: string) {
@@ -45,11 +46,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "電話番号は必須です" }, { status: 400 });
     }
 
-    // ── ローカルDB + berth-app を並列実行 ──
-    const berthPromise = (BERTH_API_URL && BERTH_KIOSK_SECRET)
-      ? fetchBerthReservations(phone, centerId ? Number(centerId) : 0, centerName)
-      : Promise.resolve([]);
-
+    // ── ローカルDB + centerCache + berth-app 用の前準備 を並列実行 ──
+    // 旧コードは fetchBerthReservations 内で center.findUnique が同期実行されていた。
+    // ここで center 引き当てを先頭の並列に混ぜて、HTTP fetch の待ち時間と重ねない。
     const { start: todayStart } = getJSTDayRange();
     const todayStr = todayStart.toISOString().slice(0, 10);
     const todayUtcEnd = new Date(todayStr + "T23:59:59.999Z");
@@ -61,13 +60,19 @@ export async function GET(req: NextRequest) {
     };
     if (centerId) localWhere.centerId = Number(centerId);
 
-    const [localReservations, berthResults] = await Promise.all([
+    const needCenter = !!(BERTH_API_URL && BERTH_KIOSK_SECRET && !centerName && centerId);
+    const [localReservations, centerRow] = await Promise.all([
       prisma.reservation.findMany({
         where: localWhere,
         orderBy: { startTime: "asc" },
       }),
-      berthPromise,
+      needCenter ? getCenterCached(Number(centerId)) : Promise.resolve(null),
     ]);
+
+    const resolvedCenterName = centerName || centerRow?.name || "";
+    const berthResults = (BERTH_API_URL && BERTH_KIOSK_SECRET)
+      ? await fetchBerthReservations(phone, resolvedCenterName)
+      : [];
 
     // ── ローカル結果マッピング ──
     const results: ReservationResult[] = localReservations.map((r) => ({
@@ -107,20 +112,16 @@ export async function GET(req: NextRequest) {
   }
 }
 
-/** berth-app から予約を取得（センター名解決 + maxLoad補完含む） */
+/**
+ * berth-app から予約を取得(maxLoad 補完含む)。
+ * センター名は呼び元が解決済み — 旧版の内部 DB シリアル呼び出しを削除。
+ */
 async function fetchBerthReservations(
-  phone: string, centerId: number, centerName: string,
+  phone: string, centerName: string,
 ): Promise<ReservationResult[]> {
   try {
-    // センター名がなければDB取得
-    let resolvedCenterName = centerName;
-    if (!resolvedCenterName && centerId > 0) {
-      const c = await prisma.center.findUnique({ where: { id: centerId } });
-      if (c) resolvedCenterName = c.name;
-    }
-
-    const centerParam = resolvedCenterName
-      ? `&centerName=${encodeURIComponent(resolvedCenterName)}`
+    const centerParam = centerName
+      ? `&centerName=${encodeURIComponent(centerName)}`
       : "";
 
     const url = `${BERTH_API_URL}/api/reception/reservations?phone=${encodeURIComponent(phone)}${centerParam}`;
@@ -140,7 +141,8 @@ async function fetchBerthReservations(
 
     // maxLoad が無い車両をローカルDBから補完
     const needLookup = berthReservations.filter((r) => !r.maxLoad && r.vehicleNumber);
-    const vehicleNumbers = [...new Set(needLookup.map((r) => r.vehicleNumber))];
+    // Set の spread は tsconfig.target に応じて downlevelIteration 警告を出すので Array.from で安全化
+    const vehicleNumbers = Array.from(new Set(needLookup.map((r) => r.vehicleNumber)));
     const vehicles = vehicleNumbers.length > 0
       ? await prisma.vehicle.findMany({
           where: { vehicleNumber: { in: vehicleNumbers }, isActive: true },
