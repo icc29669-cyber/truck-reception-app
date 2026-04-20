@@ -53,8 +53,13 @@ export interface ReceptionResult {
   centerDailyNo: number;
   arrivedAt: string;
   waitingCount: number;
+  receptionNo: string;
+  fiscalYear: string;
+  centerCode: string;
   driver: { name: string; companyName: string; phone: string };
   vehicleNumber: string;
+  plate: { region: string; classNum: string; kana: string; number: string };
+  maxLoad: number | null;
   centerName: string;
   reservation?: { startTime: string; endTime: string };
   barcodeValue?: string;

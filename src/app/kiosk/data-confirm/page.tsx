@@ -533,7 +533,7 @@ export default function DataConfirmPage() {
         {active==="company" && (
           <div className="h-full flex flex-col px-8 pt-4 pb-3 gap-3">
             <div style={{background:company?"#FFF9C4":"#f8fafc",border:`3px solid ${company?"#F59E0B":"#e2e8f0"}`,borderRadius:14,padding:"10px 24px",minHeight:68,display:"flex",alignItems:"center",flexShrink:0}}>
-              <span style={{fontSize:44,fontWeight:900,color:company?"#26251e":"#94a3b8"}}>{company||"（会社名を入力）"}</span>
+              <span style={{fontSize:44,fontWeight:900,color:company?"#26251e":"#94a3b8"}}>{company||"ニホンセイフティー"}</span>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-auto">
               <KatakanaKeyboard value={company} onChange={saveCompany} onComplete={()=>setActive("name")} />
@@ -545,7 +545,7 @@ export default function DataConfirmPage() {
         {active==="name" && (
           <div className="h-full flex flex-col px-8 pt-4 pb-3 gap-3">
             <div style={{background:name?"#FFF9C4":"#f8fafc",border:`3px solid ${name?"#F59E0B":"#e2e8f0"}`,borderRadius:14,padding:"10px 24px",minHeight:68,display:"flex",alignItems:"center",flexShrink:0}}>
-              <span style={{fontSize:44,fontWeight:900,color:name?"#26251e":"#94a3b8"}}>{name||"（お名前を入力）"}</span>
+              <span style={{fontSize:44,fontWeight:900,color:name?"#26251e":"#94a3b8"}}>{name||"タナカ タロウ"}</span>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-auto">
               <KatakanaKeyboard value={name} onChange={saveName} onComplete={()=>setActive("maxLoad")} />

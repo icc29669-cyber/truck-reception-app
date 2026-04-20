@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { prisma } from "@/lib/prisma";
 import { verifyKioskSecret } from "@/lib/auth";
 import { getJSTToday, getJSTDayRange } from "@/lib/jstDate";
+import { getClientIp, hitRateLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 
@@ -43,8 +46,28 @@ export async function POST(req: NextRequest) {
   const authError = verifyKioskSecret(req);
   if (authError) return authError;
 
+  // レート制限: 同一IP から 60秒間に 20 回まで。正常利用では絶対超えない閾値だが
+  // curl で sec-fetch-site 偽装した大量受付攻撃に対する防御として設置。
+  const ip = getClientIp(req);
+  if (hitRateLimit(`register:${ip}`, 20, 60)) {
+    return NextResponse.json(
+      { error: "一時的にご利用いただけません。しばらく経ってから再度お試しください" },
+      { status: 429 }
+    );
+  }
+
+  // JSON パースは try/catch で 400 を返す（500 にしない）
+  let body: unknown;
   try {
-    const body = await req.json();
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "リクエストの形式が不正です" }, { status: 400 });
+  }
+
+  // JST 日付範囲は 1リクエスト内で不変なので冒頭で一度だけ計算
+  const jstRange = getJSTDayRange();
+
+  try {
     const {
       phone,
       centerId,
@@ -87,16 +110,17 @@ export async function POST(req: NextRequest) {
     const vehicleNumber = formatPlate(plate);
     const effectivePhone = phone || driverInput.phone;
 
-    // ─── トランザクションで一括処理 ─────────────────────────
-    const result = await prisma.$transaction(async (tx) => {
-      // 0. センター存在チェック
-      const center = await tx.center.findUnique({ where: { id: centerId } });
-      if (!center) {
-        throw new Error("INVALID_CENTER");
-      }
-
-      // 1. ドライバーをupsert（ユニーク制約: phone+name+companyName）
-      const driver = await tx.driver.upsert({
+    // ─── フェーズ1: 前処理を **並列** で実行 ─────────────────────────
+    // 旧コードは $transaction 内で 4 つの操作を直列(center → driver → vehicle → aggregate)
+    // していたため Neon の rtt × 4 が単純に積み上がっていた。
+    // 各操作は独立(相互に依存しない)なので Promise.all で同時発射する。
+    // reception.create は後続フェーズで単独 atomic に実行する(=整合性は保たれる)。
+    const [center, driver, vehicle, maxResult] = await Promise.all([
+      prisma.center.findUnique({
+        where: { id: centerId },
+        select: { id: true, code: true, name: true },
+      }),
+      prisma.driver.upsert({
         where: {
           driver_phone_name_company: {
             phone: effectivePhone,
@@ -109,111 +133,155 @@ export async function POST(req: NextRequest) {
           name: driverInput.driverName,
           companyName: driverInput.companyName,
         },
-        update: {
-          updatedAt: new Date(),
-        },
-      });
-
-      // 2. 車両をupsert（ユニーク制約: vehicleNumber+phone）
-      let vehicle = null;
-      if (vehicleNumber) {
-        vehicle = await tx.vehicle.upsert({
-          where: {
-            vehicle_number_phone: {
+        update: { updatedAt: new Date() },
+      }),
+      vehicleNumber
+        ? prisma.vehicle.upsert({
+            where: {
+              vehicle_number_phone: { vehicleNumber, phone: effectivePhone },
+            },
+            create: {
+              region: plate.region,
+              classNum: plate.classNum,
+              hira: plate.hira,
+              number: plate.number,
               vehicleNumber,
+              maxLoad: driverInput.maxLoad ?? "",
               phone: effectivePhone,
             },
-          },
-          create: {
-            region: plate.region,
-            classNum: plate.classNum,
-            hira: plate.hira,
-            number: plate.number,
-            vehicleNumber,
-            maxLoad: driverInput.maxLoad ?? "",
-            phone: effectivePhone,
-          },
-          update: {
-            maxLoad: driverInput.maxLoad || undefined,
-            updatedAt: new Date(),
-          },
-        });
-      }
-
-      // 3. 本日のセンター受付連番を算出（JST基準・MAXで欠番にも対応）
-      const { start: todayStart, end: todayEnd } = getJSTDayRange();
-
-      const maxResult = await tx.reception.aggregate({
+            update: {
+              maxLoad: driverInput.maxLoad || undefined,
+              updatedAt: new Date(),
+            },
+          })
+        : Promise.resolve(null),
+      prisma.reception.aggregate({
         where: {
           centerId,
-          arrivedAt: { gte: todayStart, lte: todayEnd },
+          arrivedAt: { gte: jstRange.start, lte: jstRange.end },
         },
         _max: { centerDailyNo: true },
-      });
-      const centerDailyNo = (maxResult._max.centerDailyNo ?? 0) + 1;
+      }),
+    ]);
 
-      // 4. 受付記録を作成
-      const reception = await tx.reception.create({
-        data: {
-          centerId,
-          centerDailyNo,
-          driverName: driverInput.driverName,
-          companyName: driverInput.companyName,
-          phone: effectivePhone,
-          plateRegion: plate.region,
-          plateClassNum: plate.classNum,
-          plateHira: plate.hira,
-          plateNumber: plate.number,
-          vehicleNumber,
-          maxLoad: driverInput.maxLoad ?? "",
-          driverId: driver.id,
-          vehicleId: vehicle?.id ?? null,
-          reservationId: localReservationId,
-        },
-        include: { center: true },
-      });
+    if (!center) {
+      return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
+    }
 
-      // 5. ローカル予約があれば checked_in に更新（berth-app予約は後でHTTP通知）
-      if (localReservationId) {
-        const resv = await tx.reservation.findUnique({ where: { id: localReservationId } });
-        if (resv && resv.status !== "cancelled") {
-          await tx.reservation.update({
-            where: { id: localReservationId },
-            data: { status: "checked_in" },
-          });
+    const pre = {
+      driver,
+      vehicle,
+      center,
+      baseCenterDailyNo: (maxResult._max.centerDailyNo ?? 0) + 1,
+    };
+
+    // ─── フェーズ2: reception.create を通常クライアント経由でリトライ付き実行 ────────
+    // P2002 (dailyKey unique 制約違反) が出たら centerDailyNo を +1 して最大10回リトライ
+    const todayStr = getJSTToday();
+    let centerDailyNo = pre.baseCenterDailyNo;
+    let reception: Awaited<ReturnType<typeof prisma.reception.create>> | null = null;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      try {
+        reception = await prisma.reception.create({
+          data: {
+            centerId,
+            centerDailyNo,
+            dailyKey: `${todayStr}_${centerId}_${centerDailyNo}`,
+            driverName: driverInput.driverName,
+            companyName: driverInput.companyName,
+            phone: effectivePhone,
+            plateRegion: plate.region,
+            plateClassNum: plate.classNum,
+            plateHira: plate.hira,
+            plateNumber: plate.number,
+            vehicleNumber,
+            maxLoad: driverInput.maxLoad ?? "",
+            driverId: pre.driver.id,
+            vehicleId: pre.vehicle?.id ?? null,
+            reservationId: localReservationId,
+          },
+          include: { center: true },
+        });
+        break;
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+          centerDailyNo += 1;  // 他のリクエストが先に取った番号 → 次を試す
+          continue;
         }
+        throw e;
       }
+    }
+    if (!reception) {
+      return NextResponse.json(
+        { error: "受付番号の採番に失敗しました（同時リクエスト過多）。再度お試しください。" },
+        { status: 503 }
+      );
+    }
 
-      return { reception, centerDailyNo };
-    });
+    // ─── フェーズ3: 予約 checked_in 更新 + 待機台数 を **並列** で ─────
+    // 旧コードは updateMany → count を直列実行していた。どちらも reception.create 完了後は
+    // 独立して走れるため並列化(rtt × 2 → rtt × 1)。
+    const [_updated, waitingCount] = await Promise.all([
+      localReservationId
+        ? prisma.reservation.updateMany({
+            where: { id: localReservationId, status: { not: "cancelled" } },
+            data: { status: "checked_in" },
+          })
+        : Promise.resolve(null),
+      prisma.reception.count({
+        where: { centerId, arrivedAt: { gte: jstRange.start } },
+      }),
+    ]);
 
-    // 現在の待機台数（本日受付済み件数・JST基準）
-    const { start: todayStartOut } = getJSTDayRange();
-    const waitingCount = await prisma.reception.count({
-      where: { centerId, arrivedAt: { gte: todayStartOut } },
-    });
+    const result = { reception, centerDailyNo };
+    // center は pre フェーズで取得済み。以降の変数名衝突を避けるため pre.center を直接参照する。
 
-    const center = await prisma.center.findUnique({ where: { id: centerId } });
+    // 会計年度（日本: 4/1〜3/31）を2桁で算出
+    const arrivedDate = new Date(result.reception.arrivedAt);
+    const fy = arrivedDate.getMonth() + 1 >= 4
+      ? arrivedDate.getFullYear()
+      : arrivedDate.getFullYear() - 1;
+    const fiscalYear = String(fy % 100).padStart(2, "0");
+
+    // 基幹互換の受付番号: "R<年度2桁>-<センターCD>-<日次連番3桁>"
+    const receptionNo = `R${fiscalYear}-${center?.code || "0000"}-${String(result.centerDailyNo).padStart(3, "0")}`;
 
     const responseData: Record<string, unknown> = {
       id: result.reception.id,
       centerDailyNo: result.centerDailyNo,
       arrivedAt: result.reception.arrivedAt.toISOString(),
       waitingCount,
+      receptionNo,
+      fiscalYear,
+      centerCode: center?.code ?? "",
       driver: {
         name: driverInput.driverName,
         companyName: driverInput.companyName,
         phone: effectivePhone,
       },
       vehicleNumber,
+      plate: {
+        region: plate.region,
+        classNum: plate.classNum,
+        kana: plate.hira,
+        number: plate.number,
+      },
+      maxLoad: driverInput.maxLoad ? Number(driverInput.maxLoad) : null,
       centerName: center?.name ?? "",
       barcodeValue: `RC-${result.reception.id}-${result.centerDailyNo}`,
     };
 
-    // ── berth-app に予約チェックインを通知（非同期・リトライ付き・失敗しても受付は完了） ──
-    // berth-app予約の場合のみ通知（オフセット除去済みの元IDを使用）
+    // ── berth-app に予約チェックインを通知 ──
+    // Vercel では waitUntil でレスポンス後も処理を継続。
+    // 非 Vercel 環境（Docker self-host 等）では waitUntil が TypeError を投げるので
+    // fire-and-forget に fallback する。
     if (originalBerthId && BERTH_API_URL && BERTH_KIOSK_SECRET) {
-      notifyBerthApp(BERTH_API_URL, BERTH_KIOSK_SECRET, originalBerthId);
+      const notify = notifyBerthApp(BERTH_API_URL, BERTH_KIOSK_SECRET, originalBerthId);
+      try {
+        waitUntil(notify);
+      } catch {
+        void notify; // fire-and-forget
+      }
     }
 
     return NextResponse.json(responseData);

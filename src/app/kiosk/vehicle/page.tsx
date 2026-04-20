@@ -322,7 +322,8 @@ export default function VehiclePage() {
     const targetId = deleteTarget.id;
     setDeleteTarget(null); // 即座にモーダルを閉じて二重タップ防止
     try {
-      await apiDeleteCandidate("vehicle", targetId);
+      // phone 所有権チェックのため現在の session.phone を送る
+      await apiDeleteCandidate("vehicle", targetId, getKioskSession().phone);
     } catch {
       // API失敗しても UI 上は削除を反映（次回起動時に復活する可能性あり）
     }
@@ -508,7 +509,7 @@ export default function VehiclePage() {
           <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 12px" }}>
             <div className="rounded-2xl border-4 flex items-center px-8" style={{ width: 620, height: 84, borderColor: maxLoad ? "#F59E0B" : "#CBD5E1", background: "#FFFFFF", justifyContent: "flex-end" }}>
               <span style={{ fontSize: 50, fontWeight: 900, color: maxLoad ? "#26251e" : "#94a3b8" }}>
-                {maxLoad ? `${Number(maxLoad).toLocaleString()} kg` : "（未入力）"}
+                {maxLoad ? `${Number(maxLoad).toLocaleString()} kg` : "例: 2,000"}
               </span>
             </div>
           </div>

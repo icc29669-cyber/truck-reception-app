@@ -128,6 +128,9 @@ function KioskTop() {
 
   useEffect(() => {
     setMounted(true);
+    // トップに戻った時点で前ユーザーの入力残骸を安全のためクリア
+    // （通常 complete / timeout 経由で既にクリアされているが、クラッシュ復帰後の fail-safe）
+    clearKioskSession();
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);

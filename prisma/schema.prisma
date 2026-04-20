@@ -150,6 +150,8 @@ model Reception {
   id            Int      @id @default(autoincrement())
   centerId      Int
   centerDailyNo Int      // その日のセンター内連番
+  // race防止キー "YYYY-MM-DD_<centerId>_<centerDailyNo>" (JST日付)。新規行のみ付与、既存行は NULL 許容。
+  dailyKey      String?
   arrivedAt     DateTime @default(now())
 
   // 人情報（スナップショット）
@@ -175,5 +177,6 @@ model Reception {
   vehicle     Vehicle?     @relation(fields: [vehicleId], references: [id])
   reservation Reservation? @relation(fields: [reservationId], references: [id])
 
+  @@unique([dailyKey], name: "reception_daily_key")
   @@index([centerId, arrivedAt])
 }
