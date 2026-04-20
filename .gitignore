@@ -9,3 +9,5 @@ tsconfig.tsbuildinfo
 
 .vercel
 .env.production
+.env.vercel
+.env.vercel.*
