@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && (prisma db push --accept-data-loss || echo 'db push skipped') && node prisma/seed.js && next build",
+    "build": "prisma generate && (prisma db push --accept-data-loss || echo 'db push skipped') && (node prisma/seed.js || echo 'seed skipped') && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "db:seed": "node prisma/seed.js",
-    "db:push": "prisma db push --accept-data-loss && node prisma/seed.js"
+    "db:push": "prisma db push --accept-data-loss && node prisma/seed.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -16,9 +18,11 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@simplewebauthn/browser": "^13.3.0",
-    "jsbarcode": "^3.11.6",
+    "@types/qrcode": "^1.5.6",
+    "@vercel/functions": "^3.4.3",
     "next": "^14.2.35",
     "prisma": "^5.22.0",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -29,6 +33,7 @@
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^2.1.9"
   }
 }
