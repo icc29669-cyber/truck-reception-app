@@ -9,8 +9,8 @@ import type {
 import { formatPlate as fmt } from "@/types/reception";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
-const SECRET = process.env.NEXT_PUBLIC_KIOSK_SECRET ?? "";
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+// USE_MOCK は明示的な opt-in のみ true（本番で誤って true になるのを防ぐ）
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -76,12 +76,22 @@ function mockRegister(params: {
     centerDailyNo: 42,
     arrivedAt: new Date().toISOString(),
     waitingCount: 15,
+    receptionNo: "R26-3100-042",
+    fiscalYear: "26",
+    centerCode: "3100",
     driver: {
       name: params.driverInput.driverName,
       companyName: params.driverInput.companyName,
       phone: params.phone,
     },
     vehicleNumber: fmt(params.plate),
+    plate: {
+      region: params.plate.region,
+      classNum: params.plate.classNum,
+      kana: params.plate.hira,
+      number: params.plate.number,
+    },
+    maxLoad: params.driverInput.maxLoad ? Number(params.driverInput.maxLoad) : null,
     centerName: "だんじり機材センター",
   };
 }
@@ -89,9 +99,9 @@ function mockRegister(params: {
 // ─── API ────────────────────────────────────────────────
 
 function headers() {
+  // 同一オリジンなので Content-Type のみ。認証は Origin 判定（サーバ側）で行う。
   return {
     "Content-Type": "application/json",
-    "X-Kiosk-Secret": SECRET,
   };
 }
 
@@ -198,9 +208,11 @@ export async function registerReception(params: {
 }
 
 // ─── 候補削除（ソフトデリート） ──────────────────────────
+// phone は所有権チェックに必須(サーバー側で driver/vehicle.phone == body.phone を検証)
 export async function deleteCandidate(
   type: "driver" | "vehicle",
-  id: number
+  id: number,
+  phone: string,
 ): Promise<boolean> {
   if (USE_MOCK) {
     await delay(300);
@@ -209,7 +221,7 @@ export async function deleteCandidate(
   const res = await fetch(`${BASE}/api/reception/delete-candidate`, {
     method: "DELETE",
     headers: headers(),
-    body: JSON.stringify({ type, id }),
+    body: JSON.stringify({ type, id, phone }),
   });
   return res.ok;
 }
