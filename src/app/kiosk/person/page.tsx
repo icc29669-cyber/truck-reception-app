@@ -207,7 +207,8 @@ export default function PersonPage() {
   /* 候補を削除（確認後にDB+セッション両方から削除） */
   async function confirmDelete() {
     if (!deleteTarget) return;
-    await apiDeleteCandidate("driver", deleteTarget.id);
+    // phone 所有権チェックのため現在の session.phone を送る
+    await apiDeleteCandidate("driver", deleteTarget.id, getKioskSession().phone);
     const updated = candidates.filter((c) => c.id !== deleteTarget.id);
     setCandidates(updated);
     setKioskSession({ driverCandidates: updated });
@@ -332,7 +333,7 @@ export default function PersonPage() {
                 color: company ? "#26251e" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {company || "（ここに表示されます）"}
+                {company || "ニホンセイフティー"}
               </div>
             </div>
 
@@ -365,7 +366,7 @@ export default function PersonPage() {
                 color: name ? "#26251e" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {name || (company.trim() ? "（次にここを入力）" : "（会社名の入力後に有効になります）")}
+                {name || (company.trim() ? "タナカ タロウ" : "← 先に会社名を入力")}
               </div>
             </div>
           </div>

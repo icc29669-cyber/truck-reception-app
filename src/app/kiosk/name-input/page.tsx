@@ -63,7 +63,7 @@ export default function NameInputPage() {
             className="font-black text-gray-900"
             style={{ fontSize: 56, minHeight: 60 }}
           >
-            {value || <span className="text-gray-400">（お名前を入力）</span>}
+            {value || <span className="text-gray-400">タナカ タロウ</span>}
           </span>
         </div>
 

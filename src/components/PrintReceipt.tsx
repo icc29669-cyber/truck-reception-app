@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
+import QRCode from "qrcode";
 import type { ReceptionResult } from "@/types/reception";
 
 interface Props {
@@ -16,24 +17,39 @@ function formatDateTime(iso: string): string {
 }
 
 export default function PrintReceipt({ data }: Props) {
-  const barcodeRef = useRef<SVGSVGElement>(null);
+  // iframe 経由での印刷で canvas はコピーできないため、data URL (PNG) + <img> で描画する
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
   useEffect(() => {
-    if (!barcodeRef.current) return;
-    import("jsbarcode").then((mod) => {
-      const barcodeVal = data.barcodeValue ?? String(data.id);
-      mod.default(barcodeRef.current!, barcodeVal, {
-        format: "CODE128",
-        width: 1.8,
-        height: 55,
-        displayValue: true,
-        fontSize: 10,
-        margin: 2,
+    // 基幹システムが取り込む JSON ペイロード
+    // 仕様: truck-berth-app/docs/08_基幹システム連携仕様書.md を参照
+    const payload = {
+      v: 1,
+      no: data.receptionNo,
+      fy: data.fiscalYear,
+      at: data.arrivedAt,
+      center: data.centerCode,
+      driver: data.driver.name,
+      company: data.driver.companyName,
+      phone: data.driver.phone,
+      plate: data.plate,
+      maxLoad: data.maxLoad,
+      reservation: data.reservation ?? null,
+    };
+    const json = JSON.stringify(payload);
+
+    QRCode.toDataURL(json, {
+      width: 240,                // 印刷時にクリアに見える解像度
+      margin: 1,
+      errorCorrectionLevel: "M",
+      color: { dark: "#000", light: "#fff" },
+    })
+      .then(setQrDataUrl)
+      .catch((e) => {
+        console.error("QR generation failed:", e);
+        setQrDataUrl("");
       });
-    }).catch(() => {
-      // jsbarcode が読み込めない場合はスキップ
-    });
-  }, [data.id, data.barcodeValue]);
+  }, [data]);
 
   return (
     <div id="print-receipt" style={{ width: "74mm", fontFamily: "'MS Gothic', 'Courier New', monospace", fontSize: "12px" }}>
@@ -48,6 +64,11 @@ export default function PrintReceipt({ data }: Props) {
         <div style={{ fontSize: "42px", fontWeight: "bold", lineHeight: 1.1 }}>
           {String(data.centerDailyNo).padStart(3, "0")}
         </div>
+        {data.receptionNo && (
+          <div style={{ fontSize: "9px", color: "#555", fontFamily: "ui-monospace, monospace", marginTop: "2px" }}>
+            {data.receptionNo}
+          </div>
+        )}
       </div>
 
       <div style={{ borderTop: "1px dashed #000", margin: "6px 0" }} />
@@ -78,9 +99,21 @@ export default function PrintReceipt({ data }: Props) {
 
       <div style={{ borderTop: "1px dashed #000", margin: "6px 0" }} />
 
-      {/* バーコード */}
+      {/* QR コード（基幹システム取り込み用） */}
       <div style={{ textAlign: "center" }}>
-        <svg ref={barcodeRef} style={{ width: "100%" }} />
+        {qrDataUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={qrDataUrl}
+            alt="受付 QR コード"
+            style={{ display: "block", margin: "0 auto", width: "30mm", height: "30mm" }}
+          />
+        ) : (
+          <div style={{ height: "30mm", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#555" }}>
+            QRコード生成中...
+          </div>
+        )}
+        <div style={{ fontSize: "9px", color: "#555", marginTop: "2px" }}>基幹システム取り込み用</div>
       </div>
 
       <div style={{ borderTop: "1px dashed #000", margin: "6px 0" }} />

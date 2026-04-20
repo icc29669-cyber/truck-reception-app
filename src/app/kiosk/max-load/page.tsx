@@ -86,7 +86,7 @@ export default function MaxLoadPage() {
               color: value ? "#1a1a1a" : "#9ca3af",
             }}
           >
-            {displayValue || "0"}
+            {displayValue || "例:2000"}
           </span>
           <span className="text-5xl font-bold text-gray-600" style={{ marginLeft: 12 }}>kg</span>
         </div>

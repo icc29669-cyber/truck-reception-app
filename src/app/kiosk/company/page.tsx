@@ -65,7 +65,7 @@ export default function CompanyPage() {
             className="font-black tracking-widest"
             style={{ fontSize: 64, color: value ? "#1a1a1a" : "#94a3b8" }}
           >
-            {value || "（会社名を入力）"}
+            {value || "ニホンセイフティー"}
           </span>
         </div>
       </div>

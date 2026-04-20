@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { clearKioskSession } from "@/lib/kioskState";
 
 /** 無操作タイムアウト（秒） — トップ画面以外で操作がなければ自動リセット */
-const INACTIVITY_TIMEOUT_SEC = 300; // 5分
+const INACTIVITY_TIMEOUT_SEC = 120; // 2分（前ユーザーの入力残骸が次の人に見えるのを防ぐため短め）
 
 function requestFullscreen(): Promise<void> {
   if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -102,11 +102,14 @@ export default function KioskLayout({ children }: { children: React.ReactNode })
   const [needsFullscreen, setNeedsFullscreen] = useState(false);
   const [ready, setReady] = useState(false);
   const prevPathRef = useRef(pathname);
+  const promptShownRef = useRef(false);  // 初回プロンプト表示済みフラグ（セッション中は再表示しない）
 
   // トップ画面・完了画面ではタイムアウト不要
   const isExemptPage = pathname === "/kiosk" || pathname === "/kiosk/complete";
 
-  // 初期マウント時、全画面でなければプロンプトを表示
+  // 初期マウント時（業務開始時）にのみ全画面プロンプトを表示。
+  // 受付完了後の /kiosk への自動復帰では再表示しない（印刷で fullscreen が抜けた場合は
+  // visibilitychange / pointerdown ハンドラが自動再取得する）。
   useEffect(() => {
     // iframeやプレビュー環境では全画面プロンプトを出さない
     const isEmbedded = window.self !== window.top;
@@ -115,9 +118,15 @@ export default function KioskLayout({ children }: { children: React.ReactNode })
       setReady(true);
       return;
     }
+    // セッション中に既に一度表示していれば再表示しない
+    if (promptShownRef.current) {
+      setReady(true);
+      return;
+    }
     // トップ画面でのみプロンプト表示（業務開始時の1回のみ）
     if (pathname === "/kiosk" && !document.fullscreenElement) {
       setNeedsFullscreen(true);
+      promptShownRef.current = true;
     } else {
       setReady(true);
     }
@@ -183,15 +192,25 @@ export default function KioskLayout({ children }: { children: React.ReactNode })
     };
   }, [isExemptPage, resetTimer]);
 
-  // 全画面の維持（フォーカス戻り時に再トライ）
+  // 全画面の維持（フォーカス戻り時 & fullscreen 解除検知）
   useEffect(() => {
+    if (!ready) return;
     const onVisibilityChange = () => {
-      if (!document.hidden && ready && !document.fullscreenElement) {
+      if (!document.hidden && !document.fullscreenElement) {
         requestFullscreen();
       }
     };
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        setTimeout(() => requestFullscreen(), 250);
+      }
+    };
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+    };
   }, [ready]);
 
   useEffect(() => {

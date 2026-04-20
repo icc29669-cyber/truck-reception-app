@@ -299,7 +299,7 @@ export default function PhonePage() {
             color: phone ? "#26251e" : "#C8C3BA",
             transition: "color 0.2s ease",
           }}>
-            {phone ? fmtPhone(phone) : "090-0000-0000"}
+            {phone ? fmtPhone(phone) : "090-XXXX-XXXX"}
           </span>
         </div>
 

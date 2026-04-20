@@ -282,6 +282,7 @@ function FieldRow({ label, value, onEdit, tall = false }: {
 export default function FinalConfirmPage() {
   const router = useRouter();
   const initRef = useRef(false);
+  const submittingRef = useRef(false);  // 連打ガード（React state より早く反映される）
   const [sessionData, setSessionData] = useState<ReturnType<typeof getKioskSession> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -301,6 +302,8 @@ export default function FinalConfirmPage() {
 
   async function handleRegister() {
     if (!sessionData) return;
+    if (submittingRef.current) return;  // 連打: React render を待たずに即 block
+    submittingRef.current = true;
     setLoading(true);
     setError("");
     try {
@@ -327,6 +330,7 @@ export default function FinalConfirmPage() {
       }
       setError(friendly);
       setLoading(false);
+      submittingRef.current = false;  // エラー時は再試行可能に
     }
   }
 
