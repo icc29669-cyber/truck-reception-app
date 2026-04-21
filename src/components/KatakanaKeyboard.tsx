@@ -89,6 +89,8 @@ const COL_LABELS = ["ワ", "ラ", "ヤ", "マ", "ハ", "ナ", "タ", "サ", "カ
 
 export default function KatakanaKeyboard({ value, onChange, onComplete }: Props) {
   const [mode, setMode] = useState<"kata"|"alpha">("kata");
+  // 英数字モードで以降の入力を大文字/小文字どちらで打ち込むかを保持する(いわゆる Caps Lock)
+  const [alphaCase, setAlphaCase] = useState<"upper"|"lower">("upper");
 
   const btnBase =
     "flex items-center justify-center font-bold rounded-xl border-2 border-gray-300 bg-white text-gray-800 " +
@@ -141,14 +143,34 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
         >
           ゜
         </button>
-        {/* 小文字変換 */}
-        <button
-          onPointerDown={() => onChange(applyToLast(SMALL, value))}
-          className={btnBase}
-          style={{ width:LW, height:H, fontSize:22, lineHeight:1.3, textAlign:"center" }}
-        >
-          小文字{"\n"}変換
-        </button>
+        {/* 左列 最下段 の役割は mode で切り替える:
+            - カタカナ: 末尾 1 文字を小文字化(ア→ァ / ツ→ッ 等)
+            - 英数字 : 以降の入力を大文字/小文字で切替するトグル(Caps Lock 的) */}
+        {mode === "alpha" ? (
+          <button
+            onPointerDown={() => setAlphaCase(c => c === "upper" ? "lower" : "upper")}
+            className={`flex flex-col items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all ${
+              alphaCase === "upper"
+                ? "bg-gray-900 text-white border-gray-900 shadow-[0_5px_0_#111]"
+                : "bg-amber-400 text-gray-900 border-amber-500 shadow-[0_5px_0_#B45309]"
+            }`}
+            style={{ width:LW, height:H, padding: "6px 4px" }}
+          >
+            <span style={{ fontSize: 13, opacity: 0.8, letterSpacing: "0.05em" }}>今は</span>
+            <span style={{ fontSize: 28, fontWeight: 900, lineHeight: 1, margin: "2px 0 4px" }}>
+              {alphaCase === "upper" ? "大文字" : "小文字"}
+            </span>
+            <span style={{ fontSize: 11, opacity: 0.75 }}>タッチで切替</span>
+          </button>
+        ) : (
+          <button
+            onPointerDown={() => onChange(applyToLast(SMALL, value))}
+            className={btnBase}
+            style={{ width:LW, height:H, fontSize:22, lineHeight:1.3, textAlign:"center" }}
+          >
+            小文字{"\n"}変換
+          </button>
+        )}
       </div>
 
       {/* ━━ メイングリッド（カタカナ10列 / 英数7列）━━ */}
@@ -160,10 +182,14 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
               const isKata = mode === "kata";
               const col = isKata ? COL_COLORS[ci] : null;
               const isTopRow = ri === 0 && isKata;
+              // 英数字モード時はキーの表示文字とアウトプット文字を alphaCase に合わせて変える。
+              // 英字 (A-Z) のみ大文字/小文字切替の対象で、記号 (&・.-_) は常にそのまま。
+              const isLetter = !isKata && /^[A-Z]$/.test(ch);
+              const display = isLetter && alphaCase === "lower" ? ch.toLowerCase() : ch;
               return (
                 <button
                   key={ci}
-                  onPointerDown={() => onChange(value + ch)}
+                  onPointerDown={() => onChange(value + display)}
                   className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all duration-75 active:translate-y-1"
                   style={{
                     ...cell,
@@ -176,7 +202,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
                     position: isTopRow ? "relative" as const : undefined,
                   }}
                 >
-                  {ch}
+                  {display}
                   {isTopRow && (
                     <span style={{
                       position: "absolute", top: 4, left: 6,

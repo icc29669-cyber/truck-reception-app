@@ -70,7 +70,8 @@ function CandidateCard({
         onPointerLeave={() => setPressed(false)}
         className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75"
         style={{
-          height: 152, borderRadius: 22,
+          // 高さは VehicleCard と 140px で統一(=両画面のカード高さ一致)
+          height: 140, borderRadius: 22,
           background: pressed ? "#EFF6FF" : "#fff",
           border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
           boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
@@ -80,20 +81,20 @@ function CandidateCard({
           overflow: "hidden",
         }}
       >
-        {/* 人アイコン */}
+        {/* 人アイコン — VehicleCard のプレート(200x100)と視覚重量を合わせるため大きめに */}
         <div style={{
-          width: 64, height: 64, borderRadius: "50%",
+          width: 88, height: 88, borderRadius: "50%",
           background: "#EFF6FF", display: "flex", alignItems: "center",
-          justifyContent: "center", fontSize: 32, flexShrink: 0, marginRight: 24,
+          justifyContent: "center", fontSize: 44, flexShrink: 0, marginRight: 28,
         }}>👤</div>
 
-        {/* テキスト */}
+        {/* テキスト — 車番 32px / 最大積載量 28px の車両レイアウトに揃える */}
         <div className="flex flex-col flex-1 overflow-hidden">
-          <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", lineHeight: 1.3 }}>
-            {candidate.companyName || "（会社名なし）"}
-          </span>
-          <span style={{ fontSize: 40, fontWeight: 900, color: "#26251e", lineHeight: 1.2, letterSpacing: "0.04em" }}>
+          <span style={{ fontSize: 36, fontWeight: 900, color: "#26251e", lineHeight: 1.2, letterSpacing: "0.04em" }}>
             {candidate.name || "（名前なし）"}
+          </span>
+          <span style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", lineHeight: 1.3, marginTop: 4 }}>
+            {candidate.companyName || "（会社名なし）"}
           </span>
         </div>
 
@@ -265,12 +266,12 @@ export default function PersonPage() {
 
       {/* ━━ ヘッダー（TOP同様の薄いバー）━━ */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0"
-        style={{ background: "#1a3a6b", height: 88 }}>
+        style={{ background: "#1a3a6b", height: 96 }}>
         <button
           onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/phone")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 60, width: 160, fontSize: 28 }}
-        >◀ 戻る</button>
+          style={{ height: 60, width: 240, fontSize: 24 }}
+        >◀ {fromFinal ? "最終確認へ戻る" : "電話番号へ戻る"}</button>
         <div style={{ flex: 1 }} />
         <StepDots current={2} />
       </div>
@@ -285,11 +286,13 @@ export default function PersonPage() {
           STEP 2 / 4
         </div>
         <div style={{
-          fontSize: 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+          fontSize: mode === "select" ? 30 : 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
           display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap",
+          lineHeight: 1.25,
         }}>
+          {/* select モードは副文を大見出し位置にそのまま配置(別行で説明するより目線が一箇所で済む) */}
           {mode === "select" ? (
-            <>ご自身のお名前<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>をタッチしてください</span></>
+            "以前ご来場時の記録が見つかりました。ご自身のお名前をタッチしてください"
           ) : mode === "confirm" ? (
             <>ご本人の確認<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>— 表示内容でよろしいですか？</span></>
           ) : inputField === "company" ? (
@@ -310,7 +313,7 @@ export default function PersonPage() {
             <div
               onPointerDown={() => setInputField("company")}
               style={{
-                flex: 1, borderRadius: 16, height: 108,
+                flex: 1, borderRadius: 16, height: 96,
                 background: inputField === "company" ? "#FFFBEB" : "#fff",
                 border: `4px solid ${inputField === "company" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
@@ -343,7 +346,7 @@ export default function PersonPage() {
             <div
               onPointerDown={() => { if (company.trim()) setInputField("name"); }}
               style={{
-                flex: 1, borderRadius: 16, height: 108,
+                flex: 1, borderRadius: 16, height: 96,
                 background: inputField === "name" ? "#FFFBEB" : "#fff",
                 border: `4px solid ${inputField === "name" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
@@ -378,12 +381,9 @@ export default function PersonPage() {
 
         {/* ── 選択モード ── */}
         {mode === "select" && (
-          <div className="h-full flex flex-col px-10 pt-6 pb-6 gap-4">
-            <p style={{ fontSize: 28, fontWeight: 600, color: "#374151", flexShrink: 0 }}>
-              以前ご来場時の記録が見つかりました。ご自身をタップしてください。
-            </p>
-            {/* 候補カード + 新しく入力するカード（同じサイズ・スクロール対応） */}
-            <div className="flex-1 overflow-y-auto" style={{ paddingRight: 4 }}>
+          <div className="h-full flex flex-col px-10 pt-2 pb-6">
+            {/* 候補カード + 新しく入力するカード(STEP ヘッダー直下にそのまま並べる) */}
+            <div className="flex-1 overflow-y-auto" style={{ paddingRight: 4, paddingTop: 34 }}>
               <div className="flex flex-col gap-4">
                 {candidates.map((c, i) => (
                   <CandidateCard
@@ -394,13 +394,23 @@ export default function PersonPage() {
                     onDelete={() => setDeleteTarget(c)}
                   />
                 ))}
-                {/* 新しく入力するカード（候補カードと統一感） */}
+                {/* 新しく入力するカード(候補カードと同じ高さ・同じ構造) */}
                 <div className="w-full flex items-center gap-3">
                   <button
-                    onPointerDown={() => { setCompany(""); setName(""); setMode("input"); }}
+                    onPointerDown={() => {
+                      // 入力開始時はローカル state + セッションの名前関連を完全クリア
+                      const s = getKioskSession();
+                      setCompany("");
+                      setName("");
+                      setKioskSession({
+                        selectedDriver: null,
+                        driverInput: { ...s.driverInput, companyName: "", driverName: "" },
+                      });
+                      setMode("input");
+                    }}
                     className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75 active:scale-[0.99]"
                     style={{
-                      height: 152, borderRadius: 22,
+                      height: 140, borderRadius: 22,
                       background: "#fff",
                       border: "2px solid #D1D5DB",
                       borderLeft: "6px solid #1565C0",
@@ -408,27 +418,27 @@ export default function PersonPage() {
                       boxShadow: "0 4px 14px rgba(0,0,0,0.09)",
                     }}
                   >
-                    {/* +アイコン（人アイコンと同じ配置） */}
+                    {/* +アイコン(人アイコンと同じサイズ 88x88) */}
                     <div style={{
-                      width: 64, height: 64, borderRadius: "50%",
+                      width: 88, height: 88, borderRadius: "50%",
                       background: "#EFF6FF",
                       border: "3px dashed #60A5FA",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 36, flexShrink: 0, marginRight: 24,
+                      fontSize: 48, flexShrink: 0, marginRight: 28,
                       color: "#1565C0", fontWeight: 300, lineHeight: 1,
                     }}>+</div>
-                    {/* テキスト情報 */}
+                    {/* テキスト情報(CandidateCard と同じ 2 行構造: 主見出し 36px + 補足 24px) */}
                     <div className="flex flex-col flex-1">
-                      <span style={{ fontSize: 22, fontWeight: 600, color: "#6B7280", lineHeight: 1.3 }}>
-                        上記にない場合
-                      </span>
                       <span style={{ fontSize: 36, fontWeight: 900, color: "#1565C0", lineHeight: 1.2, letterSpacing: "0.04em" }}>
                         新しく入力する
+                      </span>
+                      <span style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", lineHeight: 1.3, marginTop: 4 }}>
+                        上記にない場合
                       </span>
                     </div>
                     <span style={{ fontSize: 36, color: "#1565C0", flexShrink: 0 }}>▶</span>
                   </button>
-                  {/* 削除ボタンの幅と合わせる（ダミースペース） */}
+                  {/* 削除ボタンの幅と合わせる(ダミースペース) */}
                   <div style={{ width: 100, flexShrink: 0 }} />
                 </div>
               </div>

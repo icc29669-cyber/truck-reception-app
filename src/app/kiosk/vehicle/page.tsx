@@ -58,9 +58,10 @@ function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "m
   const color = detectPlateColor(plate.classNum, plate.hira);
   const { bg, text, dim, border } = COLOR_CONFIG[color];
   const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
-  const dims = size === "sm" ? { w: 200, h: 100, r: 36, c: 18, n: 42 }
-             : size === "lg" ? { w: 480, h: 240, r: 52, c: 24, n: 90 }
-             : { w: 320, h: 160, r: 42, c: 20, n: 64 };
+  // ひらがな(r)は「視覚的ノイズにならない」よう数字よりかなり小さめに抑える
+  const dims = size === "sm" ? { w: 200, h: 100, r: 28, c: 18, n: 42 }
+             : size === "lg" ? { w: 480, h: 240, r: 40, c: 24, n: 90 }
+             : { w: 320, h: 160, r: 32, c: 20, n: 64 };
   const { w, h, r, c, n } = dims;
   const len = plate.number.length;
   return (
@@ -270,6 +271,8 @@ export default function VehiclePage() {
     const fromParam = params.get("from");
     const sectionParam = params.get("section");
     const isFromFinal = fromParam === "final-confirm";
+    // ?back=true: final-confirm の「1つ前に戻る」から来たとき。候補があれば select、なければ region から
+    const isBackFromFinal = params.get("back") === "true";
     setFromFinal(isFromFinal);
 
     const s = getKioskSession();
@@ -305,13 +308,18 @@ export default function VehiclePage() {
         setPlateSection(!p.region ? "region" : !p.classNum ? "classNum" : !p.hira ? "hira" : "number");
       }
     } else {
-      setPlateSection(!p.region ? "region" : !p.classNum ? "classNum" : !p.hira ? "hira" : "number");
       const n = s.vehicleCandidates?.length ?? 0;
       if (n === 0) {
         setMode("input");
+        // 候補なし: final-confirm から戻ってきた場合は地名から打ち直し、通常起動は埋まっている続きから
+        setPlateSection(
+          isBackFromFinal ? "region"
+            : !p.region ? "region" : !p.classNum ? "classNum" : !p.hira ? "hira" : "number"
+        );
       } else {
-        // 1件でも必ず選択画面を表示（自動スキップしない）
+        // 候補あり: 必ず選択画面を表示(戻り時も同じ)
         setMode("select");
+        setPlateSection(!p.region ? "region" : !p.classNum ? "classNum" : !p.hira ? "hira" : "number");
       }
     }
     setMounted(true);
@@ -377,12 +385,12 @@ export default function VehiclePage() {
 
       {/* ━━ ヘッダー（TOP同様の薄いバー）━━ */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0"
-        style={{ background: "#1a3a6b", height: 88 }}>
+        style={{ background: "#1a3a6b", height: 96 }}>
         <button
           onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/person")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 60, width: 160, fontSize: 28 }}
-        >◀ 戻る</button>
+          style={{ height: 60, width: 240, fontSize: 24 }}
+        >◀ {fromFinal ? "最終確認へ戻る" : "お名前へ戻る"}</button>
         <div style={{ flex: 1 }} />
         <StepDots current={3} />
       </div>
@@ -393,13 +401,19 @@ export default function VehiclePage() {
         const { bg, text, dim, border } = COLOR_CONFIG[color];
         const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
         const len = plate.number.length;
+        // 黄色プレート(軽自動車)の時は黄色ハイライトが同化するので青/シアン系に切替。
+        // それ以外(白/緑/黒)はデフォルトの黄色ハイライトが視認性◎。
+        const isYellowPlate = color === "yellow";
+        const hlColor = isYellowPlate
+          ? { ring: "#2563EB", glow: "rgba(37,99,235,0.35)", fill: "rgba(37,99,235,0.15)" }
+          : { ring: "#FFE600", glow: "rgba(255,230,0,0.3)",  fill: "rgba(255,230,0,0.15)" };
         const hl = (s: PlateSection): React.CSSProperties => plateSection === s
-          ? { boxShadow: "inset 0 0 0 3px #FFE600, 0 0 8px 2px rgba(255,230,0,0.3)", borderRadius: 8, background: "rgba(255,230,0,0.15)", cursor: "pointer" }
+          ? { boxShadow: `inset 0 0 0 3px ${hlColor.ring}, 0 0 8px 2px ${hlColor.glow}`, borderRadius: 8, background: hlColor.fill, cursor: "pointer" }
           : { borderRadius: 6, cursor: "pointer" };
 
         const sectionNum = plateSection === "region" ? "①" : plateSection === "classNum" ? "②" : plateSection === "hira" ? "③" : "④";
         const instruction =
-          plateSection === "region" ? "地名の読みの最初の文字を選んでください" :
+          plateSection === "region" ? "地名の読み仮名の最初の文字を選んでください" :
           plateSection === "classNum" ? "分類番号（3桁の数字）を入力してください" :
           plateSection === "hira" ? "ひらがなを選んでください" :
           "一連番号（4桁の数字）を入力してください";
@@ -437,9 +451,11 @@ export default function VehiclePage() {
               </div>
             </div>
 
-            <div className="flex flex-shrink-0" style={{ padding: "0 40px 8px", gap: 24, alignItems: "flex-start", justifyContent: "center" }}>
+            {/* プレートは常に画面中央に配置(セクションが変わっても位置が動かない)。
+                region 時のヒントは absolute で右側に浮かせてプレート位置に影響させない */}
+            <div className="flex flex-shrink-0" style={{ padding: "0 40px 8px", alignItems: "center", justifyContent: "center", position: "relative" }}>
             {/* 中央：プレート */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
               {/* プレート */}
               <div style={{ width: 520, height: 220, background: bg, border: `5px solid ${border}`, borderRadius: 14, display: "flex", flexDirection: "column", padding: "8px 18px 10px", boxSizing: "border-box", boxShadow: "0 6px 24px rgba(0,0,0,0.35)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
@@ -471,16 +487,47 @@ export default function VehiclePage() {
                 </div>
               </div>
             </div>
+            {/* region セクション時のみ、プレート右隣にヒントを絶対配置で表示
+                → プレート本体は常にページ中央、classNum/hira/number と同じ位置を保持 */}
+            {plateSection === "region" && (
+              <div style={{
+                position: "absolute",
+                right: 200, top: "50%", transform: "translateY(-50%)",
+                display: "flex", alignItems: "flex-start", gap: 14,
+                padding: "16px 22px", borderRadius: 12,
+                background: "#FFFBEB", border: "2px solid #FCD34D",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+              }}>
+                {/* 電球アイコンのみ(「ヒント」テキストは削除) */}
+                <div style={{ fontSize: 32, lineHeight: 1, paddingTop: 4 }}>💡</div>
+                {/* 頭文字を大きな緑で強調 + 残りは小さい灰色で「読み」として補足 */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, color: "#26251e" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                    <span style={{ fontSize: 26, fontWeight: 900 }}>所沢</span>
+                    <span style={{ fontSize: 18, color: "#9CA3AF", fontWeight: 700 }}>→</span>
+                    <span style={{ fontSize: 40, color: "#0D9488", fontWeight: 900, lineHeight: 1 }}>と</span>
+                    <span style={{ fontSize: 16, color: "#9CA3AF", fontWeight: 600 }}>ころざわ</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                    <span style={{ fontSize: 26, fontWeight: 900 }}>富士山</span>
+                    <span style={{ fontSize: 18, color: "#9CA3AF", fontWeight: 700 }}>→</span>
+                    <span style={{ fontSize: 40, color: "#0D9488", fontWeight: 900, lineHeight: 1 }}>ふ</span>
+                    <span style={{ fontSize: 16, color: "#9CA3AF", fontWeight: 600 }}>じさん</span>
+                  </div>
+                </div>
+              </div>
+            )}
             </div>
           </>
         );
       })()}
 
-      {/* ━━ 選択・確認モードのタイトル ━━ */}
-      {mode !== "input" && (
+      {/* ━━ 確認モードのみタイトル表示 ━━
+          select モード(候補選択)のタイトルは削除。副文(以前ご使用の車両記録が…)で用件が伝わる */}
+      {mode === "confirm" && (
         <div className="flex flex-col items-center flex-shrink-0" style={{ padding: "20px 0 16px" }}>
           <span style={{ fontSize: 44, fontWeight: 800, color: "#26251e", letterSpacing: "0.08em" }}>
-            {mode === "select" ? "ご使用の車両を選んでください" : "車両の確認"}
+            車両の確認
           </span>
         </div>
       )}
@@ -521,18 +568,49 @@ export default function VehiclePage() {
 
         {/* ── 選択モード ── */}
         {mode === "select" && (
-          <div className="h-full flex flex-col px-10 pt-8 pb-6 gap-4 overflow-y-auto">
-            <p style={{ fontSize: 28, fontWeight: 600, color: "#374151", flexShrink: 0 }}>
-              以前ご使用の車両記録が見つかりました。今回ご使用の車両をタップしてください。
-            </p>
-            <div className="flex flex-col gap-4 flex-shrink-0">
+          <div className="h-full flex flex-col pb-6">
+            {/* STEP バッジ + 案内文(他画面と同じヘッダーパターンで揃える) */}
+            <div style={{
+              display: "flex", alignItems: "center", flexShrink: 0,
+              padding: "20px 40px 18px", gap: 22,
+            }}>
+              <div style={{
+                fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
+                padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
+                flexShrink: 0,
+              }}>
+                STEP 3 / 4
+              </div>
+              <div style={{
+                fontSize: 30, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+                lineHeight: 1.25,
+              }}>
+                以前ご使用の車両記録が見つかりました。今回ご使用の車両をタッチしてください
+              </div>
+            </div>
+            {/* 候補カード群 — STEP ヘッダー直下にそのまま並べる */}
+            <div className="flex-1 overflow-y-auto px-10" style={{ paddingTop: 34 }}>
+              <div className="flex flex-col gap-4">
               {candidates.slice(0, 4).map((c, i) => (
                 <VehicleCard key={c.id} candidate={c} isFirst={i === 0} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
               ))}
               {/* 新しく入力するカード（候補カードと統一感のあるデザイン） */}
               <div className="w-full flex items-center gap-3">
                 <button
-                  onPointerDown={() => setMode("input")}
+                  onPointerDown={() => {
+                    // 入力開始時はプレート・最大積載量をクリアして白紙から始める
+                    const s = getKioskSession();
+                    const emptyPlate = { region: "", classNum: "", hira: "", number: "" };
+                    setPlate(emptyPlate);
+                    setMaxLoad("");
+                    setKioskSession({
+                      selectedVehicle: null,
+                      plate: emptyPlate,
+                      driverInput: { ...s.driverInput, maxLoad: "" },
+                    });
+                    setPlateSection("region");
+                    setMode("input");
+                  }}
                   className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75 active:scale-[0.99]"
                   style={{
                     height: 140, borderRadius: 22,
@@ -553,18 +631,19 @@ export default function VehiclePage() {
                   }}>
                     <span style={{ fontSize: 56, color: "#1565C0", fontWeight: 300, lineHeight: 1 }}>+</span>
                   </div>
-                  {/* テキスト情報 */}
+                  {/* テキスト情報(VehicleCard と同じ 2 行構造) */}
                   <div className="flex flex-col flex-1">
                     <span style={{ fontSize: 32, fontWeight: 900, color: "#1565C0", letterSpacing: "0.06em" }}>
                       新しく入力する
                     </span>
-                    <span style={{ fontSize: 22, fontWeight: 600, color: "#6B7280", marginTop: 4 }}>
+                    <span style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
                       上記にない車両の場合
                     </span>
                   </div>
                   <span style={{ fontSize: 36, color: "#1565C0", flexShrink: 0 }}>▶</span>
                 </button>
                 <div style={{ width: 100, flexShrink: 0 }} />
+              </div>
               </div>
             </div>
           </div>
@@ -640,14 +719,9 @@ export default function VehiclePage() {
           const plateFilled = !!(plate.region && plate.classNum && plate.hira && plate.number.length >= 1);
           return (
             <div className="h-full flex flex-col overflow-hidden">
-              {/* Colored section banner */}
+              {/* Colored section banner — 英字切替ボタンはキーパッド側(操作ボタン列)に移設済み */}
               <div className="flex items-center px-10 flex-shrink-0" style={{ height: 72, background: sectionColors[plateSection], boxShadow: "0 4px 0 rgba(0,0,0,0.2)" }}>
                 <span style={{ fontSize: 34, fontWeight: 900, color: "#fff" }}>{sectionLabels[plateSection]}</span>
-                {plateSection === "classNum" && (
-                  <button onPointerDown={() => setAlphaMode(!alphaMode)} className="ml-auto flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none" style={{ height: 52, padding: "0 28px", fontSize: 24, background: alphaMode ? "#fff" : "rgba(255,255,255,0.2)", borderColor: alphaMode ? "#BF360C" : "rgba(255,255,255,0.5)", color: alphaMode ? "#BF360C" : "#fff" }}>
-                    {alphaMode ? "数字に切替" : "英字を入力"}
-                  </button>
-                )}
               </div>
               {/* Section content */}
               <div className="flex-1 overflow-hidden px-8 py-4">
@@ -739,8 +813,18 @@ export default function VehiclePage() {
                           ))}
                           <button onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + "0"; savePlate({ classNum: n }); if (n.length === 3) setTimeout(() => fromFinal ? router.push("/kiosk/final-confirm") : handleSectionChange("hira"), 150); } }} className={numBtnStyle} style={{ width: 572, height: 130, fontSize: 56 }}>0</button>
                         </div>
-                        {/* 操作ボタン */}
+                        {/* 操作ボタン列(英字/数字切替 + 全消し + 1文字消す) */}
                         <div className="flex flex-col" style={{ gap: 16 }}>
+                          {/* 英字切替 — キーパッドの隣に置いて押しやすく */}
+                          <button
+                            onPointerDown={() => setAlphaMode(true)}
+                            className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none active:translate-y-[2px] transition-all"
+                            style={{
+                              width: 180, flex: 0.8, fontSize: 22,
+                              background: "#fefce8", borderColor: "#facc15", color: "#92400e",
+                              boxShadow: "0 5px 0 #ca8a04", textAlign: "center", lineHeight: 1.25,
+                            }}
+                          >英字を<br/>入力</button>
                           <button onPointerDown={() => savePlate({ classNum: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, flex: 1, fontSize: 28 }}>全消し</button>
                           <button onPointerDown={() => savePlate({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, flex: 1, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
                         </div>
@@ -754,6 +838,16 @@ export default function VehiclePage() {
                           ))}
                         </div>
                         <div className="flex flex-col" style={{ gap: 16 }}>
+                          {/* 数字に戻す(英字モード時) */}
+                          <button
+                            onPointerDown={() => setAlphaMode(false)}
+                            className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none active:translate-y-[2px] transition-all"
+                            style={{
+                              width: 180, height: 130, fontSize: 22,
+                              background: "#fff", borderColor: "#3b82f6", color: "#1e3a8a",
+                              boxShadow: "0 5px 0 #2563eb", textAlign: "center", lineHeight: 1.25,
+                            }}
+                          >数字に<br/>戻す</button>
                           <button onPointerDown={() => savePlate({ classNum: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, height: 130, fontSize: 28 }}>全消し</button>
                           <button onPointerDown={() => savePlate({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, height: 130, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
                         </div>

@@ -10,28 +10,50 @@ datasource db {
 
 // ─── センター（拠点）───────────────────────────────────────
 model Center {
-  id                     Int      @id @default(autoincrement())
-  code                   String   @default("")   // 4桁センターコード 例: "3101"
-  name                   String
-  secretKey              String   @default("")
-  isActive               Boolean  @default(true)
-  openTime               String   @default("08:00")
-  closeTime              String   @default("18:00")
-  slotDurationMinutes    Int      @default(60)
-  closedOnSunday         Boolean  @default(true)
-  closedOnHoliday        Boolean  @default(true)
-  hasBreak               Boolean  @default(false)
-  breakStart             String   @default("12:00")
-  breakEnd               String   @default("13:00")
-  breaks                 String   @default("[]") // JSON: [{type,start,end,message}]
-  messageOpen            String   @default("いらっしゃいませ")
-  messageBreak           String   @default("ただいま昼休みです　しばらくお待ちください")
-  messageClosed          String   @default("本日の受付は終了しました")
-  messageOutsideHours    String   @default("受付時間外です")
-  createdAt              DateTime @default(now())
+  id                  Int      @id @default(autoincrement())
+  code                String   @default("") // 4桁センターコード 例: "3101"
+  name                String
+  secretKey           String   @default("")
+  isActive            Boolean  @default(true)
+  openTime            String   @default("08:00")
+  closeTime           String   @default("18:00")
+  slotDurationMinutes Int      @default(60)
+  closedOnSunday      Boolean  @default(true)
+  closedOnHoliday     Boolean  @default(true)
+  hasBreak            Boolean  @default(false)
+  breakStart          String   @default("12:00")
+  breakEnd            String   @default("13:00")
+  breaks              String   @default("[]") // JSON: [{type,start,end,message}]
+  messageOpen         String   @default("いらっしゃいませ")
+  messageBreak        String   @default("ただいま昼休みです　しばらくお待ちください")
+  messageClosed       String   @default("本日の受付は終了しました")
+  messageOutsideHours String   @default("受付時間外です")
+  // ドライバー予約画面 (/driver/reserve) で選択肢として表示するか
+  showInDriverApp     Boolean  @default(true)
+  createdAt           DateTime @default(now())
 
   receptions   Reception[]
   reservations Reservation[]
+  users        User[]
+}
+
+// ─── 統合ユーザー ──────────────────────────────────────────
+// 1 ID = 1 センター + 1 印刷設定。admin・kiosk 両方のアクセス権を持つ
+model User {
+  id           Int       @id @default(autoincrement())
+  loginId      String    @unique // 6桁数字
+  passwordHash String
+  name         String // 表示名 例: "東京センター 1号機"
+  centerId     Int
+  paperWidth   String    @default("80") // 58 / 80 mm
+  autoPrint    Boolean   @default(true)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  center Center @relation(fields: [centerId], references: [id])
+
+  @@index([centerId])
 }
 
 // ─── システム設定 ─────────────────────────────────────────
@@ -52,22 +74,100 @@ model Company {
   drivers Driver[]
 }
 
-// ─── ドライバー ────────────────────────────────────────────
+// ─── ドライバー (kiosk + passkey 統合) ──────────────────────
 model Driver {
-  id          Int      @id @default(autoincrement())
-  name        String   // カタカナ
-  companyName String   // 運送会社名（スナップショット）
-  phone       String   // 電話番号（重複あり：同番で複数名）
-  isActive    Boolean  @default(true)
-  companyId   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int      @id @default(autoincrement())
+  name           String // カタカナ
+  companyName    String // 運送会社名（スナップショット）
+  phone          String // 電話番号（重複あり：同番で複数名）
+  isActive       Boolean  @default(true)
+  companyId      Int?
+  // ── passkey 認証 & driver ポータル (旧 berth-app 統合) ──
+  isAdmin        Boolean  @default(false) // driver ポータルの管理機能アクセス
+  pin            String   @default("") // 緊急ログイン用ピン
+  sessionVersion Int      @default(0) // セッション一括無効化用
+  agreedToPolicy Boolean  @default(false)
+  defaultVehicle String   @default("")
+  defaultMaxLoad String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  company    Company?    @relation(fields: [companyId], references: [id])
-  receptions Reception[]
+  company      Company?      @relation(fields: [companyId], references: [id])
+  receptions   Reception[]
+  passkeys     Passkey[]
+  reservations Reservation[]
 
   @@unique([phone, name, companyName], name: "driver_phone_name_company")
   @@index([phone])
+}
+
+// ─── Passkey (WebAuthn 認証情報) ────────────────────────────
+model Passkey {
+  id         String   @id // credential ID (base64url)
+  driverId   Int
+  driver     Driver   @relation(fields: [driverId], references: [id])
+  publicKey  String   @db.Text // base64 encoded Uint8Array
+  counter    BigInt   @default(0)
+  transports String   @default("[]") // JSON array
+  deviceType String   @default("")
+  backedUp   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([driverId])
+}
+
+// ─── WebAuthn チャレンジ (一時保存) ─────────────────────────
+model AuthChallenge {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  challenge String
+  expiresAt DateTime
+}
+
+// ─── ログイン試行 (レート制限) ───────────────────────────────
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  ip        String
+  createdAt DateTime @default(now())
+
+  @@index([ip])
+}
+
+// ─── アプリ設定 (berth 互換・予約スロットのデフォルト) ────
+model AppSetting {
+  id                     Int     @id @default(autoincrement())
+  slotDurationMinutes    Int     @default(60)
+  openTime               String  @default("08:00")
+  closeTime              String  @default("18:00")
+  maxReservationsPerSlot Int     @default(3)
+  closedOnSunday         Boolean @default(true)
+  saturdayOddHalfDay     Boolean @default(true)
+  saturdayOddCloseTime   String  @default("12:00")
+  saturdayEvenClosed     Boolean @default(true)
+  closedOnHoliday        Boolean @default(true)
+}
+
+// ─── 祝日 ──────────────────────────────────────────────────
+model Holiday {
+  id   Int    @id @default(autoincrement())
+  date String @unique
+  name String @default("")
+}
+
+// ─── バーコード連番 (全国通し) ──────────────────────────────
+model BarcodeSequence {
+  fiscalYear String @id // 2桁年度 例 "26"
+  lastSeq    BigInt @default(0)
+}
+
+// ─── センター日次受付番号カウンタ ─────────────────────────
+model CenterDailyCounter {
+  id       Int    @id @default(autoincrement())
+  centerId Int
+  date     String // YYYY-MM-DD (JST)
+  lastNo   Int    @default(0)
+
+  @@unique([centerId, date])
 }
 
 // ─── 車両 ──────────────────────────────────────────────────
@@ -77,9 +177,9 @@ model Vehicle {
   classNum      String   @default("") // 分類番号
   hira          String   @default("") // ひらがな
   number        String   @default("") // 4桁数字
-  vehicleNumber String   // フォーマット済み "多摩 500 あ 7917"
+  vehicleNumber String // フォーマット済み "多摩 500 あ 7917"
   maxLoad       String   @default("") // 最大積載量 kg
-  phone         String   // 紐づく電話番号
+  phone         String // 紐づく電話番号
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -94,7 +194,7 @@ model Vehicle {
 // ─── ナンバープレート地名マスタ ────────────────────────────
 model PlateRegion {
   id        Int     @id @default(autoincrement())
-  name      String  // 地名 例: "多摩"
+  name      String // 地名 例: "多摩"
   kana      String  @default("") // 読み仮名 例: "たま"
   sortOrder Int     @default(0)
   isActive  Boolean @default(true)
@@ -103,7 +203,7 @@ model PlateRegion {
 // ─── ナンバープレートひらがなマスタ ────────────────────────
 model PlateHiragana {
   id        Int     @id @default(autoincrement())
-  char      String  // ひらがな1文字
+  char      String // ひらがな1文字
   category  String  @default("business") // business / rental / unavailable
   sortOrder Int     @default(0)
   isActive  Boolean @default(true)
@@ -112,15 +212,18 @@ model PlateHiragana {
 // ─── ナンバープレートアルファベットマスタ ──────────────────
 model PlateAlphabet {
   id        Int     @id @default(autoincrement())
-  char      String  // アルファベット1文字
+  char      String // アルファベット1文字
   sortOrder Int     @default(0)
   isActive  Boolean @default(true)
 }
 
-// ─── バース予約 ────────────────────────────────────────────
+// ─── バース予約 (driver による booking 統合) ────────────────
 model Reservation {
   id              Int      @id @default(autoincrement())
   centerId        Int
+  // driver 由来 (berth-app から統合)。NULL = 管理画面からの代理登録 or 旧データ
+  driverId        Int?
+  driver          Driver?  @relation(fields: [driverId], references: [id])
   phone           String   @default("")
   driverName      String   @default("")
   companyName     String   @default("")
@@ -131,8 +234,8 @@ model Reservation {
   vehicleNumber   String   @default("")
   maxLoad         String   @default("")
   reservationDate DateTime // 予約日
-  startTime       String   // "HH:mm"
-  endTime         String   // "HH:mm"
+  startTime       String // "HH:mm"
+  endTime         String // "HH:mm"
   status          String   @default("pending") // pending / checked_in / completed / cancelled / no_show
   notes           String   @default("")
   createdAt       DateTime @default(now())
@@ -143,13 +246,14 @@ model Reservation {
 
   @@index([phone, reservationDate])
   @@index([centerId, reservationDate])
+  @@index([driverId])
 }
 
 // ─── 受付記録 ──────────────────────────────────────────────
 model Reception {
   id            Int      @id @default(autoincrement())
   centerId      Int
-  centerDailyNo Int      // その日のセンター内連番
+  centerDailyNo Int // その日のセンター内連番
   // race防止キー "YYYY-MM-DD_<centerId>_<centerDailyNo>" (JST日付)。新規行のみ付与、既存行は NULL 許容。
   dailyKey      String?
   arrivedAt     DateTime @default(now())
@@ -171,6 +275,10 @@ model Reception {
   driverId      Int?
   vehicleId     Int?
   reservationId Int?
+
+  // 全国通し連番 (berth 統合)
+  barcodeSeq BigInt? // NULL = 旧データ
+  fiscalYear String  @default("") // 2桁年度 例 "26"
 
   center      Center       @relation(fields: [centerId], references: [id])
   driver      Driver?      @relation(fields: [driverId], references: [id])

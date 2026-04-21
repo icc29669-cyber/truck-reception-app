@@ -64,15 +64,15 @@ export default function HiraPage() {
     >
       {/* ━━ ヘッダー ━━ */}
       <div
-        className="flex items-center justify-between px-8 py-3 flex-shrink-0"
-        style={{ background: "#1a3a6b" }}
+        className="flex items-center justify-between px-8 flex-shrink-0"
+        style={{ background: "#1a3a6b", height: 96 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/plate/classnum")}
           className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 62, width: 160, fontSize: 28 }}
+          style={{ height: 62, width: 240, fontSize: 24 }}
         >
-          戻る
+          ◀ 分類番号へ戻る
         </button>
         <h1 className="flex-1 text-center text-white font-bold" style={{ fontSize: 38 }}>
           地名のひらがなを選んでください

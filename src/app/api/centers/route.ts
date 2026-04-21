@@ -3,10 +3,14 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    const forDriver = url.searchParams.get("forDriver") === "1";
+    const where: Record<string, unknown> = { isActive: true };
+    if (forDriver) where.showInDriverApp = true;
     const centers = await prisma.center.findMany({
-      where: { isActive: true },
+      where,
       select: { id: true, code: true, name: true },
       orderBy: { code: "asc" },
     });

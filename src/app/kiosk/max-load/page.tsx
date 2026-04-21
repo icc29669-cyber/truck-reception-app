@@ -38,14 +38,14 @@ export default function MaxLoadPage() {
       {/* ヘッダー（他画面と統一） */}
       <div
         className="flex items-center justify-between px-8 flex-shrink-0"
-        style={{ background: "#1a3a6b", height: 84 }}
+        style={{ background: "#1a3a6b", height: 96 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/vehicle-select")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 60, width: 160, fontSize: 28 }}
+          style={{ height: 60, width: 240, fontSize: 24 }}
         >
-          ◀ 戻る
+          ◀ 車両選択へ戻る
         </button>
         <PlateDisplay plate={getKioskSession().plate} size="sm" />
       </div>

@@ -350,12 +350,20 @@ export default function FinalConfirmPage() {
 
       {/* ━━ ヘッダー（TOP同様の薄いバー）━━ */}
       <div className="flex items-center flex-shrink-0 px-14"
-        style={{ background: "#1a3a6b", height: 88 }}>
-        <button
-          onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
-          className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
-          style={{ height: 60, width: 200, fontSize: 24, lineHeight: 1.3, textAlign: "center" }}
-        >🔄 最初から</button>
+        style={{ background: "#1a3a6b", height: 96 }}>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button
+            onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
+            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
+            style={{ height: 60, width: 180, fontSize: 22, lineHeight: 1.3, textAlign: "center" }}
+          >🔄 最初から</button>
+          {/* 車両選択に戻る — 候補があれば select 画面、なければ地名入力から */}
+          <button
+            onPointerDown={() => router.push("/kiosk/vehicle?back=true")}
+            className="flex items-center justify-center font-bold rounded-xl border-2 border-white/60 text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
+            style={{ height: 60, width: 220, fontSize: 22, lineHeight: 1.3, textAlign: "center" }}
+          >◀ 車両選択へ戻る</button>
+        </div>
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <StepDots current={4} completed={[phoneComplete, personComplete, vehicleComplete, true]} />
         </div>
@@ -367,7 +375,7 @@ export default function FinalConfirmPage() {
           内容をご確認ください
         </div>
         <div style={{ fontSize: 20, color: "#64748B", marginTop: 2, letterSpacing: "0.08em" }}>
-          修正したい項目をタップしてください
+          修正したい項目をタッチしてください
         </div>
       </div>
 
@@ -592,7 +600,7 @@ export default function FinalConfirmPage() {
                   受付する
                 </span>
                 <span style={{ fontSize: selectedReservation ? 18 : 22, color: "rgba(255,255,255,0.7)", letterSpacing: "0.06em" }}>
-                  問題なければタップ
+                  問題なければタッチ
                 </span>
               </>
             )}
@@ -633,7 +641,7 @@ export default function FinalConfirmPage() {
         flexShrink: 0,
       }}>
         <span style={{ fontSize: 20, color: "#92400E", fontWeight: 600, letterSpacing: "0.03em" }}>
-          ⚠ 各項目の「修正」ボタンをタップすると入力画面に戻ります。修正後、自動的にこの確認画面に戻ります。
+          ⚠ 各項目の「修正」ボタンをタッチすると入力画面に戻ります。修正後、自動的にこの確認画面に戻ります。
         </span>
       </div>
     </div>

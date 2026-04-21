@@ -56,7 +56,7 @@ export default function VehicleSelectPage() {
         className="flex items-center px-10 gap-6 flex-shrink-0"
         style={{
           background: "#1a3a6b",
-          height: 110,
+          height: 96,
         }}
       >
         {/* タイトル */}
@@ -67,10 +67,10 @@ export default function VehicleSelectPage() {
         {/* 戻るボタン */}
         <button
           onPointerDown={() => router.push("/kiosk/person")}
-          className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white text-4xl active:bg-blue-800 flex-shrink-0"
-          style={{ height: 90, width: 180 }}
+          className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
+          style={{ height: 90, width: 280, fontSize: 30 }}
         >
-          ◀ 戻る
+          ◀ お名前へ戻る
         </button>
       </div>
 

@@ -305,14 +305,14 @@ export default function PlatePage() {
       {/* ヘッダー */}
       <div
         className="flex items-center px-10 flex-shrink-0"
-        style={{ background: "#1a3a6b", height: 88 }}
+        style={{ background: "#1a3a6b", height: 96 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/phone")}
           className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800"
-          style={{ height: 60, width: 160, fontSize: 28 }}
+          style={{ height: 60, width: 240, fontSize: 24 }}
         >
-          戻る
+          ◀ 電話番号へ戻る
         </button>
         <h1 className="flex-1 text-center text-white font-bold" style={{ fontSize: 38 }}>
           車両ナンバーを入力してください
@@ -354,7 +354,7 @@ export default function PlatePage() {
               >
                 <span style={{ fontSize: 100 }}>✓</span>
                 <span>入力完了！</span>
-                <span style={{ fontSize: 44, fontWeight: 700, opacity: 0.85 }}>タップして次へ進む</span>
+                <span style={{ fontSize: 44, fontWeight: 700, opacity: 0.85 }}>タッチして次へ進む</span>
               </button>
               <button
                 onPointerDown={() => setForceEdit(true)}

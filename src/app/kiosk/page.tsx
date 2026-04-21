@@ -84,7 +84,7 @@ function getMessage(center: CenterConfig, status: TimeStatus, activeBreak: Break
 /** 状態に応じたサブメッセージ */
 function getSubMessage(center: CenterConfig, status: TimeStatus): string {
   switch (status) {
-    case "open":    return "受付をご案内いたします";
+    case "open":    return ""; // 営業中のサブメッセージは表示しない(シンプル化)
     case "lunch":
     case "break":   return "";
     case "closed":  return "またのお越しをお待ちしております";
@@ -321,12 +321,7 @@ function KioskTop() {
               </span>
             </button>
 
-            {/* 安全注意（営業時間中のみ） */}
-            {status === "open" && center && (
-              <div style={{ fontSize: 18, color: "#94A3B8", letterSpacing: "0.1em" }}>
-                &#x26A0; 保護帽・安全靴を着用の上ご入場ください
-              </div>
-            )}
+            {/* 安全注意文言は /kiosk/caution(次の画面)で大きく表示するのでTOPからは削除 */}
           </>
         )}
       </div>

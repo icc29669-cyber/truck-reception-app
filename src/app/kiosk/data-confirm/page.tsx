@@ -460,10 +460,10 @@ export default function DataConfirmPage() {
 
       {/* ━━ ヘッダー ━━ */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0"
-        style={{background:"#1a3a6b",height:88}}>
+        style={{background:"#1a3a6b",height:96}}>
         <button onPointerDown={()=>router.push("/kiosk/phone")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{height:68,width:160,fontSize:28}}>◀ 戻る</button>
+          style={{height:68,width:240,fontSize:24}}>◀ 電話番号へ戻る</button>
         <h1 className="flex-1 text-3xl font-black text-white text-center tracking-wide">
           情報の入力・確認
         </h1>

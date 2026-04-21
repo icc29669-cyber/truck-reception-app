@@ -1,4 +1,27 @@
 import { NextRequest } from "next/server";
+import { prisma } from "./prisma";
+
+// ── DB ベースのレート制限 (berth 互換: login / sensitive 操作向け) ──
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+export const RATE_LIMIT_LOGIN_MAX = 10;       // 15分以内に10回失敗でブロック
+export const RATE_LIMIT_SENSITIVE_MAX = 5;    // 電話変更等は厳しめ
+
+export async function isRateLimited(ip: string, max: number): Promise<boolean> {
+  const since = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
+  const count = await prisma.loginAttempt.count({
+    where: { ip, createdAt: { gte: since } },
+  });
+  return count >= max;
+}
+
+export async function recordFailure(ip: string) {
+  await prisma.loginAttempt.create({ data: { ip } });
+  if (Math.random() < 0.01) {
+    await prisma.loginAttempt.deleteMany({
+      where: { createdAt: { lt: new Date(Date.now() - 60 * 60 * 1000) } },
+    });
+  }
+}
 
 /**
  * In-memory レート制限（Vercel serverless では instance ごと）

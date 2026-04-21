@@ -53,14 +53,14 @@ export default function PlateNumberPage() {
       {/* ヘッダー */}
       <div
         className="flex items-center justify-between px-8 flex-shrink-0"
-        style={{ background: "#1a3a6b", height: 100 }}
+        style={{ background: "#1a3a6b", height: 96 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/plate/hira")}
           className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
-          style={{ height: 70, width: 180, fontSize: 28 }}
+          style={{ height: 70, width: 260, fontSize: 24 }}
         >
-          戻る
+          ◀ ひらがなへ戻る
         </button>
         <h1 className="flex-1 text-center text-white font-bold" style={{ fontSize: 40 }}>
           ナンバーの数字を入力してください（1〜4桁）

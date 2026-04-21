@@ -22,3 +22,19 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// アプリ設定 (berth 互換): 1行のみ、未存在なら作成
+export async function getOrCreateSetting() {
+  let setting = await prisma.appSetting.findFirst();
+  if (!setting) {
+    setting = await prisma.appSetting.create({
+      data: {
+        slotDurationMinutes: 60,
+        openTime: "08:00",
+        closeTime: "18:00",
+        maxReservationsPerSlot: 3,
+      },
+    });
+  }
+  return setting;
+}

@@ -25,20 +25,20 @@ export default function CautionPage() {
 
       {/* ━━ ヘッダー ━━ */}
       <div style={{
-        background: "#1a3a6b", height: 72, flexShrink: 0,
+        background: "#1a3a6b", height: 96, flexShrink: 0,
         display: "flex", alignItems: "center", padding: "0 32px", gap: 24,
       }}>
         <button
           onPointerDown={() => router.push("/kiosk")}
           style={{
-            height: 48, width: 130, fontSize: 20, fontWeight: 700,
+            height: 48, width: 180, fontSize: 20, fontWeight: 700,
             color: "#fff", background: "transparent",
             border: "2px solid rgba(255,255,255,0.5)", borderRadius: 10,
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
             letterSpacing: "0.04em",
           }}
         >
-          ◀ 戻る
+          ◀ TOPへ戻る
         </button>
         <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.2)" }} />
         <div style={{ fontSize: 18, color: "rgba(255,255,255,0.78)", letterSpacing: "0.24em", fontWeight: 700 }}>
@@ -130,10 +130,10 @@ export default function CautionPage() {
               position: "relative",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              {/* 背景円 */}
+              {/* 背景円(濃紺の薄い光輪 — 安全靴側と統一) */}
               <div style={{
                 position: "absolute", inset: 0,
-                background: "radial-gradient(circle, rgba(251,191,36,0.20) 0%, rgba(251,191,36,0.06) 50%, transparent 75%)",
+                background: "radial-gradient(circle, rgba(26,58,107,0.14) 0%, rgba(26,58,107,0.04) 50%, transparent 75%)",
                 pointerEvents: "none",
               }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -203,6 +203,12 @@ export default function CautionPage() {
                 pointerEvents: "none",
               }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
+              {/*
+                安全靴画像の切替ポイント:
+                - /images/safety-shoes.png      … ユーザー提供の最新画像(現行)
+                - /images/safety-sneaker.svg    … 手描き版(2026-04-21 作成)
+                - /images/safety-shoes-boots.png … 元のブーツ版(オリジナルバックアップ)
+              */}
               <img
                 src="/images/safety-shoes.png"
                 alt="安全靴"

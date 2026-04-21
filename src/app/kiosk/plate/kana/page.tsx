@@ -67,15 +67,15 @@ export default function PlateKanaPage() {
     >
       {/* ヘッダー */}
       <div
-        className="flex items-center justify-between px-8 py-3 flex-shrink-0"
-        style={{ background: "#1a3a6b" }}
+        className="flex items-center justify-between px-8 flex-shrink-0"
+        style={{ background: "#1a3a6b", height: 96 }}
       >
         <button
           onPointerDown={() => router.push("/kiosk/data-confirm")}
           className="min-h-[56px] px-8 rounded-xl border-2 text-2xl font-bold active:opacity-80 transition-opacity"
           style={{ borderColor: "white", color: "white", background: "transparent" }}
         >
-          戻る
+          ◀ 確認画面へ戻る
         </button>
         <PlateDisplay plate={session.plate} highlight="region" size="sm" />
         <div style={{ width: 120 }} />

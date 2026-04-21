@@ -8,6 +8,7 @@ const TIME_FIELDS = [
   "breaks",
   "closedOnSunday", "closedOnHoliday",
   "messageOpen", "messageBreak", "messageClosed", "messageOutsideHours",
+  "showInDriverApp",
 ] as const;
 
 export async function PUT(
@@ -59,11 +60,24 @@ export async function DELETE(
 ) {
   try {
     const id = Number(params.id);
-    const center = await prisma.center.update({
-      where: { id },
-      data: { isActive: false },
-    });
-    return NextResponse.json(center);
+    if (isNaN(id)) return NextResponse.json({ error: "無効なIDです" }, { status: 400 });
+    // FK 依存チェック
+    const [recCount, resvCount, userCount] = await Promise.all([
+      prisma.reception.count({ where: { centerId: id } }),
+      prisma.reservation.count({ where: { centerId: id } }),
+      prisma.user.count({ where: { centerId: id } }),
+    ]);
+    const deps: string[] = [];
+    if (recCount > 0) deps.push(`受付 ${recCount}件`);
+    if (resvCount > 0) deps.push(`予約 ${resvCount}件`);
+    if (userCount > 0) deps.push(`ユーザー ${userCount}件`);
+    if (deps.length > 0) {
+      return NextResponse.json({
+        error: `このセンターは ${deps.join(" / ")} に使用中のため削除できません。先に関連データを削除するか、編集画面で「無効化」してください`,
+      }, { status: 400 });
+    }
+    await prisma.center.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });

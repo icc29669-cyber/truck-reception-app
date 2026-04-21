@@ -226,13 +226,13 @@ export default function PhonePage() {
         display: "flex", alignItems: "center",
         padding: "0 28px", gap: 20, flexShrink: 0,
         background: "linear-gradient(135deg, #172554 0%, #1e3a6b 100%)",
-        height: 82,
+        height: 96,
         boxShadow: "0 2px 16px rgba(0,0,0,0.18)",
       }}>
         <button
           onPointerDown={() => router.push(fromFinal ? "/kiosk/final-confirm" : "/kiosk/caution")}
           style={{
-            height: 56, width: 130, fontSize: 24, fontWeight: 700,
+            height: 56, width: 220, fontSize: 22, fontWeight: 700,
             background: "rgba(255,255,255,0.08)",
             border: "2px solid rgba(255,255,255,0.35)",
             borderRadius: 12, color: "#fff",
@@ -240,7 +240,7 @@ export default function PhonePage() {
             cursor: "pointer", letterSpacing: "0.04em",
           }}
         >
-          ◀ 戻る
+          ◀ {fromFinal ? "最終確認へ戻る" : "注意事項へ戻る"}
         </button>
         <div style={{ flex: 1 }} />
         <StepDots current={1} />
@@ -258,14 +258,12 @@ export default function PhonePage() {
         }}>
           STEP 1 / 4
         </div>
+        {/* 「携帯電話の番号」ラベルは廃止。案内文を大見出し位置に直接配置して視線を1つに絞る */}
         <div style={{
-          fontSize: 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
-          display: "flex", alignItems: "baseline", gap: 14,
+          fontSize: 34, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+          lineHeight: 1.2,
         }}>
-          携帯電話の番号
-          <span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>
-            （11桁）を入力してください
-          </span>
+          日中ご連絡の取れる電話番号を入力してください
         </div>
       </div>
 

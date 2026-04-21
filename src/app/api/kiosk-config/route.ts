@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifySession, SESSION_COOKIE } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const CENTER_SELECT = {
   id: true, code: true, name: true,
@@ -14,37 +16,33 @@ const CENTER_SELECT = {
 } as const;
 
 /**
- * GET /api/kiosk-config?code=3101
- * センター設定（営業時間・メッセージ含む）を返却
+ * GET /api/kiosk-config
+ *   ログイン中ユーザーのセンター設定を返す
+ *   ?code=3101 で明示指定も可能 (旧URL互換)
  */
 export async function GET(req: NextRequest) {
   try {
     const code = req.nextUrl.searchParams.get("code");
-
     if (code) {
       const center = await prisma.center.findFirst({
-        where: { code, isActive: true },
-        select: CENTER_SELECT,
+        where: { code, isActive: true }, select: CENTER_SELECT,
       });
-      if (!center) {
-        return NextResponse.json(
-          { error: `センターCD「${code}」が見つかりません` },
-          { status: 404 }
-        );
-      }
+      if (!center) return NextResponse.json({ error: `センターCD「${code}」が見つかりません` }, { status: 404 });
       return NextResponse.json(center);
     }
 
-    const setting = await prisma.setting.findUnique({ where: { key: "kiosk_center_id" } });
-    if (!setting || !setting.value) {
-      return NextResponse.json({ error: "センターが設定されていません" }, { status: 404 });
+    // セッションから centerId を取得
+    const token = req.cookies.get(SESSION_COOKIE)?.value;
+    const session = token ? await verifySession(token) : null;
+    if (!session) {
+      return NextResponse.json({ error: "認証が必要" }, { status: 401 });
     }
     const center = await prisma.center.findUnique({
-      where: { id: Number(setting.value) },
+      where: { id: session.centerId },
       select: { ...CENTER_SELECT, isActive: true },
     });
     if (!center || !center.isActive) {
-      return NextResponse.json({ error: "設定されたセンターが無効です" }, { status: 404 });
+      return NextResponse.json({ error: "所属センターが無効です。管理者にお問い合わせください" }, { status: 404 });
     }
     return NextResponse.json(center);
   } catch (e) {

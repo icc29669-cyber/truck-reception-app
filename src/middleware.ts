@@ -1,61 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifySession, SESSION_COOKIE } from "@/lib/session";
 
 /**
- * Middleware: セキュリティヘッダー + Admin Basic認証
+ * 統一認証 middleware
+ *   - /login, /api/auth/*, /_next, assets は通す
+ *   - /admin, /kiosk, /api/admin, /api/kiosk は session cookie 必須
+ *   - 未認証なら /login へリダイレクト (API なら 401)
  */
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // ─── Admin認証 ───
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
-    const user = process.env.ADMIN_USER;
-    const pass = process.env.ADMIN_PASS;
+  // driver 関連は独自 cookie (driver_session) を使うため middleware では通す
+  // driver 側の各 API / page ハンドラが自身で認証チェックする
+  const isPublic =
+    pathname === "/login" ||
+    pathname.startsWith("/api/auth/") ||
+    pathname === "/" ||
+    pathname.startsWith("/driver") ||
+    pathname.startsWith("/api/driver") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/icon-") ||
+    pathname === "/manifest.json" ||
+    pathname === "/sw.js" ||
+    pathname.startsWith("/api/public/");
 
-    // 本番で環境変数未設定 → fail-closed（デフォルト admin/admin にフォールバックしない）
-    if (!user || !pass) {
-      if (process.env.NODE_ENV === "production") {
-        return new NextResponse("Admin credentials not configured", { status: 503 });
-      }
-      // 開発環境のみ admin/admin を許容（便宜のため）
+  if (isPublic) return withSecurityHeaders(NextResponse.next());
+
+  const needsAuth =
+    pathname.startsWith("/admin") || pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/kiosk") || pathname.startsWith("/api/kiosk") ||
+    pathname.startsWith("/api/reception");
+
+  if (!needsAuth) return withSecurityHeaders(NextResponse.next());
+
+  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  const session = token ? await verifySession(token) : null;
+  if (!session) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "認証が必要" }, { status: 401 });
     }
-    const effectiveUser = user || "admin";
-    const effectivePass = pass || "admin";
-
-    const authHeader = req.headers.get("authorization");
-    if (authHeader) {
-      const [scheme, encoded] = authHeader.split(" ");
-      if (scheme === "Basic" && encoded) {
-        const decoded = atob(encoded);
-        const [u, p] = decoded.split(":");
-        if (u === effectiveUser && p === effectivePass) {
-          const res = NextResponse.next();
-          addSecurityHeaders(res);
-          return res;
-        }
-      }
-    }
-
-    return new NextResponse("Unauthorized", {
-      status: 401,
-      headers: {
-        "WWW-Authenticate": 'Basic realm="Admin Area"',
-      },
-    });
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
   }
-
-  // ─── 通常リクエスト：セキュリティヘッダーのみ追加 ───
-  const res = NextResponse.next();
-  addSecurityHeaders(res);
-  return res;
+  return withSecurityHeaders(NextResponse.next());
 }
 
-function addSecurityHeaders(res: NextResponse) {
+function withSecurityHeaders(res: NextResponse) {
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("X-Frame-Options", "DENY");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   res.headers.set("X-XSS-Protection", "1; mode=block");
   res.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  return res;
 }
 
 export const config = {

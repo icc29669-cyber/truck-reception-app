@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { clearKioskSession } from "@/lib/kioskState";
 
 /** 無操作タイムアウト（秒） — トップ画面以外で操作がなければ自動リセット */
-const INACTIVITY_TIMEOUT_SEC = 120; // 2分（前ユーザーの入力残骸が次の人に見えるのを防ぐため短め）
+const INACTIVITY_TIMEOUT_SEC = 600; // 10分（現場オペレーションで電話応対や休憩を挟む余裕を優先）
 
 function requestFullscreen(): Promise<void> {
   if (!document.fullscreenElement && document.documentElement.requestFullscreen) {

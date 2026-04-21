@@ -11,6 +11,7 @@ type Center = {
   breaks: string; // JSON
   closedOnSunday: boolean; closedOnHoliday: boolean;
   messageOpen: string; messageBreak: string; messageClosed: string; messageOutsideHours: string;
+  showInDriverApp: boolean;
 };
 
 /* --- Helpers --- */
@@ -54,10 +55,10 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
     messageOpen: "いらっしゃいませ",
     messageClosed: "本日の受付は終了しました",
     messageOutsideHours: "受付時間外です",
+    showInDriverApp: true,
   };
   const [form, setForm] = useState(defaultForm);
   const [breaks, setBreaks] = useState<BreakPeriod[]>([]);
-  const [syncing, setSyncing] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -89,6 +90,7 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
       messageOpen: c.messageOpen || "いらっしゃいませ",
       messageClosed: c.messageClosed || "本日の受付は終了しました",
       messageOutsideHours: c.messageOutsideHours || "受付時間外です",
+      showInDriverApp: c.showInDriverApp ?? true,
     });
     setShowModal(true);
   };
@@ -108,19 +110,6 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
 
   const removeBreak = (idx: number) => {
     setBreaks(breaks.filter((_, i) => i !== idx));
-  };
-
-  const handleSyncCenters = async () => {
-    setSyncing(true);
-    try {
-      const res = await fetch("/api/admin/sync/centers", { method: "POST" });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`同期完了: 新規${data.created}件, 更新${data.updated}件`);
-        fetchData();
-      } else { showToast(data.error || "同期に失敗しました"); }
-    } catch { showToast("同期に失敗しました"); }
-    finally { setSyncing(false); }
   };
 
   const handleSave = async () => {
@@ -158,12 +147,14 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
   };
 
   const handleDelete = async (c: Center) => {
-    if (!confirm("「" + c.name + "」を削除しますか？")) return;
+    if (!confirm("「" + c.name + "」を削除しますか？\n関連データがあると削除できません")) return;
     try {
-      await fetch("/api/admin/centers/" + c.id, { method: "DELETE" });
+      const res = await fetch("/api/admin/centers/" + c.id, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || "削除に失敗しました"); return; }
       showToast("削除しました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch { showToast("通信エラーが発生しました"); }
   };
 
   // テーブル用: breaks表示
@@ -192,9 +183,6 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
           <div className="flex items-center gap-3">
             {loading && <span className="text-sm text-gray-400">読込中...</span>}
             <span className="text-sm text-gray-500">{items.length}件</span>
-            <button onClick={handleSyncCenters} disabled={syncing} className="px-4 py-1.5 bg-green-600 text-white font-bold rounded-lg text-sm hover:bg-green-700 transition-colors disabled:opacity-50">
-              {syncing ? "同期中..." : "予約システムから同期"}
-            </button>
             <button onClick={openAdd} className="px-4 py-1.5 bg-[#1a3a6b] text-white font-bold rounded-lg text-sm hover:bg-[#1E5799] transition-colors">+ 追加</button>
           </div>
         </div>
@@ -202,7 +190,7 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {["CD", "センター名", "営業時間", "昼休み・休憩", "状態", "操作"].map((h) => (
+                {["CD", "センター名", "営業時間", "昼休み・休憩", "状態", "予約表示", "操作"].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -217,6 +205,11 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
                   <td className="px-4 py-3">
                     <span className={"px-2 py-1 rounded-full text-xs font-bold " + (c.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
                       {c.isActive ? "有効" : "無効"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={"px-2 py-1 rounded-full text-xs font-bold " + (c.showInDriverApp !== false ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-400")}>
+                      {c.showInDriverApp !== false ? "表示" : "非表示"}
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -256,9 +249,18 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
                   <label className="text-sm font-semibold text-gray-600">シークレットキー</label>
                   <input type="text" value={form.secretKey} onChange={(e) => setForm({ ...form, secretKey: e.target.value })} className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none font-mono" placeholder="キオスク認証用キー" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} id="center-active" className="w-4 h-4" />
-                  <label htmlFor="center-active" className="text-sm font-semibold text-gray-600">有効</label>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} id="center-active" className="w-4 h-4" />
+                    <label htmlFor="center-active" className="text-sm font-semibold text-gray-600">有効</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={form.showInDriverApp} onChange={(e) => setForm({ ...form, showInDriverApp: e.target.checked })} id="center-driver" className="w-4 h-4" />
+                    <label htmlFor="center-driver" className="text-sm font-semibold text-gray-600">
+                      予約アプリに表示
+                      <span className="ml-1 text-xs text-gray-400 font-normal">（ドライバー予約画面のセンター選択肢）</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
