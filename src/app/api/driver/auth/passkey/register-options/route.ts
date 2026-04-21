@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
 
   try {
     // 既存のパスキーを取得
-    const driver = await prisma.driver.findUnique({
+    const driver = await prisma.driver.findFirst({
       where: { phone },
+      orderBy: { id: "asc" },
       include: { passkeys: true },
     });
 

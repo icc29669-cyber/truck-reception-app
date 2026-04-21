@@ -242,7 +242,7 @@ export default function LoginPage() {
     setPhoneError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth", {
+      const res = await fetch("/api/driver/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
@@ -358,7 +358,7 @@ export default function LoginPage() {
     setLoading(true);
     setPinError("");
     try {
-      const res = await fetch("/api/auth", {
+      const res = await fetch("/api/driver/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, newPin: finalPin, agreedToPolicy: agreed }),
@@ -383,7 +383,7 @@ export default function LoginPage() {
     setLoading(true);
     setPinError("");
     try {
-      const res = await fetch("/api/auth", {
+      const res = await fetch("/api/driver/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, pin: finalPin }),

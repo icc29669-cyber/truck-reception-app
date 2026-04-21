@@ -11,8 +11,9 @@ export async function POST(request: NextRequest) {
   const rpID = new URL(origin).hostname;
 
   try {
-    const driver = await prisma.driver.findUnique({
+    const driver = await prisma.driver.findFirst({
       where: { phone },
+      orderBy: { id: "asc" },
       include: { passkeys: true },
     });
 

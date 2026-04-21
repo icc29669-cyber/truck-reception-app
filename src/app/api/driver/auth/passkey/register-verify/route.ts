@@ -45,14 +45,14 @@ export async function POST(request: NextRequest) {
     const credentialIDStr = credential.id as string;
 
     // ドライバーを作成または取得
-    let driver = await prisma.driver.findUnique({ where: { phone } });
+    let driver = await prisma.driver.findFirst({ where: { phone }, orderBy: { id: "asc" } });
     if (!driver) {
       driver = await prisma.driver.create({
-        data: { phone, agreedToPolicy: !!agreedToPolicy },
+        data: { phone, name: "", companyName: "", agreedToPolicy: !!agreedToPolicy },
       });
     } else if (!driver.agreedToPolicy && agreedToPolicy) {
       driver = await prisma.driver.update({
-        where: { phone },
+        where: { id: driver.id },
         data: { agreedToPolicy: true },
       });
     }

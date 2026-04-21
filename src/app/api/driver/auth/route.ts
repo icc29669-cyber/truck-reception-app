@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       console.error("Stale driver cleanup failed (non-blocking):", cleanupErr);
     }
 
-    const driver = await prisma.driver.findUnique({ where: { phone } });
+    const driver = await prisma.driver.findFirst({ where: { phone }, orderBy: { id: "asc" } });
 
     // ── ステップ１: 電話番号チェックのみ（pin/newPinなし）──
     if (!pin && !newPin) {
@@ -100,12 +100,12 @@ export async function POST(request: NextRequest) {
       let result;
       if (driver) {
         result = await prisma.driver.update({
-          where: { phone },
+          where: { id: driver.id },
           data: { pin: hashedPin, agreedToPolicy: true },
         });
       } else {
         result = await prisma.driver.create({
-          data: { phone, pin: hashedPin, agreedToPolicy: true },
+          data: { phone, name: "", companyName: "", pin: hashedPin, agreedToPolicy: true },
         });
       }
       await setSession(result.id);
