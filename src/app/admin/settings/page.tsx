@@ -584,7 +584,7 @@ function PrinterTab({ showToast }: { showToast: (m: string) => void }) {
     <div className="bg-white rounded-2xl shadow p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-gray-800">プリンタ設定</h2>
-        <p className="text-sm text-gray-500">※ この設定はこの端末（ブラウザ）にのみ保存されます</p>
+        <p className="text-sm text-gray-500">※ この設定はこの端末（ブラウザ）にのみ保存されます（端末ごとに異なるプリンタ構成に対応するため）</p>
       </div>
 
       <div className="grid grid-cols-2 gap-6">

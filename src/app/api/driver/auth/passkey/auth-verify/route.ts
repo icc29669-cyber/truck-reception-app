@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
-import type { AuthenticatorTransportFuture } from "@simplewebauthn/types";
+import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import { prisma } from "@/lib/prisma";
 import { setSession } from "@/lib/driverAuth";
 
@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
         expectedChallenge: stored.challenge,
         expectedOrigin: origin,
         expectedRPID: rpID,
-        authenticator: {
+        credential: {
           // DBにはbase64url文字列で保存されているため、Uint8Arrayに変換して渡す
-          credentialID: passkey.id,
-          credentialPublicKey: new Uint8Array(Buffer.from(passkey.publicKey, "base64")),
+          id: passkey.id,
+          publicKey: new Uint8Array(Buffer.from(passkey.publicKey, "base64")),
           counter: Number(passkey.counter),
           transports: JSON.parse(passkey.transports) as AuthenticatorTransportFuture[],
         },

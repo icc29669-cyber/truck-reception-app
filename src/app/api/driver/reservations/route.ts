@@ -25,12 +25,18 @@ export async function GET(request: NextRequest) {
       // driver 全件 include は PIN ハッシュや sessionVersion まで返してしまうため必要項目のみ select
       driver: { select: { id: true, name: true, companyName: true, phone: true } },
       center: { select: { id: true, code: true, name: true } },
-      reception: { select: { id: true, arrivedAt: true, centerDailyNo: true } },
+      receptions: { select: { id: true, arrivedAt: true, centerDailyNo: true } },
     },
-    orderBy: [{ date: "asc" }, { startTime: "asc" }],
+    orderBy: [{ reservationDate: "asc" }, { startTime: "asc" }],
   });
 
-  return NextResponse.json(reservations);
+  // フロントエンドは r.date (YYYY-MM-DD) を期待しているため reservationDate から派生
+  const response = reservations.map((r) => ({
+    ...r,
+    date: r.reservationDate.toISOString().slice(0, 10),
+  }));
+
+  return NextResponse.json(response);
 }
 
 export async function POST(request: NextRequest) {
@@ -75,20 +81,23 @@ export async function POST(request: NextRequest) {
   }
 
   // センター別の最大受付数を取得
+  // 本スキーマでは Center に maxReservationsPerSlot が無いため AppSetting を使う。
+  // centerId 指定時は存在確認のみ行う。
   let maxCapacity = 3;
   if (centerId) {
     const center = await prisma.center.findUnique({ where: { id: centerId } });
     if (!center) {
       return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
     }
-    maxCapacity = center.maxReservationsPerSlot;
-  } else {
-    const setting = await prisma.appSetting.findFirst();
-    if (setting) maxCapacity = setting.maxReservationsPerSlot;
   }
+  const setting = await prisma.appSetting.findFirst();
+  if (setting) maxCapacity = setting.maxReservationsPerSlot;
+
+  // 入力の date (YYYY-MM-DD) を DateTime に変換して Prisma に渡す
+  const reservationDate = new Date(date + "T00:00:00Z");
 
   const where: Prisma.ReservationWhereInput = {
-    date,
+    reservationDate,
     status: { not: "cancelled" },
     OR: [{ startTime: { lt: endTime }, endTime: { gt: startTime } }],
     ...(centerId ? { centerId } : {}),
@@ -101,7 +110,7 @@ export async function POST(request: NextRequest) {
       const duplicate = await tx.reservation.findFirst({
         where: {
           driverId: session.id,
-          date,
+          reservationDate,
           startTime,
           endTime,
           status: { not: "cancelled" },
@@ -116,17 +125,20 @@ export async function POST(request: NextRequest) {
       if (count >= maxCapacity) {
         throw new Error("FULL");
       }
+      if (!centerId) {
+        throw new Error("CENTER_REQUIRED");
+      }
       return tx.reservation.create({
         data: {
           driverId: session.id,
-          date,
+          reservationDate,
           startTime,
           endTime,
           vehicleNumber,
           maxLoad: maxLoad || "",
           companyName: companyName || "",
           driverName: driverName || "",
-          ...(centerId ? { centerId } : {}),
+          centerId,
         },
         include: { driver: true, center: true },
       });
@@ -136,13 +148,21 @@ export async function POST(request: NextRequest) {
       timeout: 10000,
     });
 
-    return NextResponse.json(reservation, { status: 201 });
+    // フロントエンド互換のため date (YYYY-MM-DD) を派生して付与
+    const responseBody = {
+      ...reservation,
+      date: reservation.reservationDate.toISOString().slice(0, 10),
+    };
+    return NextResponse.json(responseBody, { status: 201 });
   } catch (e) {
     if (e instanceof Error && e.message === "DUPLICATE") {
       return NextResponse.json({ error: "この予約は既に登録されています" }, { status: 409 });
     }
     if (e instanceof Error && e.message === "FULL") {
       return NextResponse.json({ error: "この時間帯は満車です" }, { status: 409 });
+    }
+    if (e instanceof Error && e.message === "CENTER_REQUIRED") {
+      return NextResponse.json({ error: "センターの指定が必要です" }, { status: 400 });
     }
     // Serializable競合（同時予約）の場合は満車と同じ扱い
     if (

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyRegistrationResponse } from "@simplewebauthn/server";
-import type { AuthenticatorTransportFuture } from "@simplewebauthn/types";
+import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import { prisma } from "@/lib/prisma";
 import { setSession } from "@/lib/driverAuth";
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "認証に失敗しました" }, { status: 400 });
     }
 
-    const { credentialPublicKey, counter, credentialDeviceType, credentialBackedUp } =
+    const { credential: regCred, credentialDeviceType, credentialBackedUp } =
       verification.registrationInfo;
 
     // ブラウザが送ってきた credential.id は常に base64url 文字列のため、
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
       data: {
         id: credentialIDStr,
         driverId: driver.id,
-        publicKey: Buffer.from(credentialPublicKey).toString("base64"),
-        counter: counter,
+        publicKey: Buffer.from(regCred.publicKey).toString("base64"),
+        counter: regCred.counter,
         transports: JSON.stringify(transports),
         deviceType: credentialDeviceType,
         backedUp: credentialBackedUp,

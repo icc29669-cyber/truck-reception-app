@@ -10,24 +10,36 @@ export async function GET(request: NextRequest) {
 
   try {
     // センター設定を優先、なければ AppSetting フォールバック
+    // Center には営業時間/休憩等のセンター固有設定のみ、
+    // 土曜ルールやスロット上限数は AppSetting (全社共通) から取得する。
     let setting: Record<string, unknown>;
     if (centerId) {
       const center = await prisma.center.findUnique({ where: { id: centerId } });
       if (center) {
+        const appSetting = await getOrCreateSetting();
+        // Center.breaks は JSON 文字列 → 配列にパースして extraBreaks として公開
+        let extraBreaks: { start: string; end: string }[] = [];
+        try {
+          const parsed = JSON.parse(center.breaks);
+          if (Array.isArray(parsed)) extraBreaks = parsed;
+        } catch {
+          extraBreaks = [];
+        }
         setting = {
           slotDurationMinutes: center.slotDurationMinutes,
           openTime: center.openTime,
           closeTime: center.closeTime,
-          maxReservationsPerSlot: center.maxReservationsPerSlot,
           closedOnSunday: center.closedOnSunday,
           closedOnHoliday: center.closedOnHoliday,
-          saturdayOddHalfDay: center.saturdayOddHalfDay,
-          saturdayOddCloseTime: center.saturdayOddCloseTime,
-          saturdayEvenClosed: center.saturdayEvenClosed,
           hasBreak: center.hasBreak,
           breakStart: center.breakStart,
           breakEnd: center.breakEnd,
-          extraBreaks: center.extraBreaks,
+          extraBreaks,
+          // 全社共通設定は AppSetting から
+          maxReservationsPerSlot: appSetting.maxReservationsPerSlot,
+          saturdayOddHalfDay: appSetting.saturdayOddHalfDay,
+          saturdayOddCloseTime: appSetting.saturdayOddCloseTime,
+          saturdayEvenClosed: appSetting.saturdayEvenClosed,
         };
       } else {
         setting = await getOrCreateSetting();

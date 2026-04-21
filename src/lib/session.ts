@@ -12,7 +12,7 @@ const td = new TextDecoder();
 function b64urlEncode(buf: ArrayBuffer | Uint8Array): string {
   const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
   let bin = "";
-  for (const b of bytes) bin += String.fromCharCode(b);
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 function b64urlDecode(s: string): Uint8Array {
@@ -49,10 +49,11 @@ export async function verifyPassword(password: string, stored: string): Promise<
   const key = await crypto.subtle.importKey(
     "raw", te.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]
   );
-  const bits = new Uint8Array(await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" },
+  const derived = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: salt as BufferSource, iterations: iter, hash: "SHA-256" },
     key, expected.length * 8
-  ));
+  );
+  const bits = new Uint8Array(derived);
   if (bits.length !== expected.length) return false;
   let diff = 0;
   for (let i = 0; i < bits.length; i++) diff |= bits[i] ^ expected[i];
@@ -98,7 +99,7 @@ export async function verifySession(token: string): Promise<UserSession | null> 
   const sigB64 = token.slice(dot + 1);
   const key = await getHmacKey();
   const ok = await crypto.subtle.verify(
-    "HMAC", key, b64urlDecode(sigB64), te.encode(body)
+    "HMAC", key, b64urlDecode(sigB64) as BufferSource, te.encode(body)
   );
   if (!ok) return null;
   try {
