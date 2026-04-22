@@ -49,7 +49,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (date) {
-      const where: Record<string, unknown> = { date, status: { not: "cancelled" } };
+      // Reservation スキーマは reservationDate (DateTime)。文字列 YYYY-MM-DD を UTC 0:00 に変換
+      const reservationDate = new Date(date + "T00:00:00Z");
+      const where: Record<string, unknown> = { reservationDate, status: { not: "cancelled" } };
       if (centerId) where.centerId = centerId;
 
       // ※ プライバシー保護: 他ドライバーの会社名・車番・氏名は返さない。
