@@ -2,17 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* キオスク全般 */
+/* 全ページ共通のタッチ最適化 */
 html, body {
   touch-action: manipulation; /* タップ遅延を除去 */
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  overflow: hidden;
   color-scheme: light; /* ダークモード無効化 */
 }
-
-/* 管理画面はスクロール可能 */
-.admin-page html, .admin-page body { overflow: auto; }
+/* スクロール抑制はキオスクページ側で個別に指定するため、
+   ここで html/body 全体に overflow: hidden を掛けない。
+   掛けてしまうと /driver や /admin の長いリストが読めなくなる。*/
 
 /* キオスクボタン押下フィードバック */
 @keyframes btn-flash {
