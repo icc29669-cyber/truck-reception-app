@@ -130,7 +130,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth")
+    fetch("/api/driver/auth")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setUser)
       .catch(() => router.push("/driver"));

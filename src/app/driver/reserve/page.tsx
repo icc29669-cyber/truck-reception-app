@@ -98,7 +98,7 @@ function ReserveForm() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth")
+    fetch("/api/driver/auth")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((u) => {
         setUser(u);

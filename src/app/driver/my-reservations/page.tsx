@@ -41,7 +41,7 @@ export default function MyReservationsPage() {
   const [showPast, setShowPast] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth")
+    fetch("/api/driver/auth")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setUser)
       .catch(() => router.push("/driver"));
