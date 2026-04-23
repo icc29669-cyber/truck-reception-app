@@ -28,6 +28,7 @@ export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [search, setSearch] = useState("");
   const [filterCompanyId, setFilterCompanyId] = useState("");
   const [toast, setToast] = useState<string | null>(null);
@@ -49,15 +50,18 @@ export default function DriversPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (filterCompanyId) params.set("companyId", filterCompanyId);
       const res = await fetch("/api/admin/drivers?" + params);
+      if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
       setDrivers(Array.isArray(data) ? data : []);
     } catch {
       setDrivers([]);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -169,6 +173,7 @@ export default function DriversPage() {
             placeholder="氏名・会社名・電話番号で検索..."
             className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
           />
+          <span className="text-xs text-gray-500 mt-1">{search ? `${drivers.length}件ヒット` : `${drivers.length}件`}</span>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-semibold text-gray-600">会社フィルタ</label>
@@ -194,6 +199,25 @@ export default function DriversPage() {
         </button>
       </div>
 
+      {/* Error banner */}
+      {fetchError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">&#x26A0;&#xFE0F;</span>
+            <div>
+              <div className="font-bold text-red-700">データの取得に失敗しました</div>
+              <div className="text-sm text-red-600">時間を置いて再読み込みしてください</div>
+            </div>
+          </div>
+          <button
+            onClick={fetchData}
+            className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+          >
+            再読み込み
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-2xl shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -204,7 +228,15 @@ export default function DriversPage() {
         {drivers.length === 0 && !loading ? (
           <div className="py-16 text-center text-gray-400">
             <div className="text-4xl mb-3">{"\u{1F464}"}</div>
-            <div className="text-lg font-semibold">データがありません</div>
+            <div className="text-lg font-semibold">{search || filterCompanyId ? "該当するドライバーはいません" : "データがありません"}</div>
+            {!search && !filterCompanyId && (
+              <button
+                onClick={openAdd}
+                className="mt-4 px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors"
+              >
+                + 新規ドライバーを追加
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">

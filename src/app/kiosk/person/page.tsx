@@ -310,13 +310,15 @@ export default function PersonPage() {
             width: 1200, maxWidth: "100%", display: "flex", alignItems: "center", gap: 14,
           }}>
             {/* ① 運送会社名フィールド */}
-            <div
+            <button
+              type="button"
               onPointerDown={() => setInputField("company")}
               style={{
                 flex: 1, borderRadius: 16, height: 96,
                 background: inputField === "company" ? "#FFFBEB" : "#fff",
                 border: `4px solid ${inputField === "company" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
+                alignItems: "stretch", textAlign: "left",
                 padding: "0 24px", cursor: "pointer",
                 opacity: inputField === "company" ? 1 : 0.55,
                 boxShadow: inputField === "company" ? "0 6px 16px rgba(245,158,11,0.25)" : "none",
@@ -338,18 +340,21 @@ export default function PersonPage() {
               }}>
                 {company || "ニホンセイフティー"}
               </div>
-            </div>
+            </button>
 
             <div style={{ fontSize: 32, color: "#94A3B8", flexShrink: 0, fontWeight: 900 }}>▶</div>
 
             {/* ② お名前フィールド */}
-            <div
+            <button
+              type="button"
+              disabled={!company.trim()}
               onPointerDown={() => { if (company.trim()) setInputField("name"); }}
               style={{
                 flex: 1, borderRadius: 16, height: 96,
                 background: inputField === "name" ? "#FFFBEB" : "#fff",
                 border: `4px solid ${inputField === "name" ? "#F59E0B" : "#E2E8F0"}`,
                 display: "flex", flexDirection: "column", justifyContent: "center",
+                alignItems: "stretch", textAlign: "left",
                 padding: "0 24px", cursor: company.trim() ? "pointer" : "default",
                 opacity: inputField === "name" ? 1 : company.trim() ? 0.55 : 0.3,
                 boxShadow: inputField === "name" ? "0 6px 16px rgba(245,158,11,0.25)" : "none",
@@ -371,7 +376,7 @@ export default function PersonPage() {
               }}>
                 {name || (company.trim() ? "タナカ タロウ" : "← 先に会社名を入力")}
               </div>
-            </div>
+            </button>
           </div>
         </div>
       )}

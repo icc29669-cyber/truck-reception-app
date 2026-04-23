@@ -126,7 +126,7 @@ export default function PhonePage() {
         router.push("/kiosk/person");
       }
     } catch {
-      setError("検索に失敗しました。もう一度お試しください。");
+      setError("通信エラーが発生しました。もう一度「OK」ボタンを押してやり直してください。");
       setLoading(false);
     }
   }
@@ -313,16 +313,29 @@ export default function PhonePage() {
             <span style={{ fontSize: 19, fontWeight: 700, color: "#DC2626" }}>{phoneError}</span>
           </div>
         )}
-        {/* 検索エラー */}
+        {/* 検索エラー — リカバリボタン付き */}
         {error && (
           <div style={{
-            padding: "14px 28px",
+            padding: "14px 20px 14px 28px",
             background: "#FEF2F2", border: "2px solid #FECACA", borderRadius: 14,
-            display: "flex", alignItems: "center", gap: 12,
+            display: "flex", alignItems: "center", gap: 16,
             maxWidth: totalW, marginTop: -16,
           }}>
             <span style={{ fontSize: 28, color: "#DC2626", flexShrink: 0 }}>!</span>
-            <span style={{ fontSize: 24, fontWeight: 700, color: "#DC2626" }}>{error}</span>
+            <span style={{ fontSize: 22, fontWeight: 700, color: "#DC2626", flex: 1 }}>{error}</span>
+            <button
+              type="button"
+              onPointerDown={() => { setError(""); setPhone(""); setPhoneError(""); }}
+              style={{
+                flexShrink: 0, height: 60, minWidth: 160, fontSize: 20, fontWeight: 800,
+                background: "#fff", color: "#B91C1C",
+                border: "2px solid #DC2626", borderRadius: 12,
+                cursor: "pointer", padding: "0 18px",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}
+            >
+              番号を入力し直す
+            </button>
           </div>
         )}
         <div style={{ display: "flex", gap: GAP }}>
@@ -448,8 +461,9 @@ export default function PhonePage() {
               1文字<br/>消す
             </button>
 
-            {/* OK */}
+            {/* OK — 無効時は半透明ではなく明確に違う色味(屋外直射光下でも識別可) */}
             <button
+              type="button"
               className="kiosk-ok"
               onPointerDown={handleOk}
               disabled={!okActive && !okLoading}
@@ -459,13 +473,12 @@ export default function PhonePage() {
                 fontWeight: 900, letterSpacing: "0.12em",
                 background: (okActive || okLoading)
                   ? "linear-gradient(180deg, #34D399 0%, #059669 100%)"
-                  : "#D1D5DB",
-                color: "#fff",
+                  : "#d6d4cd",
+                color: (okActive || okLoading) ? "#fff" : "#9a978c",
                 border: "none", borderRadius: 16,
                 boxShadow: (okActive || okLoading)
                   ? "0 7px 0 #047857, 0 10px 28px rgba(5,150,105,0.22)"
-                  : "0 4px 0 #9CA3AF",
-                opacity: (okActive || okLoading) ? 1 : 0.4,
+                  : "0 4px 0 #a8a59c",
                 cursor: okActive ? "pointer" : "default",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 touchAction: "manipulation",

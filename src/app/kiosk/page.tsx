@@ -326,14 +326,16 @@ function KioskTop() {
         )}
       </div>
 
-      {/* 管理画面リンク */}
+      {/* 管理画面リンク（目立たないが 56x56 最低タップ領域は確保） */}
       <button
+        type="button"
         onPointerDown={() => router.push("/admin")}
         style={{
-          position: "absolute", bottom: 16, right: 22,
-          fontSize: 12, color: "#CBD5E1",
+          position: "absolute", bottom: 12, right: 12,
+          minWidth: 56, minHeight: 56,
+          fontSize: 14, color: "#94A3B8",
           background: "transparent", border: "none",
-          cursor: "pointer", padding: "8px 12px",
+          cursor: "pointer", padding: "12px 16px",
         }}
       >
         管理画面

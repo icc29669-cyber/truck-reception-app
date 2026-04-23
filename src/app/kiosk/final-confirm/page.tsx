@@ -353,12 +353,14 @@ export default function FinalConfirmPage() {
         style={{ background: "#1a3a6b", height: 96 }}>
         <div style={{ display: "flex", gap: 12 }}>
           <button
+            type="button"
             onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
             className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
             style={{ height: 60, width: 180, fontSize: 22, lineHeight: 1.3, textAlign: "center" }}
           >🔄 最初から</button>
           {/* 車両選択に戻る — 候補があれば select 画面、なければ地名入力から */}
           <button
+            type="button"
             onPointerDown={() => router.push("/kiosk/vehicle?back=true")}
             className="flex items-center justify-center font-bold rounded-xl border-2 border-white/60 text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
             style={{ height: 60, width: 220, fontSize: 22, lineHeight: 1.3, textAlign: "center" }}

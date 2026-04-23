@@ -46,6 +46,7 @@ export default function CentersPage() {
 function CentersTab({ showToast }: { showToast: (m: string) => void }) {
   const [items, setItems] = useState<Center[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const defaultForm = {
@@ -62,11 +63,13 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const res = await fetch("/api/admin/centers");
+      if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
       setItems(Array.isArray(data) ? data : []);
-    } catch { setItems([]); }
+    } catch { setItems([]); setFetchError(true); }
     finally { setLoading(false); }
   }, []);
 
@@ -177,6 +180,23 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
 
   return (
     <>
+      {fetchError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">&#x26A0;&#xFE0F;</span>
+            <div>
+              <div className="font-bold text-red-700">データの取得に失敗しました</div>
+              <div className="text-sm text-red-600">時間を置いて再読み込みしてください</div>
+            </div>
+          </div>
+          <button
+            onClick={fetchData}
+            className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+          >
+            再読み込み
+          </button>
+        </div>
+      )}
       <div className="bg-white rounded-2xl shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-800">センター管理</h2>
@@ -186,6 +206,18 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
             <button onClick={openAdd} className="px-4 py-1.5 bg-[#1a3a6b] text-white font-bold rounded-lg text-sm hover:bg-[#1E5799] transition-colors">+ 追加</button>
           </div>
         </div>
+        {items.length === 0 && !loading && !fetchError && (
+          <div className="py-16 text-center text-gray-400">
+            <div className="text-4xl mb-3">{"\u{1F3ED}"}</div>
+            <div className="text-lg font-semibold">センターが登録されていません</div>
+            <button
+              onClick={openAdd}
+              className="mt-4 px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors"
+            >
+              + 新規センターを追加
+            </button>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

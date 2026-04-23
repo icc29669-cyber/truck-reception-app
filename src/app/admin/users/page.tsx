@@ -13,6 +13,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [centers, setCenters] = useState<Center[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [toast, setToast] = useState("");
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ loginId: "", password: "", name: "", centerId: "", paperWidth: "80", autoPrint: true });
@@ -21,13 +22,16 @@ export default function UsersPage() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const [r1, r2] = await Promise.all([
-        fetch("/api/admin/users").then((r) => r.json()),
-        fetch("/api/centers").then((r) => r.json()),
+        fetch("/api/admin/users").then((r) => r.ok ? r.json() : Promise.reject()),
+        fetch("/api/centers").then((r) => r.ok ? r.json() : Promise.reject()),
       ]);
       setUsers(Array.isArray(r1) ? r1 : []);
       setCenters(Array.isArray(r2) ? r2 : []);
+    } catch {
+      setFetchError(true);
     } finally { setLoading(false); }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
@@ -85,6 +89,24 @@ export default function UsersPage() {
           </button>
         </div>
 
+        {fetchError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">&#x26A0;&#xFE0F;</span>
+              <div>
+                <div className="font-bold text-red-700">データの取得に失敗しました</div>
+                <div className="text-sm text-red-600">時間を置いて再読み込みしてください</div>
+              </div>
+            </div>
+            <button
+              onClick={refresh}
+              className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+            >
+              再読み込み
+            </button>
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-800">登録ユーザー ({users.length})</h2>
@@ -93,6 +115,12 @@ export default function UsersPage() {
           {users.length === 0 && !loading ? (
             <div className="py-16 text-center text-gray-400">
               <p className="font-bold">ユーザー未登録です</p>
+              <button
+                onClick={() => setCreating(true)}
+                className="mt-4 px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors"
+              >
+                + 新規ユーザーを作成
+              </button>
             </div>
           ) : (
             <div className="overflow-x-auto">

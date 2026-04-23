@@ -468,15 +468,17 @@ export default function DataConfirmPage() {
           情報の入力・確認
         </h1>
         <button
+          type="button"
           onPointerDown={()=>isComplete&&router.push("/kiosk/final-confirm")}
           disabled={!isComplete}
           style={{
             height:68, minWidth:240, fontSize:28, fontWeight:900,
-            background:isComplete?"linear-gradient(180deg,#4caf50,#2E7D32)":"rgba(255,255,255,0.15)",
-            color:isComplete?"white":"rgba(255,255,255,0.35)",
-            borderRadius:14, border:isComplete?"none":"1px solid rgba(255,255,255,0.2)",
-            boxShadow:isComplete?"0 5px 0 #1B5E20":"none",
+            background:isComplete?"linear-gradient(180deg,#4caf50,#2E7D32)":"#d6d4cd",
+            color:isComplete?"white":"#9a978c",
+            borderRadius:14, border:"none",
+            boxShadow:isComplete?"0 5px 0 #1B5E20":"0 4px 0 #a8a59c",
             padding:"0 32px", letterSpacing:"0.08em", flexShrink:0,
+            cursor:isComplete?"pointer":"not-allowed",
           }}>
           {isComplete ? "次　へ　▶" : "次　へ"}
         </button>

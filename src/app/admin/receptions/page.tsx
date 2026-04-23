@@ -292,7 +292,6 @@ export default function AdminPage() {
               </div>
             </div>
           </>
-        )
       </div>
 
       {/* ─── 受付編集モーダル ─── */}

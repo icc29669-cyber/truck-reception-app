@@ -101,6 +101,7 @@ export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [centers, setCenters] = useState<Center[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [date, setDate] = useState("");
   const [filterCenterId, setFilterCenterId] = useState("");
 
@@ -136,16 +137,19 @@ export default function ReservationsPage() {
   const fetchData = useCallback(async () => {
     if (!date) return;
     setLoading(true);
+    setFetchError(false);
     try {
       const params = new URLSearchParams();
       if (date) params.set("date", date);
       if (filterCenterId) params.set("centerId", filterCenterId);
       if (filterStatus) params.set("status", filterStatus);
       const res = await fetch("/api/admin/reservations?" + params);
+      if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
       setReservations(Array.isArray(data) ? data : []);
     } catch {
       setReservations([]);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -208,7 +212,8 @@ export default function ReservationsPage() {
   };
 
   const handleCancel = async (r: Reservation) => {
-    if (!confirm("この予約をキャンセルしますか？")) return;
+    const label = [r.companyName, r.driverName].filter(Boolean).join(" ") || `予約ID ${r.id}`;
+    if (!confirm(`「${label}」(${r.startTime}〜${r.endTime}) の予約をキャンセルしますか？`)) return;
     try {
       await fetch("/api/admin/reservations/" + r.id, {
         method: "PUT",
@@ -223,7 +228,8 @@ export default function ReservationsPage() {
   };
 
   const handleDelete = async (r: Reservation) => {
-    if (!confirm("この予約を削除しますか？")) return;
+    const label = [r.companyName, r.driverName].filter(Boolean).join(" ") || `予約ID ${r.id}`;
+    if (!confirm(`「${label}」(${r.startTime}〜${r.endTime}) の予約を削除しますか？\nこの操作は取り消せません`)) return;
     try {
       await fetch("/api/admin/reservations/" + r.id, { method: "DELETE" });
       showToast("削除しました");
@@ -240,7 +246,7 @@ export default function ReservationsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      showToast("ステータス���変更しました");
+      showToast("ステータスを変更しました");
       fetchData();
     } catch {
       showToast("エラーが発生しました");
@@ -312,6 +318,25 @@ export default function ReservationsPage() {
         ))}
       </div>
 
+      {/* Error banner */}
+      {fetchError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">&#x26A0;&#xFE0F;</span>
+            <div>
+              <div className="font-bold text-red-700">データの取得に失敗しました</div>
+              <div className="text-sm text-red-600">時間を置いて再読み込みしてください</div>
+            </div>
+          </div>
+          <button
+            onClick={fetchData}
+            className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+          >
+            再読み込み
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-2xl shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -323,6 +348,12 @@ export default function ReservationsPage() {
           <div className="py-16 text-center text-gray-400">
             <div className="text-4xl mb-3">{"\u{1F4C5}"}</div>
             <div className="text-lg font-semibold">予約がありません</div>
+            <button
+              onClick={openAdd}
+              className="mt-4 px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors"
+            >
+              + 新規予約を追加
+            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">

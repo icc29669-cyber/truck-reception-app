@@ -31,14 +31,18 @@ function fmtTime(iso: string | null) {
 export default function AdminDashboard() {
   const [data, setData] = useState<Dashboard | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const res = await fetch("/api/admin/dashboard");
-      if (!res.ok) return;
+      if (!res.ok) { setFetchError(true); return; }
       setData(await res.json());
+    } catch {
+      setFetchError(true);
     } finally { setLoading(false); }
   }, []);
 
@@ -49,6 +53,21 @@ export default function AdminDashboard() {
   }, []);
 
   if (!data) {
+    if (fetchError) {
+      return (
+        <div className="max-w-xl mx-auto mt-20 bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="text-3xl mb-2">&#x26A0;&#xFE0F;</div>
+          <div className="font-bold text-red-700 mb-1">データの取得に失敗しました</div>
+          <div className="text-sm text-red-600 mb-4">再読み込みしてください</div>
+          <button
+            onClick={() => setRefreshKey((k) => k + 1)}
+            className="px-5 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+          >
+            再読み込み
+          </button>
+        </div>
+      );
+    }
     return <div className="text-center text-gray-400 py-20">{loading ? "読み込み中..." : "データなし"}</div>;
   }
   const { center, kpi, nextReservations, recentReceptions } = data;

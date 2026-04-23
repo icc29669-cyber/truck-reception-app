@@ -39,6 +39,7 @@ const emptyForm: FormData = {
 export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -52,14 +53,17 @@ export default function VehiclesPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       const res = await fetch("/api/admin/vehicles?" + params);
+      if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
       setVehicles(Array.isArray(data) ? data : []);
     } catch {
       setVehicles([]);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -167,6 +171,7 @@ export default function VehiclesPage() {
             placeholder="車両番号・地域・電話番号で検索..."
             className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
           />
+          <span className="text-xs text-gray-500 mt-1">{search ? `${vehicles.length}件ヒット` : `${vehicles.length}件`}</span>
         </div>
         <button
           onClick={openAdd}
@@ -175,6 +180,25 @@ export default function VehiclesPage() {
           + 新規追加
         </button>
       </div>
+
+      {/* Error banner */}
+      {fetchError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">&#x26A0;&#xFE0F;</span>
+            <div>
+              <div className="font-bold text-red-700">データの取得に失敗しました</div>
+              <div className="text-sm text-red-600">時間を置いて再読み込みしてください</div>
+            </div>
+          </div>
+          <button
+            onClick={fetchData}
+            className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700"
+          >
+            再読み込み
+          </button>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-2xl shadow overflow-hidden">
@@ -186,7 +210,15 @@ export default function VehiclesPage() {
         {vehicles.length === 0 && !loading ? (
           <div className="py-16 text-center text-gray-400">
             <div className="text-4xl mb-3">{"\u{1F69B}"}</div>
-            <div className="text-lg font-semibold">データがありません</div>
+            <div className="text-lg font-semibold">{search ? "該当する車両はありません" : "データがありません"}</div>
+            {!search && (
+              <button
+                onClick={openAdd}
+                className="mt-4 px-5 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors"
+              >
+                + 新規車両を追加
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
