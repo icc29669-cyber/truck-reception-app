@@ -204,31 +204,31 @@ const REGION_MAP: Record<string, string[]> = {
   ら: [],り: [],る: [],れ: [],ろ: [], わ: ["和歌山"], を: [], ん: [],
 };
 const KANA_ROWS: (string | null)[][] = [
-  ["わ","ら","や","ま","は","な","た","さ","か","あ"],
-  ["を","り",null,"み","ひ","に","ち","し","き","い"],
-  ["ん","る","ゆ","む","ふ","ぬ","つ","す","く","う"],
-  [null,"れ",null,"め","へ","ね","て","せ","け","え"],
-  [null,"ろ","よ","も","ほ","の","と","そ","こ","お"],
+  ["あ","か","さ","た","な","は","ま","や","ら","わ"],
+  ["い","き","し","ち","に","ひ","み", null,"り","を"],
+  ["う","く","す","つ","ぬ","ふ","む","ゆ","る","ん"],
+  ["え","け","せ","て","ね","へ","め", null,"れ", null],
+  ["お","こ","そ","と","の","ほ","も","よ","ろ", null],
 ];
 const HIRA_UNUSABLE = new Set(["し","へ","ん","お"]);
 const HIRA_JIGYOYO = new Set(["あ","い","う","え","か","き","く","け","こ","を"]);
 const HIRA_RENTAL  = new Set(["わ","れ"]);
 const ALPHA_KEYS   = ["A","C","F","H","K","L","M","P","X","Y"];
 
-// ひらがな列カラー（KatakanaKeyboard と同じ配色）
+// ひらがな列カラー（左=あ行 → 右=わ行）
 const HIRA_COL_COLORS = [
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // わ行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // ら行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // や行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // ま行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // は行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // な行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // た行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // さ行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // か行
   { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // あ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // か行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // さ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // た行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // な行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // は行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // ま行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // や行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // ら行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" }, // わ行
 ];
-const HIRA_COL_LABELS = ["わ","ら","や","ま","は","な","た","さ","か","あ"];
+const HIRA_COL_LABELS = ["あ","か","さ","た","な","は","ま","や","ら","わ"];
 const HIRA_HINTS = [
   { place: "所沢", hira: "と" },
   { place: "横浜", hira: "よ" },
