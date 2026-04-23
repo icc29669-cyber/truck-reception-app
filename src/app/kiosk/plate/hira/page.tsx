@@ -3,13 +3,13 @@ import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import PlateDisplay from "@/components/PlateDisplay";
 
-// カーナビ方式: 右から左（あ行→右端、わ行→左端）
+// 左から右（あ行→左端、わ行→右端）
 const HIRA_ROWS: (string | null)[][] = [
-  ["わ", "ら", "や", "ま", "は", "な", "た", "さ", "か", "あ"],
-  ["を", "り",  null, "み", "ひ", "に", "ち", "し", "き", "い"],
-  ["ん", "る", "ゆ", "む", "ふ", "ぬ", "つ", "す", "く", "う"],
-  [null, "れ",  null, "め", "へ", "ね", "て", "せ", "け", "え"],
-  [null, "ろ", "よ", "も", "ほ", "の", "と", "そ", "こ", "お"],
+  ["あ", "か", "さ", "た", "な", "は", "ま", "や", "ら", "わ"],
+  ["い", "き", "し", "ち", "に", "ひ", "み",  null, "り", "を"],
+  ["う", "く", "す", "つ", "ぬ", "ふ", "む", "ゆ", "る", "ん"],
+  ["え", "け", "せ", "て", "ね", "へ", "め",  null, "れ",  null],
+  ["お", "こ", "そ", "と", "の", "ほ", "も", "よ", "ろ",  null],
 ];
 
 // ナンバープレートで使用不可の文字
@@ -18,21 +18,21 @@ const UNUSABLE = new Set(["し", "へ", "ん", "お"]);
 // 事業用（緑ナンバー）英字
 const ALPHA_KEYS = ["A", "C", "F", "H", "K", "L", "M", "P", "X", "Y"];
 
-// カタカナキーボードと同じ列カラー（左=わ行 → 右=あ行）
+// 左=あ行 → 右=わ行
 const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
-  { bg: "#F8FAFC", border: "#CBD5E1", shadow: "#94A3B8" }, // わ行
-  { bg: "#EEF2FF", border: "#C7D2FE", shadow: "#A5B4FC" }, // ら行
-  { bg: "#F7FEE7", border: "#D9F99D", shadow: "#BEF264" }, // や行
-  { bg: "#F0FDFA", border: "#C2F5E9", shadow: "#99F6E4" }, // ま行
-  { bg: "#FAF5FF", border: "#E4D5F7", shadow: "#C4B5FD" }, // は行
-  { bg: "#FDF2F8", border: "#F5D0E0", shadow: "#F0ABCF" }, // な行
-  { bg: "#FFF7ED", border: "#FDE0C2", shadow: "#FDBA74" }, // た行
-  { bg: "#FFFBEB", border: "#FDE68A", shadow: "#FCD34D" }, // さ行
-  { bg: "#F0FDF4", border: "#C6F6D5", shadow: "#A7F3D0" }, // か行
   { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" }, // あ行
+  { bg: "#F0FDF4", border: "#C6F6D5", shadow: "#A7F3D0" }, // か行
+  { bg: "#FFFBEB", border: "#FDE68A", shadow: "#FCD34D" }, // さ行
+  { bg: "#FFF7ED", border: "#FDE0C2", shadow: "#FDBA74" }, // た行
+  { bg: "#FDF2F8", border: "#F5D0E0", shadow: "#F0ABCF" }, // な行
+  { bg: "#FAF5FF", border: "#E4D5F7", shadow: "#C4B5FD" }, // は行
+  { bg: "#F0FDFA", border: "#C2F5E9", shadow: "#99F6E4" }, // ま行
+  { bg: "#F7FEE7", border: "#D9F99D", shadow: "#BEF264" }, // や行
+  { bg: "#EEF2FF", border: "#C7D2FE", shadow: "#A5B4FC" }, // ら行
+  { bg: "#F8FAFC", border: "#CBD5E1", shadow: "#94A3B8" }, // わ行
 ];
 
-const COL_LABELS = ["わ", "ら", "や", "ま", "は", "な", "た", "さ", "か", "あ"];
+const COL_LABELS = ["あ", "か", "さ", "た", "な", "は", "ま", "や", "ら", "わ"];
 
 // ヒント用の地名例
 const HINTS = [
