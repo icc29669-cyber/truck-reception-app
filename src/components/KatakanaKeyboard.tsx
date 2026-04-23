@@ -8,13 +8,13 @@ interface Props {
   label?: string;
 }
 
-// ━━ カタカナ行（右→左：ア行右端、ワ行左端）━━
+// ━━ カタカナ行（左→右：ア行左端、ワ行右端）━━
 const KATA_ROWS: (string | null)[][] = [
-  ["ワ","ラ","ヤ","マ","ハ","ナ","タ","サ","カ","ア"],
-  ["ヲ","リ", null,"ミ","ヒ","ニ","チ","シ","キ","イ"],
-  ["ン","ル","ユ","ム","フ","ヌ","ツ","ス","ク","ウ"],
-  [null,"レ", null,"メ","ヘ","ネ","テ","セ","ケ","エ"],
-  [null,"ロ","ヨ","モ","ホ","ノ","ト","ソ","コ","オ"],
+  ["ア","カ","サ","タ","ナ","ハ","マ","ヤ","ラ","ワ"],
+  ["イ","キ","シ","チ","ニ","ヒ","ミ", null,"リ","ヲ"],
+  ["ウ","ク","ス","ツ","ヌ","フ","ム","ユ","ル","ン"],
+  ["エ","ケ","セ","テ","ネ","ヘ","メ", null,"レ", null],
+  ["オ","コ","ソ","ト","ノ","ホ","モ","ヨ","ロ", null],
 ];
 
 // ━━ 英数（メイン7列×5行 / 数字3列×5行）━━
@@ -73,19 +73,19 @@ const TOTAL_H = 5*H + 4*G; // 682px（5行分）
 // ━━ 行カラー（列インデックス: 0=ワ行 … 9=ア行）━━
 // 淡いパステルで品よく色分け
 const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ワ行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ラ行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ヤ行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // マ行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ハ行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ナ行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // タ行
-  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // サ行
-  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // カ行
   { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ア行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // カ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // サ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // タ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ナ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ハ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // マ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ヤ行
+  { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ラ行
+  { bg: "#FFFFFF", border: "#D1D5DB", shadow: "#9E9E9E" },  // ワ行
 ];
 // 行ラベル（上段ボタンに小さく表示）
-const COL_LABELS = ["ワ", "ラ", "ヤ", "マ", "ハ", "ナ", "タ", "サ", "カ", "ア"];
+const COL_LABELS = ["ア", "カ", "サ", "タ", "ナ", "ハ", "マ", "ヤ", "ラ", "ワ"];
 
 export default function KatakanaKeyboard({ value, onChange, onComplete }: Props) {
   const [mode, setMode] = useState<"kata"|"alpha">("kata");
