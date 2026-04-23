@@ -553,20 +553,27 @@ export default function LoginPage() {
             </div>
           )}
 
-          {phone.length === 0 && (
-            <div className="grid grid-cols-3 gap-2" style={{ marginBottom: 8 }}>
-              {["090","080","070"].map((p) => (
-                <button key={p} type="button" onClick={() => setPhone(p)}
-                  style={{
-                    height: 60, background: "#fff", borderRadius: 12,
-                    border: "1.5px solid #c9dbe8",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                  <span style={{ fontSize: 26, fontWeight: 900, color: "#1a3a6b", letterSpacing: "0.04em" }}>{p}</span>
-                </button>
-              ))}
-            </div>
-          )}
+          {/* 090/080/070 クイック選択。
+              phone に何か入力されたら非表示にする。ただし高さを維持しないと
+              下のテンキー（0-9）が上方向にジャンプしてタップミスを誘発するため、
+              visibility だけ切り替えてレイアウトは保持する。 */}
+          <div
+            className="grid grid-cols-3 gap-2"
+            style={{ marginBottom: 8, visibility: phone.length === 0 ? "visible" : "hidden" }}
+            aria-hidden={phone.length !== 0}
+          >
+            {["090","080","070"].map((p) => (
+              <button key={p} type="button" onClick={() => setPhone(p)}
+                tabIndex={phone.length === 0 ? 0 : -1}
+                style={{
+                  height: 60, background: "#fff", borderRadius: 12,
+                  border: "1.5px solid #c9dbe8",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                <span style={{ fontSize: 26, fontWeight: 900, color: "#1a3a6b", letterSpacing: "0.04em" }}>{p}</span>
+              </button>
+            ))}
+          </div>
 
           <PhonePad onPress={pressNum} onDelete={del} />
         </div>
