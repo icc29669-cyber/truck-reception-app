@@ -521,11 +521,12 @@ export default function LoginPage() {
           <div style={{
             background: "#fff", border: "1.5px solid #d6d4cd", borderRadius: 12,
             padding: "14px 16px", textAlign: "center", overflow: "hidden",
-            display: "flex", alignItems: "center", justifyContent: "center", minHeight: 64,
+            display: "flex", alignItems: "center", justifyContent: "center", height: 64,
           }}>
+            {/* フォントサイズを placeholder/実値で統一（以前は 24 ↔ 30 で微妙にガタついた） */}
             {phone.length > 0
-              ? <span style={{ fontSize: 30, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em" }}>{formatPhone(phone)}</span>
-              : <span style={{ fontSize: 24, color: "#bdb9b0" }}>090-0000-0000</span>}
+              ? <span style={{ fontSize: 28, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em", lineHeight: 1 }}>{formatPhone(phone)}</span>
+              : <span style={{ fontSize: 28, fontWeight: 700, color: "#bdb9b0", letterSpacing: "0.04em", lineHeight: 1 }}>090-0000-0000</span>}
           </div>
 
           {/* 進捗バー */}
@@ -546,12 +547,19 @@ export default function LoginPage() {
             );
           })()}
 
-          {validatePhone(phone) && (
-            <div className="flex items-center justify-center gap-2" style={{ color: "#BE123C", fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
-              <AlertIcon size={16} strokeWidth={2} />
-              <span>{validatePhone(phone)}</span>
-            </div>
-          )}
+          {/* バリデーションエラーは出現/消失で下のテンキーがガタつかないよう
+              常に固定高さの枠を確保する */}
+          <div
+            className="flex items-center justify-center gap-2"
+            style={{
+              color: "#BE123C", fontSize: 14, fontWeight: 700,
+              marginBottom: 8, minHeight: 22,
+              visibility: validatePhone(phone) ? "visible" : "hidden",
+            }}
+            aria-live="polite"
+          >
+            {validatePhone(phone) && (<><AlertIcon size={16} strokeWidth={2} /><span>{validatePhone(phone)}</span></>)}
+          </div>
 
           {/* 090/080/070 クイック選択。
               phone に何か入力されたら非表示にする。ただし高さを維持しないと
