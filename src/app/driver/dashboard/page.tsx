@@ -438,6 +438,8 @@ export default function DashboardPage() {
 
       {toast && (
         <div
+          role="status"
+          aria-live="polite"
           className="fixed top-4 left-1/2 z-50 flex items-center gap-2"
           style={{
             transform: "translateX(-50%)",
@@ -481,8 +483,9 @@ export default function DashboardPage() {
               <CenterIcon size={22} strokeWidth={1.75} />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", letterSpacing: "0.22em", fontWeight: 700 }}>
-                CENTER — タップで変更
+              <div style={{ color: "rgba(255,255,255,0.72)", fontWeight: 700, display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span style={{ fontSize: 11, letterSpacing: "0.22em" }}>CENTER</span>
+                <span style={{ fontSize: 13, letterSpacing: "0.04em" }}>— タップで変更</span>
               </div>
               <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: "0.04em", marginTop: 2 }}>
                 {selectedCenter?.name}
@@ -655,15 +658,21 @@ export default function DashboardPage() {
                   : { bg: "#e7f4ed", border: "#a7d6bb", dot: "#047857", text: "#047857", title: "#26251e" };
 
                 return (
-                  <div
+                  <button
                     key={slot}
-                    onClick={() => !isDisabled && handleSlotClick(slot)}
+                    type="button"
+                    onClick={() => handleSlotClick(slot)}
+                    disabled={isDisabled || isFull}
                     style={{
-                      background: isDisabled ? "#eceae4" : palette.bg,
-                      border: `1px solid ${isDisabled ? "#d6d4cd" : palette.border}`,
+                      width: "100%",
+                      textAlign: "left",
+                      font: "inherit",
+                      color: "inherit",
+                      background: (isDisabled || isFull) ? "#d6d4cd" : palette.bg,
+                      border: `1px solid ${(isDisabled || isFull) ? "#9a978c" : palette.border}`,
                       borderRadius: 12, padding: "16px 18px",
-                      cursor: isDisabled ? "not-allowed" : "pointer",
-                      opacity: isDisabled ? 0.55 : 1,
+                      cursor: (isDisabled || isFull) ? "not-allowed" : "pointer",
+                      opacity: (isDisabled || isFull) ? 0.75 : 1,
                     }}
                   >
                     <div className="flex items-center justify-between">
@@ -696,7 +705,7 @@ export default function DashboardPage() {
                       </div>
                     ))}
                     {/* 他ドライバーの会社名・車番はプライバシー上表示しない。空き枠数のみで十分。 */}
-                  </div>
+                  </button>
                 );
               })}
             </div>

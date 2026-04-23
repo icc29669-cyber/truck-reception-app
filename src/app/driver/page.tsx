@@ -270,7 +270,7 @@ export default function LoginPage() {
         }
       }
     } catch {
-      setPhoneError("通信エラーが発生しました。ネットワーク接続を確認してください");
+      setPhoneError("通信エラー: 電波の弱い場所では接続できないことがあります。場所を変えてもう一度お試しください");
     } finally {
       setLoading(false);
     }
@@ -285,7 +285,7 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
       });
-      if (!optRes.ok) { setBiometricStatus("エラーが発生しました"); return; }
+      if (!optRes.ok) { setBiometricStatus("認証の準備に失敗しました。しばらく経ってから再度お試しください"); return; }
       const options = await optRes.json();
 
       setBiometricStatus("デバイスの認証を待っています...");
@@ -324,7 +324,7 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
       });
-      if (!optRes.ok) { setBiometricStatus("エラーが発生しました"); return; }
+      if (!optRes.ok) { setBiometricStatus("認証の準備に失敗しました。しばらく経ってから再度お試しください"); return; }
       const options = await optRes.json();
 
       setBiometricStatus("デバイスの認証を待っています...");
@@ -373,7 +373,7 @@ export default function LoginPage() {
       }
       router.push("/driver/dashboard");
     } catch {
-      setPinError("通信エラーが発生しました。ネットワーク接続を確認してください");
+      setPinError("通信エラー: 電波の弱い場所では接続できないことがあります。場所を変えてもう一度お試しください");
       setPin(""); setPinConfirm(""); setSetupPhase("enter");
       setLoading(false);
     }
@@ -399,7 +399,7 @@ export default function LoginPage() {
       }
       router.push("/driver/dashboard");
     } catch {
-      setPinError("通信エラーが発生しました。ネットワーク接続を確認してください");
+      setPinError("通信エラー: 電波の弱い場所では接続できないことがあります。場所を変えてもう一度お試しください");
       setPin("");
       setLoading(false);
     }
@@ -604,9 +604,10 @@ export default function LoginPage() {
             fontSize: 22, letterSpacing: "0.08em",
             background: loading ? "#0f172a"
               : isSubmittable(phone) ? "#0D9488"
-              : "rgba(13,148,136,0.35)",
-            color: "#fff", border: "none",
-            boxShadow: "0 8px 20px rgba(13,148,136,0.28)",
+              : "#d6d4cd",
+            color: (!loading && !isSubmittable(phone)) ? "#9a978c" : "#fff",
+            border: "none",
+            boxShadow: isSubmittable(phone) || loading ? "0 8px 20px rgba(13,148,136,0.28)" : "none",
             cursor: (loading || !isSubmittable(phone)) ? "not-allowed" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
           }}>

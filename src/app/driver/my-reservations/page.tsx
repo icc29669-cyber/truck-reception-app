@@ -81,7 +81,8 @@ export default function MyReservationsPage() {
       if (res.ok) {
         fetchReservations();
       } else {
-        setCancelError("取り消しに失敗しました");
+        const data = await res.json().catch(() => ({}));
+        setCancelError(data.error || "取り消しに失敗しました。しばらく経ってから再度お試しください");
       }
     } catch {
       setCancelError("通信エラーが発生しました");
@@ -112,6 +113,7 @@ export default function MyReservationsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f2f1ed", paddingBottom: 100 }}>
+      <style>{`@keyframes mr-spin { to { transform: rotate(360deg) } }`}</style>
       <Header driverName={user.name} isAdmin={user.isAdmin} />
       <AppInstallBar />
 
@@ -200,7 +202,6 @@ export default function MyReservationsPage() {
 
         {loadingReservations && (
           <div className="flex flex-col items-center justify-center" style={{ padding: "60px 20px", gap: 16 }}>
-            <style>{`@keyframes mr-spin { to { transform: rotate(360deg) } }`}</style>
             <div style={{
               width: 64, height: 64, borderRadius: "50%",
               background: "#eef1f7", color: "#1a3a6b",
@@ -331,9 +332,24 @@ export default function MyReservationsPage() {
                       color: "#BE123C", fontSize: 16, fontWeight: 800,
                       border: "none", cursor: cancelling === r.id ? "not-allowed" : "pointer",
                       opacity: cancelling === r.id ? 0.5 : 1,
+                      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                     }}
                   >
-                    {cancelling === r.id ? "取り消し中..." : "この予約を取り消す"}
+                    {cancelling === r.id ? (
+                      <>
+                        <span
+                          aria-hidden
+                          style={{
+                            width: 16, height: 16, display: "inline-block",
+                            border: "2px solid rgba(190,18,60,0.25)",
+                            borderTopColor: "#BE123C",
+                            borderRadius: "50%",
+                            animation: "mr-spin 0.8s linear infinite",
+                          }}
+                        />
+                        取り消し中...
+                      </>
+                    ) : "この予約を取り消す"}
                   </button>
                 </div>
               );
@@ -347,7 +363,8 @@ export default function MyReservationsPage() {
               onClick={() => setShowPast((v) => !v)}
               style={{
                 width: "100%", display: "flex", alignItems: "center",
-                justifyContent: "space-between", padding: "10px 2px",
+                justifyContent: "space-between", padding: "14px 2px",
+                minHeight: 44,
                 fontSize: 14, fontWeight: 800, color: "#5a5852",
                 background: "transparent", border: "none", cursor: "pointer",
               }}
@@ -360,7 +377,7 @@ export default function MyReservationsPage() {
             {showPast && past.map((r) => (
               <div key={r.id} style={{
                 background: "#faf9f5", borderRadius: 12, padding: "16px 18px",
-                border: "1px solid #E7E5DF", opacity: 0.6,
+                border: "1px solid #E7E5DF", color: "#5a5852",
               }}>
                 {r.center && (
                   <p style={{

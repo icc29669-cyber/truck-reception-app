@@ -31,6 +31,9 @@ function ReceiptContent() {
   const searchParams = useSearchParams();
   const [data, setData] = useState<ReceiptData | null>(null);
   const [error, setError] = useState("");
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+  const [countdown, setCountdown] = useState(3);
+  const [countdownActive, setCountdownActive] = useState(false);
   const qrRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -45,14 +48,44 @@ function ReceiptContent() {
     const authKey = urlKey || storedKey;
     const url = `/api/reception/receipt/${id}`;
     const headers: HeadersInit = authKey ? { "x-kiosk-secret": authKey } : {};
-    fetch(url, { headers })
-      .then((r) => {
-        if (!r.ok) throw new Error("受付情報が見つかりません");
-        return r.json();
-      })
-      .then(setData)
-      .catch((e) => setError(e.message));
-  }, [id, searchParams]);
+
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const doFetch = (attempt: number) => {
+      fetch(url, { headers })
+        .then((r) => {
+          if (!r.ok) throw new Error("受付情報が見つかりません");
+          return r.json();
+        })
+        .then((json) => {
+          if (cancelled) return;
+          setError("");
+          setData(json);
+        })
+        .catch((e: Error) => {
+          if (cancelled) return;
+          if (attempt === 0) {
+            // 2秒後に自動で1回リトライ
+            retryTimer = setTimeout(() => {
+              if (!cancelled) doFetch(1);
+            }, 2000);
+          } else {
+            setError(e.message);
+          }
+        });
+    };
+
+    // 再取得時にエラー表示をクリア
+    setError("");
+    setData(null);
+    doFetch(0);
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
+  }, [id, searchParams, fetchTrigger]);
 
   useEffect(() => {
     if (!data || !qrRef.current) return;
@@ -85,18 +118,49 @@ function ReceiptContent() {
       color: { dark: "#000", light: "#fff" },
     })
       .then(() => {
-        // 自動印刷
-        setTimeout(() => window.print(), 300);
+        // 3秒カウントダウン後に自動印刷
+        setCountdown(3);
+        setCountdownActive(true);
       })
       .catch((e) => {
         console.error("QR generation failed:", e);
       });
   }, [data]);
 
+  // カウントダウン: 1秒ごとに減算し、0 で自動印刷
+  useEffect(() => {
+    if (!countdownActive) return;
+    if (countdown <= 0) {
+      setCountdownActive(false);
+      window.print();
+      return;
+    }
+    const t = setTimeout(() => setCountdown((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown, countdownActive]);
+
   if (error) {
     return (
       <div style={{ padding: 20, textAlign: "center" }}>
         <p style={{ color: "red" }}>{error}</p>
+        <button
+          onClick={() => setFetchTrigger((n) => n + 1)}
+          style={{
+            marginTop: 16,
+            padding: "14px 32px",
+            minWidth: 48,
+            minHeight: 48,
+            fontSize: "16px",
+            fontWeight: "bold",
+            background: "#1e3a5f",
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            cursor: "pointer",
+          }}
+        >
+          もう一度試す
+        </button>
       </div>
     );
   }
@@ -122,10 +186,13 @@ function ReceiptContent() {
           .no-print { display: none !important; }
         }
         body { margin: 0; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif; }
+        .receipt-container { width: 100%; max-width: 400px; }
+        @media print {
+          .receipt-container { width: 76mm; max-width: none; }
+        }
       `}</style>
 
-      <div style={{
-        width: "76mm",
+      <div className="receipt-container" style={{
         margin: "0 auto",
         padding: "3mm 2mm",
         fontSize: "12px",
@@ -179,23 +246,52 @@ function ReceiptContent() {
           この受付票は荷降ろし完了まで<br />お手元に保管してください
         </div>
 
-        {/* 印刷ボタン（画面表示時のみ） */}
+        {/* カウントダウン & 印刷ボタン（画面表示時のみ） */}
         <div className="no-print" style={{ textAlign: "center", marginTop: "6mm" }}>
-          <button
-            onClick={() => window.print()}
-            style={{
-              padding: "10px 32px",
-              fontSize: "16px",
-              fontWeight: "bold",
-              background: "#1e3a5f",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
-          >
-            印刷する
-          </button>
+          {countdownActive && (
+            <div style={{ fontSize: "14px", marginBottom: "12px", color: "#1e3a5f" }}>
+              ({countdown}) 秒後に印刷します...
+            </div>
+          )}
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button
+              onClick={() => {
+                setCountdownActive(false);
+                window.print();
+              }}
+              style={{
+                padding: "14px 32px",
+                minWidth: 48,
+                minHeight: 48,
+                fontSize: "16px",
+                fontWeight: "bold",
+                background: "#1e3a5f",
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              今すぐ印刷
+            </button>
+            <button
+              onClick={() => setCountdownActive(false)}
+              style={{
+                padding: "14px 32px",
+                minWidth: 48,
+                minHeight: 48,
+                fontSize: "16px",
+                fontWeight: "bold",
+                background: "#fff",
+                color: "#1e3a5f",
+                border: "2px solid #1e3a5f",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              印刷しない
+            </button>
+          </div>
         </div>
       </div>
     </>

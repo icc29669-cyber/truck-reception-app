@@ -8,6 +8,118 @@ import { UserIcon, CheckIcon, AlertIcon, PhoneIcon, PencilIcon } from "@/compone
 import PwaInstallPanel from "@/components/PwaInstallPanel";
 import { normalizePhone } from "@/lib/phone";
 
+// ── 電話番号フォーマット（driver/page.tsx と同一仕様の複製） ──
+// 共通化は phoneFormat.ts があるが validatePhone/isSubmittable が未定義のため、
+// ログイン画面を壊さないようここに複製。今後ログイン画面もここを使う形に寄せる想定。
+const MOBILE_PREFIXES = ["070", "080", "090"];
+
+const JP_AREA: Record<string, number> = {
+  "0120": 2, "0570": 2, "0800": 2, "0990": 2,
+  "0494": 2, "0493": 2, "0492": 2, "0491": 2, "0490": 2,
+  "0480": 2, "0479": 2, "0478": 2, "0477": 2, "0476": 2,
+  "0475": 2, "0474": 2, "0472": 2, "0471": 2, "0470": 2,
+  "0467": 2, "0466": 2, "0465": 2, "0463": 2, "0460": 2,
+  "0439": 2, "0438": 2, "0436": 2, "0428": 2, "0426": 2,
+  "0267": 2, "0266": 2, "0265": 2, "0264": 2, "0263": 2,
+  "0261": 2, "0260": 2, "0259": 2, "0258": 2, "0257": 2,
+  "0256": 2, "0255": 2, "0254": 2, "0250": 2,
+  "0246": 2, "0244": 2, "0243": 2, "0242": 2, "0241": 2,
+  "0240": 2, "0237": 2, "0235": 2, "0234": 2, "0233": 2,
+  "0229": 2, "0228": 2, "0227": 2, "0226": 2, "0225": 2,
+  "0224": 2, "0223": 2, "0220": 2,
+  "0197": 2, "0195": 2, "0194": 2, "0193": 2, "0192": 2,
+  "0191": 2, "0187": 2, "0186": 2, "0185": 2, "0184": 2,
+  "0183": 2, "0182": 2, "0180": 2, "0179": 2, "0178": 2,
+  "0176": 2, "0175": 2, "0174": 2, "0173": 2, "0172": 2,
+  "0170": 2, "0167": 2, "0166": 2, "0165": 2, "0164": 2,
+  "0163": 2, "0162": 2, "0158": 2, "0157": 2, "0156": 2,
+  "0155": 2, "0154": 2, "0153": 2, "0152": 2, "0146": 2,
+  "0145": 2, "0144": 2, "0143": 2, "0142": 2, "0135": 2,
+  "0134": 2, "0133": 2, "0132": 2, "0125": 2, "0124": 2,
+  "0123": 2,
+  "011": 3, "012": 3, "013": 3, "014": 3, "015": 3, "016": 3, "017": 3, "018": 3, "019": 3,
+  "022": 3, "023": 3, "024": 3, "025": 3, "026": 3, "027": 3, "028": 3, "029": 3,
+  "042": 3, "043": 3, "044": 3, "045": 3, "046": 3, "047": 3, "048": 3, "049": 3,
+  "052": 3, "053": 3, "054": 3, "055": 3, "056": 3, "057": 3, "058": 3, "059": 3,
+  "072": 3, "073": 3, "074": 3, "075": 3, "076": 3, "077": 3, "078": 3, "079": 3,
+  "082": 3, "083": 3, "084": 3, "085": 3, "086": 3, "087": 3, "088": 3, "089": 3,
+  "092": 3, "093": 3, "094": 3, "095": 3, "096": 3, "097": 3, "098": 3, "099": 3,
+  "03": 4, "06": 4, "04": 4,
+};
+
+function isMobilePrefix(digits: string) {
+  return MOBILE_PREFIXES.some((p) => digits.startsWith(p));
+}
+
+function formatPhone(digits: string): string {
+  if (digits.length === 0) return "";
+  if (isMobilePrefix(digits)) {
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7, 11)}`;
+  }
+  for (const areaLen of [4, 3, 2]) {
+    const prefix = digits.slice(0, areaLen);
+    const midLen = JP_AREA[prefix];
+    if (midLen !== undefined) {
+      const midEnd = areaLen + midLen;
+      if (digits.length <= areaLen) return digits;
+      if (digits.length <= midEnd) return `${digits.slice(0, areaLen)}-${digits.slice(areaLen)}`;
+      return `${digits.slice(0, areaLen)}-${digits.slice(areaLen, midEnd)}-${digits.slice(midEnd, 10)}`;
+    }
+  }
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+}
+function validatePhone(digits: string): string | null {
+  if (digits.length === 0) return null;
+  if (digits[0] !== "0") return "電話番号は 0 から始まる番号を入力してください";
+  if (digits.startsWith("00")) return "入力された番号は使用できません";
+  if (digits.length < 10) return null;
+  const mobile = isMobilePrefix(digits);
+  if (mobile && digits.length < 11) return null;
+  if (mobile && digits.length === 11) return null;
+  if (!mobile && digits.length === 10) return null;
+  return "入力された番号は使用できません";
+}
+function isSubmittable(digits: string): boolean {
+  if (validatePhone(digits) !== null) return false;
+  if (isMobilePrefix(digits)) return digits.length === 11;
+  return digits.length === 10;
+}
+
+// ── 電話テンキー ──
+function PhonePad({ onPress, onDelete }: { onPress: (d: string) => void; onDelete: () => void }) {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {["1","2","3","4","5","6","7","8","9","","0","del"].map((k, i) =>
+        k === "" ? <div key={`empty-${i}`} /> :
+        k === "del" ? (
+          <button key="del" type="button" onClick={onDelete}
+            style={{
+              height: 60, background: "#fff", color: "#BE123C",
+              borderRadius: 12, fontSize: 20, fontWeight: 800,
+              border: "1px solid #E7E5DF",
+            }}>
+            ← 削除
+          </button>
+        ) : (
+          <button key={k} type="button" onClick={() => onPress(k)}
+            style={{
+              height: 60, background: "#fff", color: "#26251e",
+              borderRadius: 12, fontSize: 30, fontWeight: 800,
+              border: "1px solid #E7E5DF",
+              boxShadow: "0 1px 0 rgba(26,37,30,0.04)",
+            }}>
+            {k}
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; isAdmin: boolean; companyName: string; defaultVehicle: string; defaultMaxLoad: string; phone: string; hasPin: boolean } | null>(null);
@@ -52,12 +164,23 @@ export default function ProfilePage() {
     setPhonePin(""); // モーダル閉時に PIN をメモリから消す
   }
 
+  // テンキーからの数字入力（桁上限はモバイルプレフィックス判定で11 or 10）
+  function pressNewPhoneNum(d: string) {
+    setNewPhone((prev) => {
+      const max = isMobilePrefix(prev) || prev.length < 3 ? 11 : 10;
+      return prev.length < max ? prev + d : prev;
+    });
+  }
+  function delNewPhone() {
+    setNewPhone((prev) => prev.slice(0, -1));
+  }
+
   async function handlePhoneSubmit() {
     if (!/^\d{4}$/.test(phonePin)) {
       setPhoneError("PINを4桁の数字で入力してください"); return;
     }
     const normalized = normalizePhone(newPhone);
-    if (!/^0\d{9,10}$/.test(normalized)) {
+    if (!isSubmittable(normalized)) {
       setPhoneError("0から始まる10桁または11桁の電話番号を入力してください"); return;
     }
     if (user && normalized === user.phone) {
@@ -180,7 +303,7 @@ export default function ProfilePage() {
                   <div style={{ height: 1, background: "#E7E5DF" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 12, color: "#9a978c", letterSpacing: "0.14em", fontWeight: 700 }}>変更後</span>
-                    <span style={{ fontSize: 20, fontWeight: 900, color: "#0D9488" }}>{normalizePhone(newPhone)}</span>
+                    <span style={{ fontSize: 20, fontWeight: 900, color: "#0D9488" }}>{formatPhone(newPhone)}</span>
                   </div>
                 </div>
                 <div style={{
@@ -226,19 +349,69 @@ export default function ProfilePage() {
                   <label style={{ display: "block", fontSize: 13, fontWeight: 800, color: "#26251e", marginBottom: 6 }}>
                     新しい電話番号
                   </label>
-                  <input
-                    type="tel"
-                    inputMode="numeric"
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value.replace(/[^0-9\-\s]/g, ""))}
-                    placeholder="09012345678"
+
+                  {/* 表示 */}
+                  <div style={{
+                    background: "#fff", border: "1.5px solid #d6d4cd", borderRadius: 12,
+                    padding: "14px 16px", textAlign: "center", overflow: "hidden",
+                    display: "flex", alignItems: "center", justifyContent: "center", height: 64,
+                  }}>
+                    {newPhone.length > 0
+                      ? <span style={{ fontSize: 28, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em", lineHeight: 1 }}>{formatPhone(newPhone)}</span>
+                      : <span style={{ fontSize: 28, fontWeight: 700, color: "#bdb9b0", letterSpacing: "0.04em", lineHeight: 1 }}>090-0000-0000</span>}
+                  </div>
+
+                  {/* 進捗バー（11桁分固定で出す。login 画面は動的だったが
+                      モーダル内は横幅狭いので 11 固定の方が安定） */}
+                  <div className="flex gap-1" style={{ margin: "12px 0 8px" }}>
+                    {Array.from({ length: 11 }).map((_, i) => (
+                      <div key={i} style={{
+                        flex: 1, height: 4, borderRadius: 2,
+                        background: i < newPhone.length
+                          ? (validatePhone(newPhone) ? "#BE123C" : "#1a3a6b")
+                          : "#E7E5DF",
+                        transition: "background 0.15s",
+                      }} />
+                    ))}
+                  </div>
+
+                  {/* バリデーションエラー枠（常時確保でテンキーのガタつき防止） */}
+                  <div
+                    className="flex items-center justify-center gap-2"
                     style={{
-                      width: "100%", border: "1.5px solid #d6d4cd", borderRadius: 10,
-                      padding: "13px 15px", fontSize: 18, fontWeight: 800,
-                      background: "#fff", color: "#26251e",
+                      color: "#BE123C", fontSize: 13, fontWeight: 700,
+                      marginBottom: 8, minHeight: 20,
+                      visibility: validatePhone(newPhone) ? "visible" : "hidden",
                     }}
-                  />
-                  <p style={{ fontSize: 12, color: "#9a978c", marginTop: 4 }}>
+                    aria-live="polite"
+                  >
+                    {validatePhone(newPhone) && (<><AlertIcon size={14} strokeWidth={2} /><span>{validatePhone(newPhone)}</span></>)}
+                  </div>
+
+                  {/* 090/080/070 クイック選択。
+                      newPhone に何か入力されたら visibility:hidden で枠だけ残す
+                      （下のテンキーがジャンプしてミスタップを誘発するのを防ぐ） */}
+                  <div
+                    className="grid grid-cols-3 gap-2"
+                    style={{ marginBottom: 8, visibility: newPhone.length === 0 ? "visible" : "hidden" }}
+                    aria-hidden={newPhone.length !== 0}
+                  >
+                    {["090","080","070"].map((p) => (
+                      <button key={p} type="button" onClick={() => setNewPhone(p)}
+                        tabIndex={newPhone.length === 0 ? 0 : -1}
+                        style={{
+                          height: 56, background: "#fff", borderRadius: 12,
+                          border: "1.5px solid #c9dbe8",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                        <span style={{ fontSize: 24, fontWeight: 900, color: "#1a3a6b", letterSpacing: "0.04em" }}>{p}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <PhonePad onPress={pressNewPhoneNum} onDelete={delNewPhone} />
+
+                  <p style={{ fontSize: 12, color: "#9a978c", marginTop: 8 }}>
                     現在: {user.phone}
                   </p>
                 </div>
@@ -270,18 +443,29 @@ export default function ProfilePage() {
               >
                 {phoneConfirming ? "戻る" : "キャンセル"}
               </button>
-              <button
-                type="button"
-                onClick={handlePhoneSubmit}
-                disabled={phoneSaving}
-                style={{
-                  padding: "16px 0", background: phoneSaving ? "rgba(13,148,136,0.5)" : "#0D9488",
-                  color: "#fff", fontWeight: 900, fontSize: 16, borderRadius: 12, border: "none",
-                  boxShadow: phoneSaving ? "none" : "0 6px 16px rgba(13,148,136,0.25)",
-                }}
-              >
-                {phoneSaving ? "変更中..." : phoneConfirming ? "変更を確定" : "次へ"}
-              </button>
+              {(() => {
+                // 入力段階では PIN 4 桁 + 電話番号 submittable を両方満たさないと無効。
+                // 確認段階に入ったら（確認済みなので）常時押下可。
+                const entryDisabled = !phoneConfirming && (phonePin.length !== 4 || !isSubmittable(newPhone));
+                const disabled = phoneSaving || entryDisabled;
+                return (
+                  <button
+                    type="button"
+                    onClick={handlePhoneSubmit}
+                    disabled={disabled}
+                    style={{
+                      padding: "16px 0",
+                      background: disabled ? "#d6d4cd" : "#0D9488",
+                      color: disabled ? "#9a978c" : "#fff",
+                      fontWeight: 900, fontSize: 16, borderRadius: 12, border: "none",
+                      boxShadow: disabled ? "none" : "0 6px 16px rgba(13,148,136,0.25)",
+                      cursor: disabled ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {phoneSaving ? "変更中..." : phoneConfirming ? "変更を確定" : "次へ"}
+                  </button>
+                );
+              })()}
             </div>
           </div>
         </div>

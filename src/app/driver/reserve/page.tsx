@@ -67,6 +67,7 @@ function ReserveForm() {
   const [maxLoad, setMaxLoad] = useState("");
   const [plateMode, setPlateMode] = useState<"view" | "select" | Step>("view");
   const plateRef = useRef<HTMLDivElement>(null);
+  const companyNameRef = useRef<HTMLInputElement>(null);
   const driverNameRef = useRef<HTMLInputElement>(null);
   const maxLoadRef = useRef<HTMLInputElement>(null);
   const editFromSelect = useRef(false);
@@ -146,10 +147,36 @@ function ReserveForm() {
 
   function handleConfirmOpen(e: React.FormEvent) {
     e.preventDefault();
-    if (!companyName.trim()) { setError("会社名を入力してください"); return; }
-    if (!driverName.trim()) { setError("お名前を入力してください"); return; }
-    if (!vehicleComplete) { setError("車番を入力してください"); return; }
-    if (!maxLoad.trim() || Number(maxLoad) <= 0) { setError("最大積載量を正しく入力してください"); return; }
+    if (!companyName.trim()) {
+      setError("会社名を入力してください");
+      setTimeout(() => {
+        companyNameRef.current?.focus();
+        companyNameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+    if (!driverName.trim()) {
+      setError("お名前を入力してください");
+      setTimeout(() => {
+        driverNameRef.current?.focus();
+        driverNameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+    if (!vehicleComplete) {
+      setError("車番を入力してください");
+      setPlateMode((prev) => (prev === "view" ? "area" : prev));
+      scrollToPlate();
+      return;
+    }
+    if (!maxLoad.trim() || Number(maxLoad) <= 0) {
+      setError("最大積載量を正しく入力してください");
+      setTimeout(() => {
+        maxLoadRef.current?.focus();
+        maxLoadRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
     setError("");
     setShowConfirm(true);
   }
@@ -581,6 +608,7 @@ function ReserveForm() {
               enterKeyHint="next"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
+              ref={companyNameRef}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); driverNameRef.current?.focus(); } }}
               placeholder="例：〇〇運輸"
               style={{
@@ -726,21 +754,27 @@ function ReserveForm() {
           </div>
 
           {error && (
-            <div style={{
-              background: "#fdecef", border: "1px solid #f5bcc7", color: "#BE123C",
-              padding: 14, borderRadius: 12, fontSize: 16, fontWeight: 800, textAlign: "center",
-            }}>
+            <div
+              role="alert"
+              aria-live="polite"
+              style={{
+                background: "#fdecef", border: "1px solid #f5bcc7", color: "#BE123C",
+                padding: 14, borderRadius: 12, fontSize: 16, fontWeight: 800, textAlign: "center",
+              }}
+            >
               {error}
             </div>
           )}
 
           {!isReady && (
-            <div style={{
-              background: "#fef6db", border: "1px solid #f4d27a",
-              borderRadius: 12, padding: "12px 16px",
-              fontSize: 13, color: "#8a4a15",
-              display: "flex", flexDirection: "column", gap: 2,
-            }}>
+            <div
+              aria-live="polite"
+              style={{
+                background: "#fef6db", border: "1px solid #f4d27a",
+                borderRadius: 12, padding: "12px 16px",
+                fontSize: 13, color: "#8a4a15",
+                display: "flex", flexDirection: "column", gap: 2,
+              }}>
               <p style={{ fontWeight: 800, marginBottom: 4 }}>以下を入力してください：</p>
               {!companyName.trim() && <p>・会社名</p>}
               {!driverName.trim() && <p>・お名前</p>}
@@ -755,8 +789,8 @@ function ReserveForm() {
             style={{
               width: "100%", padding: "22px 0", fontSize: 20, fontWeight: 900,
               borderRadius: 14, border: "none", letterSpacing: "0.06em",
-              background: (submitting || !isReady) ? "rgba(13,148,136,0.35)" : "#0D9488",
-              color: "#fff",
+              background: (submitting || !isReady) ? "#d6d4cd" : "#0D9488",
+              color: (submitting || !isReady) ? "#9a978c" : "#fff",
               boxShadow: (submitting || !isReady) ? "none" : "0 10px 24px rgba(13,148,136,0.28)",
               cursor: (submitting || !isReady) ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
