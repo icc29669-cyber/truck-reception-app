@@ -140,32 +140,36 @@ function RegionsTab({ showToast }: { showToast: (m: string) => void }) {
     if (!form.name.trim()) return;
     try {
       if (editId) {
-        await fetch("/api/admin/plate-regions/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        const res = await fetch("/api/admin/plate-regions/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("更新しました");
       } else {
-        await fetch("/api/admin/plate-regions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        const res = await fetch("/api/admin/plate-regions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("追加しました");
       }
       setShowModal(false);
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const toggleActive = async (r: PlateRegion) => {
     try {
-      await fetch("/api/admin/plate-regions/" + r.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !r.isActive }) });
+      const res = await fetch("/api/admin/plate-regions/" + r.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !r.isActive }) });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
       showToast(r.isActive ? "無効にしました" : "有効にしました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const handleDelete = async (r: PlateRegion) => {
     if (!confirm("\u300C" + r.name + "\u300D\u3092\u524A\u9664\u3057\u307E\u3059\u304B\uFF1F")) return;
     try {
-      await fetch("/api/admin/plate-regions/" + r.id, { method: "DELETE" });
+      const res = await fetch("/api/admin/plate-regions/" + r.id, { method: "DELETE" });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
       showToast("削除しました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   return (
@@ -273,32 +277,36 @@ function HiraganaTab({ showToast }: { showToast: (m: string) => void }) {
     if (!form.char.trim()) return;
     try {
       if (editId) {
-        await fetch("/api/admin/plate-hiragana/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        const res = await fetch("/api/admin/plate-hiragana/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("更新しました");
       } else {
-        await fetch("/api/admin/plate-hiragana", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        const res = await fetch("/api/admin/plate-hiragana", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("追加しました");
       }
       setShowModal(false);
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const toggleActive = async (h: PlateHiragana) => {
     try {
-      await fetch("/api/admin/plate-hiragana/" + h.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !h.isActive }) });
+      const res = await fetch("/api/admin/plate-hiragana/" + h.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !h.isActive }) });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
       showToast(h.isActive ? "無効にしました" : "有効にしました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const handleDelete = async (h: PlateHiragana) => {
     if (!confirm("\u300C" + h.char + "\u300D\u3092\u524A\u9664\u3057\u307E\u3059\u304B\uFF1F")) return;
     try {
-      await fetch("/api/admin/plate-hiragana/" + h.id, { method: "DELETE" });
+      const res = await fetch("/api/admin/plate-hiragana/" + h.id, { method: "DELETE" });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
       showToast("削除しました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const categoryLabel = (c: string) => {
@@ -421,32 +429,36 @@ function AlphabetTab({ showToast }: { showToast: (m: string) => void }) {
     if (!form.char.trim()) return;
     try {
       if (editId) {
-        await fetch("/api/admin/plate-alphabet/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        const res = await fetch("/api/admin/plate-alphabet/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("更新しました");
       } else {
-        await fetch("/api/admin/plate-alphabet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        const res = await fetch("/api/admin/plate-alphabet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("追加しました");
       }
       setShowModal(false);
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const toggleActive = async (a: PlateAlphabet) => {
     try {
-      await fetch("/api/admin/plate-alphabet/" + a.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !a.isActive }) });
+      const res = await fetch("/api/admin/plate-alphabet/" + a.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !a.isActive }) });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
       showToast(a.isActive ? "無効にしました" : "有効にしました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const handleDelete = async (a: PlateAlphabet) => {
     if (!confirm("\u300C" + a.char + "\u300D\u3092\u524A\u9664\u3057\u307E\u3059\u304B\uFF1F")) return;
     try {
-      await fetch("/api/admin/plate-alphabet/" + a.id, { method: "DELETE" });
+      const res = await fetch("/api/admin/plate-alphabet/" + a.id, { method: "DELETE" });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
       showToast("削除しました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   return (

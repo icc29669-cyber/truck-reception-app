@@ -130,23 +130,26 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
     };
     try {
       if (editId) {
-        await fetch("/api/admin/centers/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        const res = await fetch("/api/admin/centers/" + editId, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("更新しました");
       } else {
-        await fetch("/api/admin/centers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: form.code, name: form.name, secretKey: form.secretKey }) });
+        const res = await fetch("/api/admin/centers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: form.code, name: form.name, secretKey: form.secretKey }) });
+        if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
         showToast("追加しました");
       }
       setShowModal(false);
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const toggleActive = async (c: Center) => {
     try {
-      await fetch("/api/admin/centers/" + c.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !c.isActive }) });
+      const res = await fetch("/api/admin/centers/" + c.id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isActive: !c.isActive }) });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || `操作に失敗しました (${res.status})`); }
       showToast(c.isActive ? "無効にしました" : "有効にしました");
       fetchData();
-    } catch { showToast("エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   const handleDelete = async (c: Center) => {
@@ -157,7 +160,7 @@ function CentersTab({ showToast }: { showToast: (m: string) => void }) {
       if (!res.ok) { showToast(data.error || "削除に失敗しました"); return; }
       showToast("削除しました");
       fetchData();
-    } catch { showToast("通信エラーが発生しました"); }
+    } catch (e) { showToast(e instanceof Error ? e.message : "エラーが発生しました"); }
   };
 
   // テーブル用: breaks表示

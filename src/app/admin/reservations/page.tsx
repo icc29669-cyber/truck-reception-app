@@ -190,24 +190,32 @@ export default function ReservationsPage() {
     if (!form.centerId || !form.reservationDate || !form.startTime || !form.endTime) return;
     try {
       if (editId) {
-        await fetch("/api/admin/reservations/" + editId, {
+        const res = await fetch("/api/admin/reservations/" + editId, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
         });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error(d.error || `操作に失敗しました (${res.status})`);
+        }
         showToast("更新しました");
       } else {
-        await fetch("/api/admin/reservations", {
+        const res = await fetch("/api/admin/reservations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
         });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error(d.error || `操作に失敗しました (${res.status})`);
+        }
         showToast("追加しました");
       }
       setShowModal(false);
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 
@@ -215,15 +223,19 @@ export default function ReservationsPage() {
     const label = [r.companyName, r.driverName].filter(Boolean).join(" ") || `予約ID ${r.id}`;
     if (!confirm(`「${label}」(${r.startTime}〜${r.endTime}) の予約をキャンセルしますか？`)) return;
     try {
-      await fetch("/api/admin/reservations/" + r.id, {
+      const res = await fetch("/api/admin/reservations/" + r.id, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "cancelled" }),
       });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `操作に失敗しました (${res.status})`);
+      }
       showToast("キャンセルしました");
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 
@@ -231,25 +243,33 @@ export default function ReservationsPage() {
     const label = [r.companyName, r.driverName].filter(Boolean).join(" ") || `予約ID ${r.id}`;
     if (!confirm(`「${label}」(${r.startTime}〜${r.endTime}) の予約を削除しますか？\nこの操作は取り消せません`)) return;
     try {
-      await fetch("/api/admin/reservations/" + r.id, { method: "DELETE" });
+      const res = await fetch("/api/admin/reservations/" + r.id, { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `操作に失敗しました (${res.status})`);
+      }
       showToast("削除しました");
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 
   const handleStatusChange = async (r: Reservation, newStatus: string) => {
     try {
-      await fetch("/api/admin/reservations/" + r.id, {
+      const res = await fetch("/api/admin/reservations/" + r.id, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error || `操作に失敗しました (${res.status})`);
+      }
       showToast("ステータスを変更しました");
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 

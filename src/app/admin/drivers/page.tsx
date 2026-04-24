@@ -98,49 +98,65 @@ export default function DriversPage() {
     };
     try {
       if (editId) {
-        await fetch("/api/admin/drivers/" + editId, {
+        const res = await fetch("/api/admin/drivers/" + editId, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error((d as { error?: string }).error || `操作に失敗しました (${res.status})`);
+        }
         showToast("更新しました");
       } else {
-        await fetch("/api/admin/drivers", {
+        const res = await fetch("/api/admin/drivers", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error((d as { error?: string }).error || `操作に失敗しました (${res.status})`);
+        }
         showToast("追加しました");
       }
       setShowModal(false);
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 
   const toggleActive = async (d: Driver) => {
     try {
-      await fetch("/api/admin/drivers/" + d.id, {
+      const res = await fetch("/api/admin/drivers/" + d.id, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: !d.isActive }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error || `操作に失敗しました (${res.status})`);
+      }
       showToast(d.isActive ? "無効にしました" : "有効にしました");
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 
   const handleDelete = async (d: Driver) => {
     if (!confirm("「" + d.name + "」を削除（無効化）しますか？")) return;
     try {
-      await fetch("/api/admin/drivers/" + d.id, { method: "DELETE" });
+      const res = await fetch("/api/admin/drivers/" + d.id, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error || `操作に失敗しました (${res.status})`);
+      }
       showToast("削除しました");
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 

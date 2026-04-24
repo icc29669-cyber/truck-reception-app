@@ -106,49 +106,65 @@ export default function VehiclesPage() {
     const body = { ...form, vehicleNumber: vn };
     try {
       if (editId) {
-        await fetch("/api/admin/vehicles/" + editId, {
+        const res = await fetch("/api/admin/vehicles/" + editId, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error((d as { error?: string }).error || `操作に失敗しました (${res.status})`);
+        }
         showToast("更新しました");
       } else {
-        await fetch("/api/admin/vehicles", {
+        const res = await fetch("/api/admin/vehicles", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error((d as { error?: string }).error || `操作に失敗しました (${res.status})`);
+        }
         showToast("追加しました");
       }
       setShowModal(false);
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 
   const toggleActive = async (v: Vehicle) => {
     try {
-      await fetch("/api/admin/vehicles/" + v.id, {
+      const res = await fetch("/api/admin/vehicles/" + v.id, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: !v.isActive }),
       });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error((d as { error?: string }).error || `操作に失敗しました (${res.status})`);
+      }
       showToast(v.isActive ? "無効にしました" : "有効にしました");
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 
   const handleDelete = async (v: Vehicle) => {
     if (!confirm("「" + v.vehicleNumber + "」を削除（無効化）しますか？")) return;
     try {
-      await fetch("/api/admin/vehicles/" + v.id, { method: "DELETE" });
+      const res = await fetch("/api/admin/vehicles/" + v.id, { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error((d as { error?: string }).error || `操作に失敗しました (${res.status})`);
+      }
       showToast("削除しました");
       fetchData();
-    } catch {
-      showToast("エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     }
   };
 

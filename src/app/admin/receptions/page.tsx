@@ -127,8 +127,8 @@ export default function AdminPage() {
       setEditTarget(null);
       setRefreshKey((k) => k + 1);
       showToast("更新しました");
-    } catch {
-      showToast("通信エラーが発生しました");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "エラーが発生しました");
     } finally {
       setSaving(false);
     }
