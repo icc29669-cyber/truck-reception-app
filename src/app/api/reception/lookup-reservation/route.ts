@@ -49,13 +49,14 @@ export async function GET(req: NextRequest) {
     // ── ローカルDB + centerCache + berth-app 用の前準備 を並列実行 ──
     // 旧コードは fetchBerthReservations 内で center.findUnique が同期実行されていた。
     // ここで center 引き当てを先頭の並列に混ぜて、HTTP fetch の待ち時間と重ねない。
-    const { start: todayStart } = getJSTDayRange();
-    const todayStr = todayStart.toISOString().slice(0, 10);
-    const todayUtcEnd = new Date(todayStr + "T23:59:59.999Z");
+    // getJSTDayRange() の end を直接使う。
+    // todayStart.toISOString() は UTC 日付文字列になるため、
+    // そこから再計算すると JST との日付ズレで当日予約が消える。
+    const { start: todayStart, end: todayEnd } = getJSTDayRange();
 
     const localWhere: Record<string, unknown> = {
       phone,
-      reservationDate: { gte: todayStart, lte: todayUtcEnd },
+      reservationDate: { gte: todayStart, lte: todayEnd },
       status: { notIn: ["completed", "cancelled", "no_show"] },
     };
     if (centerId) localWhere.centerId = Number(centerId);
