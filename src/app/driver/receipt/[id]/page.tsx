@@ -90,25 +90,24 @@ function ReceiptContent() {
   useEffect(() => {
     if (!data || !qrRef.current) return;
 
-    // 基幹システムが取り込む JSON ペイロード
-    const payload = {
-      v: 1,                       // バージョン（将来の互換性）
-      no: data.receptionNo,       // 受付番号 (基幹の センター受付番号 相当)
-      fy: data.fiscalYear,        // 年度
-      at: data.arrivedAt,         // 入場時間 ISO8601
-      center: data.centerCode,    // 登録機材センターCD
-      driver: data.driverName,    // 運転手名
-      company: data.companyName,  // 運送会社名
-      phone: data.phone,          // 運転手TEL
-      plate: {                    // 車番
-        region: data.plateRegion,
-        class: data.plateClassNum,
-        kana: data.plateKana,
-        number: data.plateNumber,
-      },
-      maxLoad: data.maxLoad ? Number(data.maxLoad) : null,
-      reservation: data.reservation,
-    };
+    // QR内に項目名を含めないため、固定順のJSON配列で出力する。
+    const payload = [
+      1,
+      data.receptionNo,
+      data.fiscalYear,
+      data.arrivedAt,
+      data.centerCode,
+      data.companyName,
+      data.driverName,
+      data.phone,
+      data.plateRegion,
+      data.plateClassNum,
+      data.plateKana,
+      data.plateNumber,
+      data.maxLoad ? Number(data.maxLoad) : null,
+      data.reservation?.startTime ?? "",
+      data.reservation?.endTime ?? "",
+    ];
     const json = JSON.stringify(payload);
 
     QRCode.toCanvas(qrRef.current, json, {

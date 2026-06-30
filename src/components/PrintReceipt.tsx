@@ -21,21 +21,24 @@ export default function PrintReceipt({ data }: Props) {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
   useEffect(() => {
-    // 基幹システムが取り込む JSON ペイロード
-    // 仕様: truck-berth-app/docs/08_基幹システム連携仕様書.md を参照
-    const payload = {
-      v: 1,
-      no: data.receptionNo,
-      fy: data.fiscalYear,
-      at: data.arrivedAt,
-      center: data.centerCode,
-      driver: data.driver.name,
-      company: data.driver.companyName,
-      phone: data.driver.phone,
-      plate: data.plate,
-      maxLoad: data.maxLoad,
-      reservation: data.reservation ?? null,
-    };
+    // QR内に項目名を含めないため、固定順のJSON配列で出力する。
+    const payload = [
+      1,
+      data.receptionNo,
+      data.fiscalYear,
+      data.arrivedAt,
+      data.centerCode,
+      data.driver.companyName,
+      data.driver.name,
+      data.driver.phone,
+      data.plate.region,
+      data.plate.classNum,
+      data.plate.kana,
+      data.plate.number,
+      data.maxLoad,
+      data.reservation?.startTime ?? "",
+      data.reservation?.endTime ?? "",
+    ];
     const json = JSON.stringify(payload);
 
     QRCode.toDataURL(json, {
