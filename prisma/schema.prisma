@@ -180,7 +180,7 @@ model Vehicle {
   vehicleNumber String // フォーマット済み "多摩 500 あ 7917"
   maxLoad       String   @default("") // 最大積載量 kg
   phone         String // 紐づく電話番号
-  erpVehicleKey String?  @unique // 基幹 T受付車番 の元の車両番号
+  erpVehicleKey String? // 基幹の元車番。同じ車両を使う複数の電話で共有する
   erpImportedAt DateTime? // 最終取込日時
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
@@ -189,6 +189,7 @@ model Vehicle {
   receptions Reception[]
 
   @@unique([vehicleNumber, phone], name: "vehicle_number_phone")
+  @@index([erpVehicleKey])
   @@index([phone])
   @@index([vehicleNumber])
 }
