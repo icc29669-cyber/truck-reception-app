@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 type Vehicle = {
   id: number;
@@ -41,6 +41,11 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const pageSize = 100;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const activeRequest = useRef<AbortController | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -52,25 +57,37 @@ export default function VehiclesPage() {
   };
 
   const fetchData = useCallback(async () => {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
     setLoading(true);
     setFetchError(false);
     try {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
-      const res = await fetch("/api/admin/vehicles?" + params);
+      params.set("page", String(page));
+      const res = await fetch("/api/admin/vehicles?" + params, { signal: controller.signal });
       if (!res.ok) throw new Error("fetch failed");
       const data = await res.json();
+      if (controller.signal.aborted) return;
+      const count = Number(res.headers.get("X-Total-Count") ?? (Array.isArray(data) ? data.length : 0));
+      setTotal(count);
+      const lastPage = Math.max(1, Math.ceil(count / pageSize));
+      if (page > lastPage) { setPage(lastPage); return; }
       setVehicles(Array.isArray(data) ? data : []);
     } catch {
+      if (controller.signal.aborted) return;
       setVehicles([]);
+      setTotal(0);
       setFetchError(true);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
-  }, [search]);
+  }, [search, page]);
 
   useEffect(() => {
-    fetchData();
+    void fetchData();
+    return () => activeRequest.current?.abort();
   }, [fetchData]);
 
   const openAdd = () => {
@@ -183,11 +200,11 @@ export default function VehiclesPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setPage(1); setSearch(e.target.value); }}
             placeholder="車両番号・地域・電話番号で検索..."
             className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
           />
-          <span className="text-xs text-gray-500 mt-1">{search ? `${vehicles.length}件ヒット` : `${vehicles.length}件`}</span>
+          <span className="text-xs text-gray-500 mt-1">{search ? `${total.toLocaleString()}件ヒット` : `全${total.toLocaleString()}件`}</span>
         </div>
         <button
           onClick={openAdd}
@@ -216,12 +233,20 @@ export default function VehiclesPage() {
         </div>
       )}
 
+      {total > pageSize && (
+        <nav aria-label="車両一覧のページ切替" className="flex flex-wrap items-center justify-center gap-4">
+          <button type="button" onClick={() => setPage((p) => p - 1)} disabled={loading || page <= 1} className="min-h-12 rounded-lg border-2 border-gray-200 bg-white px-6 py-3 font-bold disabled:opacity-40">前の100件</button>
+          <span aria-live="polite" className="text-base font-semibold">{page.toLocaleString()} / {pageCount.toLocaleString()}ページ</span>
+          <button type="button" onClick={() => setPage((p) => p + 1)} disabled={loading || page >= pageCount} className="min-h-12 rounded-lg border-2 border-gray-200 bg-white px-6 py-3 font-bold disabled:opacity-40">次の100件</button>
+        </nav>
+      )}
+
       {/* Table */}
       <div className="bg-white rounded-2xl shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-800">車両一覧</h2>
           {loading && <span className="text-sm text-gray-400">読込中...</span>}
-          <span className="text-sm text-gray-500">{vehicles.length}件</span>
+          <span className="text-sm text-gray-500">{total > 0 ? `${((page - 1) * pageSize + 1).toLocaleString()}〜${((page - 1) * pageSize + vehicles.length).toLocaleString()}件 / 全${total.toLocaleString()}件` : "0件"}</span>
         </div>
         {vehicles.length === 0 && !loading ? (
           <div className="py-16 text-center text-gray-400">
