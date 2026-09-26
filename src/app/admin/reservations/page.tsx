@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getJSTToday } from "@/lib/jstDate";
 
 type Center = { id: number; name: string };
 
@@ -178,7 +179,7 @@ export default function ReservationsPage() {
       plateNumber: r.plateNumber,
       vehicleNumber: r.vehicleNumber,
       maxLoad: r.maxLoad,
-      reservationDate: r.reservationDate.slice(0, 10),
+      reservationDate: getJSTToday(new Date(r.reservationDate)),
       startTime: r.startTime,
       endTime: r.endTime,
       notes: r.notes,
@@ -397,7 +398,7 @@ export default function ReservationsPage() {
                     }
                   >
                     <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
-                      {r.reservationDate.slice(0, 10)}
+                      {getJSTToday(new Date(r.reservationDate))}
                     </td>
                     <td className="px-4 py-3 font-mono text-gray-700 whitespace-nowrap">
                       {r.startTime} - {r.endTime}

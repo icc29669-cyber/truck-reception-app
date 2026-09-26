@@ -65,10 +65,13 @@ function CandidateCard({
   return (
     <div className="w-full flex items-center gap-3">
       <button
-        onPointerDown={() => { setPressed(true); onSelect(); }}
+        type="button"
+        onClick={onSelect}
+        onPointerDown={() => setPressed(true)}
         onPointerUp={() => setPressed(false)}
         onPointerLeave={() => setPressed(false)}
-        className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75"
+        onPointerCancel={() => setPressed(false)}
+        className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75"
         style={{
           // 高さは VehicleCard と 140px で統一(=両画面のカード高さ一致)
           height: 140, borderRadius: 22,
@@ -113,8 +116,9 @@ function CandidateCard({
 
       {/* 削除ボタン */}
       <button
-        onPointerDown={(e) => { e.stopPropagation(); onDelete(); }}
-        className="flex items-center justify-center select-none touch-none active:scale-95 transition-transform flex-shrink-0"
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="flex items-center justify-center select-none touch-pan-y active:scale-95 transition-transform flex-shrink-0"
         style={{
           width: 100, height: 60, borderRadius: 14,
           background: "#FEE2E2", border: "2px solid #FECACA",
@@ -402,7 +406,8 @@ export default function PersonPage() {
                 {/* 新しく入力するカード(候補カードと同じ高さ・同じ構造) */}
                 <div className="w-full flex items-center gap-3">
                   <button
-                    onPointerDown={() => {
+                    type="button"
+                    onClick={() => {
                       // 入力開始時はローカル state + セッションの名前関連を完全クリア
                       const s = getKioskSession();
                       setCompany("");
@@ -413,7 +418,7 @@ export default function PersonPage() {
                       });
                       setMode("input");
                     }}
-                    className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75 active:scale-[0.99]"
+                    className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75 active:scale-[0.99]"
                     style={{
                       height: 140, borderRadius: 22,
                       background: "#fff",

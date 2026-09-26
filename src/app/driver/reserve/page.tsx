@@ -4,6 +4,8 @@ import { useEffect, useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import AppInstallBar from "@/components/AppInstallBar";
+import { getPendingRequestId, readPendingRequest } from "@/lib/pendingRequest";
+import { clearCompletedReservationRequest, getReservationRequestKey } from "@/lib/reservationRequest";
 import LicensePlateInput, { PlateView, parsePlate, Step } from "@/components/LicensePlateInput";
 import {
   CenterIcon, TruckIcon, PencilIcon, CheckIcon,
@@ -54,6 +56,7 @@ function ReserveForm() {
   const centerId = centerIdParam ? parseInt(centerIdParam) : null;
 
   const [user, setUser] = useState<{
+    id: number;
     name: string;
     isAdmin: boolean;
     companyName: string;
@@ -79,11 +82,10 @@ function ReserveForm() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const key = `reservation_done_${date}_${startTime}_${centerId}`;
-    return sessionStorage.getItem(key) === "1";
-  });
+  const submittingRef = useRef(false);
+  const [done, setDone] = useState(false);
+  const [profileSaveFailed, setProfileSaveFailed] = useState(false);
+  const requestKey = (driverId: number) => getReservationRequestKey(driverId, { date, startTime, endTime, centerId });
   const defaultsLoaded = useRef(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -103,14 +105,21 @@ function ReserveForm() {
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((u) => {
         setUser(u);
-        const savedCompany = u.companyName || "";
-        const savedName = u.name || "";
-        const savedVehicle = u.defaultVehicle || "";
-        const savedMaxLoad = u.defaultMaxLoad || "";
+        // 応答を受け取れず再読込した場合も、送信時の内容とIDを復元する。
+        const pending = readPendingRequest(requestKey(u.id));
+        const previous = pending?.payload as Record<string, unknown> | undefined;
+        const recover = previous && previous.date === date && previous.startTime === startTime &&
+          previous.endTime === endTime && previous.centerId === centerId &&
+          ["companyName", "driverName", "vehicleNumber", "maxLoad"].every(key => typeof previous[key] === "string");
+        const savedCompany = recover ? previous.companyName as string : u.companyName || "";
+        const savedName = recover ? previous.driverName as string : u.name || "";
+        const savedVehicle = recover ? previous.vehicleNumber as string : u.defaultVehicle || "";
+        const savedMaxLoad = recover ? previous.maxLoad as string : u.defaultMaxLoad || "";
         setCompanyName(savedCompany);
         setDriverName(savedName);
         setVehicleNumber(savedVehicle);
         setMaxLoad(savedMaxLoad);
+        try { setDone(sessionStorage.getItem(`${requestKey(u.id)}_done`) === "1"); } catch { /* 送信時に保存可否を確認する */ }
         if (!savedVehicle) setPlateMode("area");
         defaultsLoaded.current = true;
       })
@@ -182,34 +191,51 @@ function ReserveForm() {
   }
 
   async function handleSubmit() {
+    if (!user || done || submittingRef.current) return;
+    submittingRef.current = true;
     setShowConfirm(false);
     setSubmitting(true);
+    setError("");
 
     try {
+      const payload = { date, startTime, endTime, vehicleNumber, maxLoad, companyName, driverName, centerId };
+      const storageKey = requestKey(user.id);
+      const requestId = getPendingRequestId(storageKey, payload);
       const res = await fetch("/api/driver/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, startTime, endTime, vehicleNumber, maxLoad, companyName, driverName, centerId }),
+        body: JSON.stringify({ ...payload, requestId }),
       });
 
       if (res.ok) {
-        await fetch("/api/driver/profile", {
+        // 予約成功はここで確定。次回の既定値の保存が失敗しても予約をやり直さない。
+        setDone(true);
+        try { sessionStorage.setItem(`${storageKey}_done`, "1"); } catch { /* 要求IDは保持し、再送を同じ予約へ解決する */ }
+        void fetch("/api/driver/profile", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: driverName, companyName, defaultVehicle: vehicleNumber, defaultMaxLoad: maxLoad }),
-        });
-
-        setDone(true);
-        try { sessionStorage.setItem(`reservation_done_${date}_${startTime}_${centerId}`, "1"); } catch { /* ignore */ }
+        }).then(response => { if (!response.ok) setProfileSaveFailed(true); })
+          .catch(() => setProfileSaveFailed(true));
       } else {
         const data = await res.json();
         setError(data.error || "予約に失敗しました");
       }
     } catch {
-      setError("通信エラーが発生しました");
+      setError("予約結果を確認できませんでした。もう一度操作すると、同じ予約の結果を確認します。");
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
     }
+  }
+
+  function leaveCompletedReservation(destination: string) {
+    if (user) {
+      try {
+        clearCompletedReservationRequest(user.id, { date, startTime, endTime, centerId });
+      } catch { /* 予約成功後の画面移動は妨げない */ }
+    }
+    router.replace(destination);
   }
 
   if (!user) {
@@ -255,6 +281,11 @@ function ReserveForm() {
       <div style={{ minHeight: "100vh", background: "#f2f1ed" }}>
         <Header driverName={user.name || driverName} isAdmin={user.isAdmin} />
         <AppInstallBar />
+        {profileSaveFailed && (
+          <p role="status" className="mx-4 mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+            予約は完了しています。次回の入力情報は保存できませんでした。
+          </p>
+        )}
 
         {showInstallModal && (
           <div className="fixed inset-0 z-50 flex items-end" style={{ background: "rgba(0,0,0,0.55)" }}>
@@ -401,7 +432,7 @@ function ReserveForm() {
 
             <div style={{ padding: "0 16px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
               <button
-                onClick={() => { try { sessionStorage.removeItem(`reservation_done_${date}_${startTime}_${centerId}`); } catch {} router.replace("/driver/dashboard"); }}
+                onClick={() => leaveCompletedReservation("/driver/dashboard")}
                 style={{
                   width: "100%", padding: "20px 0", background: "#1a3a6b",
                   color: "#fff", fontWeight: 900, fontSize: 19, borderRadius: 14, border: "none",
@@ -411,7 +442,7 @@ function ReserveForm() {
                 TOPに戻る
               </button>
               <button
-                onClick={() => { try { sessionStorage.removeItem(`reservation_done_${date}_${startTime}_${centerId}`); } catch {} router.replace("/driver/my-reservations"); }}
+                onClick={() => leaveCompletedReservation("/driver/my-reservations")}
                 style={{
                   width: "100%", padding: "16px 0", background: "#fff",
                   color: "#1a3a6b", fontWeight: 800, fontSize: 15, borderRadius: 14,

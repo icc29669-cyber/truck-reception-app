@@ -75,7 +75,6 @@ function mockRegister(params: {
     id: 999,
     centerDailyNo: 42,
     arrivedAt: new Date().toISOString(),
-    waitingCount: 15,
     receptionNo: "8831002609260042",
     fiscalYear: "26",
     centerCode: "3100",
@@ -118,7 +117,7 @@ export async function lookupByPhone(
     `${BASE}/api/reception/lookup-phone?phone=${encodeURIComponent(phone)}&centerId=${centerId}`,
     { headers: headers(), signal }
   );
-  if (!res.ok) return { drivers: [], vehicles: [] };
+  if (!res.ok) throw new Error("登録情報を確認できませんでした。通信を確認して再試行してください。");
   return res.json();
 }
 
@@ -170,11 +169,12 @@ export async function lookupReservation(
     `${BASE}/api/reception/lookup-reservation?phone=${encodeURIComponent(phone)}&centerId=${centerId}${nameParam}`,
     { headers: headers(), signal }
   );
-  if (!res.ok) return [];
+  if (!res.ok) throw new Error("予約情報を確認できませんでした。通信を確認して再試行してください。");
   return res.json();
 }
 
 export async function registerReception(params: {
+  requestId?: string;
   phone: string;
   centerId: number;
   plate?: PlateInput;
@@ -184,6 +184,7 @@ export async function registerReception(params: {
   reservationSource?: "local" | "berth";
 }): Promise<ReceptionResult> {
   const normalizedParams = {
+    requestId: params.requestId,
     phone: params.phone,
     centerId: params.centerId,
     plate: params.plate ?? { region: "", classNum: "", hira: "", number: "" },
@@ -199,6 +200,7 @@ export async function registerReception(params: {
     method: "POST",
     headers: headers(),
     body: JSON.stringify(normalizedParams),
+    signal: AbortSignal.timeout(30000),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

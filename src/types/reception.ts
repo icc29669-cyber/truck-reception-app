@@ -52,7 +52,6 @@ export interface ReceptionResult {
   id: number;
   centerDailyNo: number;
   arrivedAt: string;
-  waitingCount: number;
   receptionNo: string;
   fiscalYear: string;
   centerCode: string;

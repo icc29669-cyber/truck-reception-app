@@ -1,4 +1,7 @@
 import type { KioskSession } from "@/types/reception";
+import { clearPendingRequest } from "@/lib/pendingRequest";
+
+export const RECEPTION_REQUEST_KEY = "kiosk_registration_request";
 
 const KEY = "kiosk_session";
 
@@ -43,4 +46,5 @@ export function setKioskSession(partial: Partial<KioskSession>): void {
 export function clearKioskSession(): void {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(KEY);
+  clearPendingRequest(RECEPTION_REQUEST_KEY);
 }

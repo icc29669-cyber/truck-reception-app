@@ -3,27 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { verifyKioskSecret } from "@/lib/auth";
 import { getJSTDayRange } from "@/lib/jstDate";
 import { getCenterCached } from "@/lib/centerCache";
+import { parseVehicleNumber } from "@/lib/vehiclePlate";
 
 export const dynamic = "force-dynamic";
 
 const BERTH_API_URL = process.env.BERTH_API_URL || "";
 const BERTH_KIOSK_SECRET = process.env.BERTH_KIOSK_SECRET || "";
 const BERTH_TIMEOUT = 2000;
-
-/** 車番文字列をプレート4要素に分解 */
-function parseVehicleNumber(v: string) {
-  const empty = { region: "", classNum: "", hira: "", number: "" };
-  if (!v) return empty;
-  const parts = v.split(/\s+/);
-  if (parts.length >= 4) return { region: parts[0], classNum: parts[1], hira: parts[2], number: parts[3] };
-  const m = v.match(/^([^\d]+?)(\d{1,4})([ぁ-ん]|[a-zA-Z])(\d{1,4})$/);
-  if (m) return { region: m[1], classNum: m[2], hira: m[3], number: m[4] };
-  if (parts.length === 3) {
-    const m2 = parts[2].match(/^([ぁ-ん]|[a-zA-Z])(\d{1,4})$/);
-    if (m2) return { region: parts[0], classNum: parts[1], hira: m2[1], number: m2[2] };
-  }
-  return empty;
-}
 
 type ReservationResult = {
   id: number; startTime: string; endTime: string;
@@ -55,7 +41,8 @@ export async function GET(req: NextRequest) {
     const { start: todayStart, end: todayEnd } = getJSTDayRange();
 
     const localWhere: Record<string, unknown> = {
-      phone,
+      // 以前のドライバー予約は phone が空欄。明示された電話番号は優先し、空欄のみ補完。
+      OR: [{ phone }, { phone: "", driver: { is: { phone } } }],
       reservationDate: { gte: todayStart, lte: todayEnd },
       status: { notIn: ["completed", "cancelled", "no_show"] },
     };
@@ -65,6 +52,7 @@ export async function GET(req: NextRequest) {
     const [localReservations, centerRow] = await Promise.all([
       prisma.reservation.findMany({
         where: localWhere,
+        include: { driver: { select: { name: true, companyName: true } } },
         orderBy: { startTime: "asc" },
       }),
       needCenter ? getCenterCached(Number(centerId)) : Promise.resolve(null),
@@ -76,21 +64,24 @@ export async function GET(req: NextRequest) {
       : [];
 
     // ── ローカル結果マッピング ──
-    const results: ReservationResult[] = localReservations.map((r) => ({
-      id: r.id,
-      startTime: r.startTime,
-      endTime: r.endTime,
-      driverName: r.driverName,
-      companyName: r.companyName,
-      vehicleNumber: r.vehicleNumber,
-      maxLoad: r.maxLoad,
-      plateRegion: r.plateRegion,
-      plateClassNum: r.plateClassNum,
-      plateHira: r.plateHira,
-      plateNumber: r.plateNumber,
-      status: r.status,
-      source: "local",
-    }));
+    const results: ReservationResult[] = localReservations.map((r) => {
+      const plate = parseVehicleNumber(r.vehicleNumber);
+      return {
+        id: r.id,
+        startTime: r.startTime,
+        endTime: r.endTime,
+        driverName: r.driverName || r.driver?.name || "",
+        companyName: r.companyName || r.driver?.companyName || "",
+        vehicleNumber: r.vehicleNumber,
+        maxLoad: r.maxLoad,
+        plateRegion: r.plateRegion || plate.region,
+        plateClassNum: r.plateClassNum || plate.classNum,
+        plateHira: r.plateHira || plate.hira,
+        plateNumber: r.plateNumber || plate.number,
+        status: r.status,
+        source: "local",
+      };
+    });
 
     // ── berth-app 結果マージ ──
     results.push(...berthResults);

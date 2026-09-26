@@ -117,10 +117,13 @@ function VehicleCard({
   return (
     <div className="w-full flex items-center gap-3">
       <button
-        onPointerDown={() => { setPressed(true); onSelect(); }}
+        type="button"
+        onClick={onSelect}
+        onPointerDown={() => setPressed(true)}
         onPointerUp={() => setPressed(false)}
         onPointerLeave={() => setPressed(false)}
-        className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75"
+        onPointerCancel={() => setPressed(false)}
+        className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75"
         style={{
           height: 140, borderRadius: 22,
           background: pressed ? "#EFF6FF" : "#fff",
@@ -161,8 +164,9 @@ function VehicleCard({
 
       {/* 削除ボタン */}
       <button
-        onPointerDown={(e) => { e.stopPropagation(); onDelete(); }}
-        className="flex items-center justify-center select-none touch-none active:scale-95 transition-transform flex-shrink-0"
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="flex items-center justify-center select-none touch-pan-y active:scale-95 transition-transform flex-shrink-0"
         style={{
           width: 100, height: 60, borderRadius: 14,
           background: "#FEE2E2", border: "2px solid #FECACA",
@@ -597,7 +601,8 @@ export default function VehiclePage() {
               {/* 新しく入力するカード（候補カードと統一感のあるデザイン） */}
               <div className="w-full flex items-center gap-3">
                 <button
-                  onPointerDown={() => {
+                  type="button"
+                  onClick={() => {
                     // 入力開始時はプレート・最大積載量をクリアして白紙から始める
                     const s = getKioskSession();
                     const emptyPlate = { region: "", classNum: "", hira: "", number: "" };
@@ -611,7 +616,7 @@ export default function VehiclePage() {
                     setPlateSection("region");
                     setMode("input");
                   }}
-                  className="flex-1 flex items-center text-left select-none touch-none transition-all duration-75 active:scale-[0.99]"
+                  className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75 active:scale-[0.99]"
                   style={{
                     height: 140, borderRadius: 22,
                     background: "#fff",

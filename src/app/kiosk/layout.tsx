@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { clearKioskSession } from "@/lib/kioskState";
+import { clearKioskSession, getKioskSession, RECEPTION_REQUEST_KEY } from "@/lib/kioskState";
+import { readPendingRequest } from "@/lib/pendingRequest";
 
 /** 無操作タイムアウト（秒） — トップ画面以外で操作がなければ自動リセット */
 const INACTIVITY_TIMEOUT_SEC = 600; // 10分（現場オペレーションで電話応対や休憩を挟む余裕を優先）
@@ -171,6 +172,8 @@ export default function KioskLayout({ children }: { children: React.ReactNode })
     if (timerRef.current) clearTimeout(timerRef.current);
     if (isExemptPage) return;
     timerRef.current = setTimeout(() => {
+      // 成否不明の送信を自動で新しい来場にしない。同じIDで結果を確認できる状態を残す。
+      if (readPendingRequest(RECEPTION_REQUEST_KEY) && !getKioskSession().receptionResult) return;
       clearKioskSession();
       router.replace("/kiosk");
     }, INACTIVITY_TIMEOUT_SEC * 1000);

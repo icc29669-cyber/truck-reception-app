@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/driverAuth";
 import { isReservationStatus } from "@/lib/reservationStatus";
+import { getJSTDayRange, isValidJSTDate } from "@/lib/jstDate";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -47,10 +48,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     // 日付・時間フィールドのバリデーション
-    if (safeData.date && typeof safeData.date === "string") {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(safeData.date) || isNaN(new Date(safeData.date as string).getTime())) {
+    if (safeData.date !== undefined) {
+      if (!isValidJSTDate(safeData.date)) {
         return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
       }
+      safeData.reservationDate = getJSTDayRange(safeData.date).start;
+      delete safeData.date;
     }
     const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
     if (safeData.startTime && typeof safeData.startTime === "string" && !timeRegex.test(safeData.startTime)) {

@@ -25,6 +25,42 @@ type ReceptionInput = Omit<Prisma.ReceptionUncheckedCreateInput,
   "id" | "centerDailyNo" | "dailyKey" | "receptionNo" | "fiscalYear" | "arrivedAt"
 > & { arrivedAt: Date };
 
+/** 人物・車両・予約更新も一括確定する登録処理から使う。入れ子のtransactionは作らない。 */
+export async function createNumberedReceptionInTransaction(
+  tx: Prisma.TransactionClient,
+  centerCode: string,
+  data: ReceptionInput,
+) {
+  formatReceptionNumber(centerCode, data.arrivedAt, 1);
+  const date = getJSTToday(data.arrivedAt);
+  const range = getJSTDayRange(date);
+  const observed = await tx.reception.aggregate({
+    where: { centerId: data.centerId, arrivedAt: { gte: range.start, lte: range.end } },
+    _max: { centerDailyNo: true },
+  });
+  const existingMax = observed._max.centerDailyNo ?? 0;
+  const counter = await tx.centerDailyCounter.upsert({
+    where: { centerId_date: { centerId: data.centerId, date } },
+    create: { centerId: data.centerId, date, lastNo: existingMax + 1 },
+    update: { lastNo: { increment: 1 } },
+  });
+  let dailyNo = counter.lastNo;
+  // upsertの行ロックを受付保存まで保持し、旧サーバーが採番した番号も飛ばす。
+  if (dailyNo <= existingMax) {
+    dailyNo = existingMax + 1;
+    await tx.centerDailyCounter.update({ where: { id: counter.id }, data: { lastNo: dailyNo } });
+  }
+  return tx.reception.create({
+    data: {
+      ...data,
+      centerDailyNo: dailyNo,
+      dailyKey: `${date}_${data.centerId}_${dailyNo}`,
+      receptionNo: formatReceptionNumber(centerCode, data.arrivedAt, dailyNo),
+      fiscalYear: getReceptionFiscalYear(data.arrivedAt),
+    },
+  });
+}
+
 /** カウンタの更新と受付の保存を同じトランザクションで確定する。 */
 export async function createNumberedReception(
   client: PrismaClient,
@@ -33,40 +69,12 @@ export async function createNumberedReception(
 ) {
   // 設定不備で採番を消費しないよう、書き込み前に確認する。
   formatReceptionNumber(centerCode, data.arrivedAt, 1);
-  const date = getJSTToday(data.arrivedAt);
-  const range = getJSTDayRange(date);
-
   for (let attempt = 0; ; attempt++) {
     try {
-      return await client.$transaction(async (tx) => {
-        // 導入前の受付、旧バージョンのサーバーが登録した受付からも続番にする。
-        const observed = await tx.reception.aggregate({
-          where: { centerId: data.centerId, arrivedAt: { gte: range.start, lte: range.end } },
-          _max: { centerDailyNo: true },
-        });
-        const existingMax = observed._max.centerDailyNo ?? 0;
-        const counter = await tx.centerDailyCounter.upsert({
-          where: { centerId_date: { centerId: data.centerId, date } },
-          create: { centerId: data.centerId, date, lastNo: existingMax + 1 },
-          update: { lastNo: { increment: 1 } },
-        });
-        let dailyNo = counter.lastNo;
-        // upsert が取得した行ロックは受付保存まで保持される。
-        if (dailyNo <= existingMax) {
-          dailyNo = existingMax + 1;
-          await tx.centerDailyCounter.update({ where: { id: counter.id }, data: { lastNo: dailyNo } });
-        }
-        const receptionNo = formatReceptionNumber(centerCode, data.arrivedAt, dailyNo);
-        return tx.reception.create({
-          data: {
-            ...data,
-            centerDailyNo: dailyNo,
-            dailyKey: `${date}_${data.centerId}_${dailyNo}`,
-            receptionNo,
-            fiscalYear: getReceptionFiscalYear(data.arrivedAt),
-          },
-        });
-      }, { maxWait: 10000, timeout: 20000 });
+      return await client.$transaction(
+        (tx) => createNumberedReceptionInTransaction(tx, centerCode, data),
+        { maxWait: 10000, timeout: 20000 },
+      );
     } catch (error) {
       // 切替中の旧サーバーとの競合時は、ロールバック後に最新値を読み直す。
       if (error instanceof Prisma.PrismaClientKnownRequestError &&

@@ -10,9 +10,12 @@ import {
   ChevronRightIcon, ChevronLeftIcon,
 } from "@/components/Icon";
 import { toLocalDateStr } from "@/lib/dateFormat";
+import { clearCompletedReservationRequest } from "@/lib/reservationRequest";
 
 interface Reservation {
   id: number;
+  driverId: number | null;
+  centerId: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -79,6 +82,9 @@ export default function MyReservationsPage() {
         body: JSON.stringify({ status: "cancelled" }),
       });
       if (res.ok) {
+        if (r.driverId !== null) {
+          try { clearCompletedReservationRequest(r.driverId, r); } catch { /* 取消成功は維持する */ }
+        }
         fetchReservations();
       } else {
         const data = await res.json().catch(() => ({}));

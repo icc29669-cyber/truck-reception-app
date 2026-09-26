@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getJSTDayRange, isValidJSTDate } from "@/lib/jstDate";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +13,12 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (date) {
-      // 既存データ(UTC midnight)と新データ(JST midnight=UTC 15:00)の両方を拾う
-      // UTC前日15:00(=JST当日00:00) 〜 UTC当日23:59(=JST翌日08:59)
-      const jstStart = new Date(date + "T00:00:00+09:00");  // JST 00:00
-      const utcEnd = new Date(date + "T23:59:59.999Z");     // UTC 23:59
-      where.reservationDate = { gte: jstStart, lte: utcEnd };
+      if (!isValidJSTDate(date)) {
+        return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
+      }
+      // JST の当日24時間なら旧 UTC 00:00 も含み、翌日 JST 00:00 は混ざらない。
+      const { start, end } = getJSTDayRange(date);
+      where.reservationDate = { gte: start, lte: end };
     }
 
     if (centerId) {
@@ -70,8 +72,7 @@ export async function POST(req: NextRequest) {
     if (startTime >= endTime) {
       return NextResponse.json({ error: "終了時刻は開始時刻より後にしてください" }, { status: 400 });
     }
-    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRe.test(reservationDate)) {
+    if (!isValidJSTDate(reservationDate)) {
       return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
     }
     if (phone && !/^\d{0,15}$/.test(phone)) {
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
         plateNumber: plateNumber || "",
         vehicleNumber: vehicleNumber || "",
         maxLoad: maxLoad || "",
-        reservationDate: new Date(reservationDate + "T00:00:00+09:00"),
+        reservationDate: getJSTDayRange(reservationDate).start,
         startTime,
         endTime,
         notes: notes || "",

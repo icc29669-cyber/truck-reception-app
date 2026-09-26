@@ -3,243 +3,205 @@ import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { prisma } from "@/lib/prisma";
 import { verifyKioskSecret } from "@/lib/auth";
-import { getJSTToday, getJSTDayRange } from "@/lib/jstDate";
 import { getClientIp, hitRateLimit } from "@/lib/rateLimit";
-import { createNumberedReception, ReceptionNumberLimitError } from "@/lib/receptionNumber";
+import { createNumberedReceptionInTransaction, ReceptionNumberLimitError } from "@/lib/receptionNumber";
+import { hashRequest, isValidRequestId } from "@/lib/idempotency";
+import { formatPlate } from "@/types/reception";
 
 export const dynamic = "force-dynamic";
 
 const BERTH_API_URL = process.env.BERTH_API_URL || "";
 const BERTH_KIOSK_SECRET = process.env.BERTH_KIOSK_SECRET || "";
+const receiptRelations = {
+  center: { select: { code: true, name: true } },
+  reservation: { select: { startTime: true, endTime: true } },
+} satisfies Prisma.ReceptionInclude;
+type SavedReception = Prisma.ReceptionGetPayload<{ include: typeof receiptRelations }>;
 
-async function notifyBerthApp(url: string, secret: string, reservationId: number) {
-  const maxRetries = 3;
-  const delays = [0, 3000, 10000]; // immediate, 3s, 10s
-  for (let i = 0; i < maxRetries; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, delays[i]));
-    try {
-      const res = await fetch(`${url}/api/reception/checkin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Kiosk-Secret": secret },
-        body: JSON.stringify({ reservationId }),
-        signal: AbortSignal.timeout(5000),
-      });
-      if (res.ok) return;
-      console.error(`berth-app checkin attempt ${i+1} failed: ${res.status}`);
-    } catch (e) {
-      console.error(`berth-app checkin attempt ${i+1} error:`, e);
-    }
-  }
-  console.error(`berth-app checkin failed after ${maxRetries} attempts for reservation ${reservationId}`);
+class RegistrationError extends Error {
+  constructor(message: string, readonly status: number = 400) { super(message); }
 }
 
-function formatPlate(p: {
-  region: string;
-  classNum: string;
-  hira: string;
-  number: string;
-}): string {
-  if (!p.region && !p.classNum) return "";
-  return [p.region, p.classNum, p.hira, p.number].filter(Boolean).join(" ");
+function inputObject(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new RegistrationError("リクエストの形式が不正です");
+  }
+  return value as Record<string, unknown>;
+}
+
+function inputText(value: unknown, maxLength: number): string {
+  if (value === undefined) return "";
+  if (typeof value !== "string" || value.length > maxLength) {
+    throw new RegistrationError("入力の形式または文字数が不正です");
+  }
+  return value;
+}
+
+function parseRegistration(value: unknown) {
+  const body = inputObject(value);
+  const plate = inputObject(body.plate ?? {});
+  const driver = inputObject(body.driverInput ?? {});
+  const phone = inputText(body.phone, 11);
+  if (!/^\d{10,11}$/.test(phone)) throw new RegistrationError("正しい電話番号が必要です");
+  if (typeof body.centerId !== "number" || !Number.isInteger(body.centerId) || body.centerId <= 0) {
+    throw new RegistrationError("センターIDが必要です");
+  }
+  const requestId = body.requestId;
+  if (requestId !== undefined && !isValidRequestId(requestId)) throw new RegistrationError("受付の送信IDが不正です");
+  const reservationId = body.reservationId ?? null;
+  if (reservationId !== null && (typeof reservationId !== "number" || !Number.isInteger(reservationId) || reservationId <= 0)) {
+    throw new RegistrationError("予約IDが不正です");
+  }
+  if (body.reservationSource !== undefined && body.reservationSource !== "local" && body.reservationSource !== "berth") {
+    throw new RegistrationError("予約の種別が不正です");
+  }
+  const reservationSource = reservationId ? (body.reservationSource ?? "local") as "local" | "berth" : null;
+  if (reservationSource === "berth" && reservationId! <= 1000000) throw new RegistrationError("予約IDが不正です");
+  const number = inputText(plate.number, 4);
+  if (!/^\d{0,4}$/.test(number)) throw new RegistrationError("車両番号が不正です");
+  // キー順や省略値によってハッシュが変わらないよう、業務項目を固定順で組み立てる。
+  const payload = {
+    phone, centerId: body.centerId,
+    plate: { region: inputText(plate.region, 50), classNum: inputText(plate.classNum, 4), hira: inputText(plate.hira, 2), number },
+    driverInput: { driverName: inputText(driver.driverName, 50), companyName: inputText(driver.companyName, 100), maxLoad: inputText(driver.maxLoad, 10) },
+    reservationId, reservationSource,
+  };
+  return { payload, requestId, requestHash: requestId ? hashRequest(payload) : null };
+}
+
+function receiptResult(reception: SavedReception) {
+  return {
+    id: reception.id,
+    centerDailyNo: reception.centerDailyNo,
+    arrivedAt: reception.arrivedAt.toISOString(),
+    receptionNo: reception.receptionNo,
+    fiscalYear: reception.fiscalYear,
+    centerCode: reception.receptionNo?.slice(2, 6) || reception.center.code,
+    driver: { name: reception.driverName, companyName: reception.companyName, phone: reception.phone },
+    vehicleNumber: reception.vehicleNumber,
+    plate: { region: reception.plateRegion, classNum: reception.plateClassNum, kana: reception.plateHira, number: reception.plateNumber },
+    maxLoad: reception.maxLoad ? Number(reception.maxLoad) : null,
+    centerName: reception.center.name,
+    ...(reception.reservation ? { reservation: reception.reservation } : {}),
+    barcodeValue: `RC-${reception.id}-${reception.centerDailyNo}`,
+  };
+}
+
+async function notifyBerthApp(reservationId: number) {
+  for (const delay of [0, 3000, 10000]) {
+    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+    try {
+      const res = await fetch(`${BERTH_API_URL}/api/reception/checkin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Kiosk-Secret": BERTH_KIOSK_SECRET },
+        body: JSON.stringify({ reservationId }), signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) return;
+      console.error(`berth-app checkin failed: ${res.status}`);
+    } catch (error) { console.error("berth-app checkin error:", error); }
+  }
+}
+
+function notifyReservation(reservationId: number | null, source: string | null) {
+  if (source !== "berth" || !reservationId || !BERTH_API_URL || !BERTH_KIOSK_SECRET) return;
+  // 確定後の外部連携・バックグラウンド登録失敗を受付失敗に変えない。
+  const notification = notifyBerthApp(reservationId - 1000000);
+  try { waitUntil(notification); } catch { void notification; }
 }
 
 export async function POST(req: NextRequest) {
   const authError = verifyKioskSecret(req);
   if (authError) return authError;
-
-  // レート制限: 同一IP から 60秒間に 20 回まで。正常利用では絶対超えない閾値だが
-  // curl で sec-fetch-site 偽装した大量受付攻撃に対する防御として設置。
-  const ip = getClientIp(req);
-  if (hitRateLimit(`register:${ip}`, 20, 60)) {
-    return NextResponse.json(
-      { error: "一時的にご利用いただけません。しばらく経ってから再度お試しください" },
-      { status: 429 }
-    );
+  if (hitRateLimit(`register:${getClientIp(req)}`, 20, 60)) {
+    return NextResponse.json({ error: "一時的にご利用いただけません。しばらく経ってから再度お試しください" }, { status: 429 });
   }
-
-  // JSON パースは try/catch で 400 を返す（500 にしない）
   let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
+  try { body = await req.json(); } catch {
     return NextResponse.json({ error: "リクエストの形式が不正です" }, { status: 400 });
   }
 
-  // 日付をまたいでも受付日時・採番日・集計日を一致させる。
-  const arrivedAt = new Date();
-  const jstRange = getJSTDayRange(getJSTToday(arrivedAt));
-
   try {
-    const {
-      phone,
-      centerId,
-      plate = { region: "", classNum: "", hira: "", number: "" },
-      driverInput = { companyName: "", driverName: "", phone: "", maxLoad: "" },
-      reservationId,
-      reservationSource,
-    } = body as {
-      phone: string;
-      centerId: number;
-      plate?: { region: string; classNum: string; hira: string; number: string };
-      driverInput?: { companyName: string; driverName: string; phone: string; maxLoad: string };
-      reservationId?: number;
-      reservationSource?: "local" | "berth";
-    };
-
-    // berth-app予約の場合、オフセット(+1000000)を除去して元のIDを取得
-    const isBerthReservation = reservationSource === "berth";
-    const originalBerthId = isBerthReservation && reservationId ? reservationId - 1000000 : undefined;
-    // ローカルDB用のreservationId（berth予約の場合はnull — ローカルDBには存在しない）
-    const localReservationId = isBerthReservation ? null : (reservationId ?? null);
-
-    if (!phone || !/^\d{10,11}$/.test(phone)) {
-      return NextResponse.json({ error: "正しい電話番号が必要です" }, { status: 400 });
-    }
-    if (!Number.isInteger(centerId) || centerId <= 0) {
-      return NextResponse.json({ error: "センターIDが必要です" }, { status: 400 });
-    }
-    // 入力文字数制限（XSS/インジェクション対策）
-    if (driverInput.driverName && driverInput.driverName.length > 50) {
-      return NextResponse.json({ error: "名前が長すぎます" }, { status: 400 });
-    }
-    if (driverInput.companyName && driverInput.companyName.length > 100) {
-      return NextResponse.json({ error: "会社名が長すぎます" }, { status: 400 });
-    }
-    if (plate.number && !/^\d{0,4}$/.test(plate.number)) {
-      return NextResponse.json({ error: "車両番号が不正です" }, { status: 400 });
-    }
-
+    const { payload, requestId, requestHash } = parseRegistration(body);
+    const { phone, centerId, plate, driverInput, reservationId, reservationSource } = payload;
+    const localReservationId = reservationSource === "berth" ? null : reservationId;
     const vehicleNumber = formatPlate(plate);
-    const effectivePhone = phone || driverInput.phone;
+    const arrivedAt = new Date();
 
-    const center = await prisma.center.findUnique({
-      where: { id: centerId },
-      select: { id: true, code: true, name: true },
-    });
-    if (!center) {
-      return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
-    }
-    if (!/^\d{4}$/.test(center.code)) {
-      return NextResponse.json({ error: "センターコードを4桁の数字に設定してください" }, { status: 400 });
-    }
-
-    const [driver, vehicle] = await Promise.all([
-      prisma.driver.upsert({
-        where: {
-          driver_phone_name_company: {
-            phone: effectivePhone,
-            name: driverInput.driverName,
-            companyName: driverInput.companyName,
-          },
-        },
-        create: {
-          phone: effectivePhone,
-          name: driverInput.driverName,
-          companyName: driverInput.companyName,
-        },
-        update: { updatedAt: new Date() },
-      }),
-      vehicleNumber
-        ? prisma.vehicle.upsert({
-            where: {
-              vehicle_number_phone: { vehicleNumber, phone: effectivePhone },
-            },
-            create: {
-              region: plate.region,
-              classNum: plate.classNum,
-              hira: plate.hira,
-              number: plate.number,
-              vehicleNumber,
-              maxLoad: driverInput.maxLoad ?? "",
-              phone: effectivePhone,
-            },
-            update: {
-              maxLoad: driverInput.maxLoad || undefined,
-              updatedAt: new Date(),
-            },
-          })
-        : Promise.resolve(null),
-    ]);
-
-    const reception = await createNumberedReception(prisma, center.code, {
-      centerId,
-      arrivedAt,
-      driverName: driverInput.driverName,
-      companyName: driverInput.companyName,
-      phone: effectivePhone,
-      plateRegion: plate.region,
-      plateClassNum: plate.classNum,
-      plateHira: plate.hira,
-      plateNumber: plate.number,
-      vehicleNumber,
-      maxLoad: driverInput.maxLoad ?? "",
-      driverId: driver.id,
-      vehicleId: vehicle?.id ?? null,
-      reservationId: localReservationId,
-    });
-
-    // ─── フェーズ3: 予約 checked_in 更新 + 待機台数 を **並列** で ─────
-    // 旧コードは updateMany → count を直列実行していた。どちらも reception.create 完了後は
-    // 独立して走れるため並列化(rtt × 2 → rtt × 1)。
-    const [_updated, waitingCount] = await Promise.all([
-      localReservationId
-        ? prisma.reservation.updateMany({
-            where: { id: localReservationId, status: { not: "cancelled" } },
-            data: { status: "checked_in" },
-          })
-        : Promise.resolve(null),
-      prisma.reception.count({
-        where: { centerId, arrivedAt: { gte: jstRange.start, lte: jstRange.end } },
-      }),
-    ]);
-
-    const responseData: Record<string, unknown> = {
-      id: reception.id,
-      centerDailyNo: reception.centerDailyNo,
-      arrivedAt: reception.arrivedAt.toISOString(),
-      waitingCount,
-      receptionNo: reception.receptionNo,
-      fiscalYear: reception.fiscalYear,
-      centerCode: center?.code ?? "",
-      driver: {
-        name: driverInput.driverName,
-        companyName: driverInput.companyName,
-        phone: effectivePhone,
-      },
-      vehicleNumber,
-      plate: {
-        region: plate.region,
-        classNum: plate.classNum,
-        kana: plate.hira,
-        number: plate.number,
-      },
-      maxLoad: driverInput.maxLoad ? Number(driverInput.maxLoad) : null,
-      centerName: center?.name ?? "",
-      barcodeValue: `RC-${reception.id}-${reception.centerDailyNo}`,
+    const replay = async () => {
+      if (!requestId) return null; // 切替前の端末との互換。新しい画面は必ずIDを送る。
+      const saved = await prisma.reception.findUnique({ where: { requestId }, include: receiptRelations });
+      if (!saved) return null;
+      if (saved.requestHash !== requestHash) {
+        throw new RegistrationError("同じ送信IDで受付内容が変更されています。最初からやり直してください", 409);
+      }
+      return saved;
     };
 
-    // ── berth-app に予約チェックインを通知 ──
-    // Vercel では waitUntil でレスポンス後も処理を継続。
-    // 非 Vercel 環境（Docker self-host 等）では waitUntil が TypeError を投げるので
-    // fire-and-forget に fallback する。
-    if (originalBerthId && BERTH_API_URL && BERTH_KIOSK_SECRET) {
-      const notify = notifyBerthApp(BERTH_API_URL, BERTH_KIOSK_SECRET, originalBerthId);
+    const existing = await replay();
+    if (existing) {
+      notifyReservation(reservationId, reservationSource);
+      return NextResponse.json(receiptResult(existing));
+    }
+
+    for (let attempt = 0; ; attempt++) {
       try {
-        waitUntil(notify);
-      } catch {
-        void notify; // fire-and-forget
+        const saved = await prisma.$transaction(async (tx) => {
+          const center = await tx.center.findUnique({ where: { id: centerId }, select: { code: true, name: true } });
+          if (!center) throw new RegistrationError("指定されたセンターが存在しません");
+          if (!/^\d{4}$/.test(center.code)) throw new RegistrationError("センターコードを4桁の数字に設定してください");
+          const reservation = localReservationId
+            ? await tx.reservation.findUnique({ where: { id: localReservationId }, select: { centerId: true, startTime: true, endTime: true } })
+            : null;
+          if (localReservationId && (!reservation || reservation.centerId !== centerId)) {
+            throw new RegistrationError("このセンターの予約が見つかりません", 409);
+          }
+          const driver = await tx.driver.upsert({
+            where: { driver_phone_name_company: { phone, name: driverInput.driverName, companyName: driverInput.companyName } },
+            create: { phone, name: driverInput.driverName, companyName: driverInput.companyName }, update: { updatedAt: arrivedAt },
+          });
+          const vehicle = vehicleNumber ? await tx.vehicle.upsert({
+            where: { vehicle_number_phone: { vehicleNumber, phone } },
+            create: { region: plate.region, classNum: plate.classNum, hira: plate.hira, number: plate.number, vehicleNumber, maxLoad: driverInput.maxLoad, phone },
+            update: { maxLoad: driverInput.maxLoad || undefined, updatedAt: arrivedAt },
+          }) : null;
+          const reception = await createNumberedReceptionInTransaction(tx, center.code, {
+            centerId, arrivedAt, requestId, requestHash,
+            driverName: driverInput.driverName, companyName: driverInput.companyName, phone,
+            plateRegion: plate.region, plateClassNum: plate.classNum, plateHira: plate.hira, plateNumber: plate.number,
+            vehicleNumber, maxLoad: driverInput.maxLoad,
+            driverId: driver.id, vehicleId: vehicle?.id ?? null, reservationId: localReservationId,
+          });
+          if (localReservationId) {
+            const updated = await tx.reservation.updateMany({
+              where: { id: localReservationId, centerId, status: "pending" }, data: { status: "checked_in" },
+            });
+            if (updated.count !== 1) throw new RegistrationError("この予約は受付済み、または取り消されています。受付担当者に確認してください", 409);
+          }
+          return { ...reception, center, reservation: reservation ? { startTime: reservation.startTime, endTime: reservation.endTime } : null };
+        }, { maxWait: 10000, timeout: 20000 });
+
+        notifyReservation(reservationId, reservationSource);
+        return NextResponse.json(receiptResult(saved));
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && ["P2002", "P2034"].includes(error.code)) {
+          // 同時再送は一方だけ保存される。失敗したtransactionの外から確定済み受付を読む。
+          const saved = await replay();
+          if (saved) {
+            notifyReservation(reservationId, reservationSource);
+            return NextResponse.json(receiptResult(saved));
+          }
+          if (attempt < 3) continue;
+        }
+        throw error;
       }
     }
-
-    return NextResponse.json(responseData);
-  } catch (e) {
-    if (e instanceof ReceptionNumberLimitError) {
-      return NextResponse.json({ error: e.message }, { status: 503 });
+  } catch (error) {
+    if (error instanceof RegistrationError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof ReceptionNumberLimitError) return NextResponse.json({ error: error.message }, { status: 503 });
+    if (error instanceof Prisma.PrismaClientKnownRequestError && ["P2002", "P2034"].includes(error.code)) {
+      return NextResponse.json({ error: "受付の処理が混み合っています。同じ画面で再試行してください。" }, { status: 503 });
     }
-    if (e instanceof Prisma.PrismaClientKnownRequestError && ["P2002", "P2034"].includes(e.code)) {
-      return NextResponse.json({ error: "受付番号を発番できませんでした。管理者に連絡してください。" }, { status: 503 });
-    }
-    console.error(e);
-    return NextResponse.json({ error: "受付処理に失敗しました" }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: "受付処理に失敗しました。同じ画面で再試行してください。" }, { status: 500 });
   }
 }

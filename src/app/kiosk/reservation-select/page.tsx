@@ -121,7 +121,7 @@ export default function ReservationSelectPage() {
       {/* ヘッダー */}
       <div className="flex items-center px-8 gap-6 flex-shrink-0" style={{ background: "#1a3a6b", height: 96 }}>
         <button
-          onPointerDown={() => router.push("/kiosk/phone")}
+          onClick={() => router.push("/kiosk/phone")}
           className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
           style={{ height: 60, width: 240, fontSize: 24 }}
         >
@@ -160,8 +160,8 @@ export default function ReservationSelectPage() {
               該当する予約がすべて受付済みです
             </div>
             <button
-              onPointerDown={skipReservation}
-              className="flex items-center justify-center rounded-2xl active:scale-[0.98] transition-transform"
+              onClick={skipReservation}
+              className="flex items-center justify-center rounded-2xl active:scale-[0.98] transition-transform touch-pan-y"
               style={{
                 width: 600, height: 120,
                 background: "linear-gradient(180deg,#3B82F6,#2563EB)",
@@ -187,8 +187,8 @@ export default function ReservationSelectPage() {
             {reservations.map((r) => (
               <button
                 key={r.id}
-                onPointerDown={() => selectReservation(r)}
-                className="w-full flex items-center rounded-2xl active:scale-[0.98] transition-transform"
+                onClick={() => selectReservation(r)}
+                className="w-full flex items-center rounded-2xl active:scale-[0.98] transition-transform touch-pan-y"
                 style={{
                   maxWidth: 1200,
                   minHeight: 180,
@@ -259,8 +259,8 @@ export default function ReservationSelectPage() {
 
             {/* 予約なしで受付ボタン */}
             <button
-              onPointerDown={skipReservation}
-              className="w-full flex items-center justify-center rounded-2xl active:scale-[0.98] transition-transform"
+              onClick={skipReservation}
+              className="w-full flex items-center justify-center rounded-2xl active:scale-[0.98] transition-transform touch-pan-y"
               style={{
                 maxWidth: 1200,
                 minHeight: 100,

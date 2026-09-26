@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, getOrCreateSetting } from "@/lib/prisma";
+import { getJSTDayRange, isValidJSTDate } from "@/lib/jstDate";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +8,9 @@ export async function GET(request: NextRequest) {
   const date = request.nextUrl.searchParams.get("date");
   const centerIdStr = request.nextUrl.searchParams.get("centerId");
   const centerId = centerIdStr ? parseInt(centerIdStr) : null;
+  if (date && !isValidJSTDate(date)) {
+    return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
+  }
 
   try {
     // センター設定を優先、なければ AppSetting フォールバック
@@ -49,9 +53,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (date) {
-      // Reservation スキーマは reservationDate (DateTime)。文字列 YYYY-MM-DD を UTC 0:00 に変換
-      const reservationDate = new Date(date + "T00:00:00Z");
-      const where: Record<string, unknown> = { reservationDate, status: { not: "cancelled" } };
+      const { start, end } = getJSTDayRange(date);
+      const where: Record<string, unknown> = { reservationDate: { gte: start, lte: end }, status: { not: "cancelled" } };
       if (centerId) where.centerId = centerId;
 
       // ※ プライバシー保護: 他ドライバーの会社名・車番・氏名は返さない。
@@ -66,8 +69,8 @@ export async function GET(request: NextRequest) {
       ]);
 
       // 曜日判定
-      const dateObj = new Date(date + "T00:00:00");
-      const dow = dateObj.getDay(); // 0=日, 6=土
+      const dateObj = new Date(date + "T00:00:00Z");
+      const dow = dateObj.getUTCDay(); // 日付だけの曜日判定。サーバーのタイムゾーンに依存させない。
 
       let closedInfo: { name: string } | null = null;
       let effectiveCloseTime = setting.closeTime as string;
@@ -84,7 +87,7 @@ export async function GET(request: NextRequest) {
 
       // 3. 土曜ルール
       if (!closedInfo && dow === 6) {
-        const weekOfMonth = Math.ceil(dateObj.getDate() / 7);
+        const weekOfMonth = Math.ceil(dateObj.getUTCDate() / 7);
         const isOdd = weekOfMonth % 2 === 1; // 第1・3・5
         if (!isOdd && setting.saturdayEvenClosed) {
           // 第2・4土曜は休業

@@ -223,6 +223,8 @@ model PlateAlphabet {
 // ─── バース予約 (driver による booking 統合) ────────────────
 model Reservation {
   id              Int      @id @default(autoincrement())
+  requestId       String?  @unique @db.VarChar(64) // 同じ予約操作の再送を識別する
+  requestHash     String?  @db.VarChar(64)
   centerId        Int
   // driver 由来 (berth-app から統合)。NULL = 管理画面からの代理登録 or 旧データ
   driverId        Int?
@@ -255,6 +257,8 @@ model Reservation {
 // ─── 受付記録 ──────────────────────────────────────────────
 model Reception {
   id            Int      @id @default(autoincrement())
+  requestId     String?  @unique @db.VarChar(64) // 同じ受付操作の再送を識別する
+  requestHash   String?  @db.VarChar(64)
   centerId      Int
   centerDailyNo Int // その日のセンター内連番
   receptionNo   String? @unique @db.VarChar(16) // 88 + センター4桁 + JST年月日6桁 + 連番4桁。導入前はNULL

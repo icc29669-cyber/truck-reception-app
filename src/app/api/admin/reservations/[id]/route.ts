@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getJSTDayRange, isValidJSTDate } from "@/lib/jstDate";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export async function PUT(
     if (startTime && endTime && startTime >= endTime) {
       return NextResponse.json({ error: "終了時刻は開始時刻より後にしてください" }, { status: 400 });
     }
-    if (reservationDate !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(reservationDate)) {
+    if (reservationDate !== undefined && !isValidJSTDate(reservationDate)) {
       return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
     }
     const validStatuses = ["pending", "checked_in", "completed", "cancelled", "no_show"];
@@ -75,7 +76,7 @@ export async function PUT(
         ...(vehicleNumber !== undefined && { vehicleNumber }),
         ...(maxLoad !== undefined && { maxLoad }),
         ...(reservationDate !== undefined && {
-          reservationDate: new Date(reservationDate + "T00:00:00+09:00"),
+          reservationDate: getJSTDayRange(reservationDate).start,
         }),
         ...(startTime !== undefined && { startTime }),
         ...(endTime !== undefined && { endTime }),

@@ -20,3 +20,10 @@ export function getJSTDayRange(dateStr?: string): { start: Date; end: Date } {
     end: new Date(today + "T23:59:59.999+09:00"),
   };
 }
+
+/** YYYY-MM-DD の実在する日付かを検証する（2月30日等の自動繰り上がりを拒否）。 */
+export function isValidJSTDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value + "T00:00:00+09:00");
+  return !Number.isNaN(date.getTime()) && getJSTToday(date) === value;
+}

@@ -93,33 +93,38 @@ export default function PhonePage() {
   /* ── 送信 ── */
   async function submit(p: string) {
     const session = getKioskSession();
+    // 確認だけなら、選んだ人物・車両・予約をそのまま維持する。
+    if (fromFinal && p === session.phone) {
+      router.push("/kiosk/final-confirm");
+      return;
+    }
     setLoading(true);
     setError("");
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
       const [result, reservations] = await Promise.all([
         lookupByPhone(p, session.centerId, controller.signal),
-        fromFinal ? Promise.resolve([]) : lookupReservation(p, session.centerId, session.centerName, controller.signal),
+        lookupReservation(p, session.centerId, session.centerName, controller.signal),
       ]);
-      clearTimeout(timeoutId);
       // 受付済み・完了済みを除いた有効な予約のみ
       const activeReservations = reservations.filter(
-        (r: { status: string }) => r.status !== "checked_in" && r.status !== "completed"
+        (r: { status: string }) => !["checked_in", "completed", "cancelled", "no_show"].includes(r.status)
       );
       setKioskSession({
         phone: p,
-        driverInput: { ...session.driverInput, phone: p },
+        driverInput: p === session.phone ? { ...session.driverInput, phone: p }
+          : { companyName: "", driverName: "", maxLoad: "", phone: p },
+        plate: p === session.phone ? session.plate : { region: "", classNum: "", hira: "", number: "" },
+        receptionResult: null,
         driverCandidates: result.drivers,
         vehicleCandidates: result.vehicles,
         selectedDriver: null,
         selectedVehicle: null,
-        reservationCandidates: reservations,
+        reservationCandidates: activeReservations,
         selectedReservation: null,
       });
-      if (fromFinal) {
-        router.push("/kiosk/final-confirm");
-      } else if (activeReservations.length > 0) {
+      if (activeReservations.length > 0) {
         router.push("/kiosk/reservation-select");
       } else {
         // 1件でも選択画面を表示する（自動スキップしない）
@@ -128,6 +133,8 @@ export default function PhonePage() {
     } catch {
       setError("通信エラーが発生しました。もう一度「OK」ボタンを押してやり直してください。");
       setLoading(false);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

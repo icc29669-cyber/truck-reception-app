@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/driverAuth";
 import { checkAdminAuth } from "@/lib/adminAuth";
 import { Prisma } from "@prisma/client";
-import { getTodayJST } from "@/lib/fiscalYear";
+import { getJSTDayRange, getJSTToday, isValidJSTDate } from "@/lib/jstDate";
+import { parseVehicleNumber } from "@/lib/vehiclePlate";
+import { hashRequest, isValidRequestId } from "@/lib/idempotency";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +35,9 @@ export async function GET(request: NextRequest) {
   // フロントエンドは r.date (YYYY-MM-DD) を期待しているため reservationDate から派生
   const response = reservations.map((r) => ({
     ...r,
-    date: r.reservationDate.toISOString().slice(0, 10),
+    requestId: undefined,
+    requestHash: undefined,
+    date: getJSTToday(r.reservationDate),
   }));
 
   return NextResponse.json(response);
@@ -45,13 +49,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "未認証" }, { status: 401 });
   }
 
-  const { date, startTime, endTime, vehicleNumber, maxLoad, companyName, driverName, centerId } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "入力内容が不正です" }, { status: 400 });
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "入力内容が不正です" }, { status: 400 });
+  }
+  const { date, startTime, endTime, centerId, requestId } = body;
+  const { vehicleNumber, maxLoad = "", companyName = "", driverName = "" } = body;
 
   // 入力バリデーション
-  if (!date || !startTime || !endTime || !vehicleNumber) {
+  if (![date, startTime, endTime, vehicleNumber].every((v) => typeof v === "string" && v.trim()) ||
+      ![maxLoad, companyName, driverName].every((v) => typeof v === "string")) {
     return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(new Date(date).getTime())) {
+  if (!isValidJSTDate(date)) {
     return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
   }
   const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -60,11 +75,6 @@ export async function POST(request: NextRequest) {
   }
   if (startTime >= endTime) {
     return NextResponse.json({ error: "開始時刻は終了時刻より前である必要があります" }, { status: 400 });
-  }
-  // 過去日付チェック（JSTベース）
-  const jstToday = getTodayJST();
-  if (date < jstToday) {
-    return NextResponse.json({ error: "過去の日付には予約できません" }, { status: 400 });
   }
   // 文字数制限
   if (vehicleNumber.length > 50) {
@@ -79,81 +89,104 @@ export async function POST(request: NextRequest) {
   if (maxLoad && (isNaN(Number(maxLoad)) || Number(maxLoad) <= 0)) {
     return NextResponse.json({ error: "最大積載量は正の数値で入力してください" }, { status: 400 });
   }
+  if (!Number.isInteger(centerId) || centerId <= 0) {
+    return NextResponse.json({ error: "センターの指定が必要です" }, { status: 400 });
+  }
+  if (requestId !== undefined && !isValidRequestId(requestId)) {
+    return NextResponse.json({ error: "送信識別番号が不正です" }, { status: 400 });
+  }
+  // 連絡先やプロフィールは後から変わるため、同一送信の判定には入力内容と本人IDだけを使う。
+  const input = {
+    driverId: session.id, date, startTime, endTime, centerId,
+    vehicleNumber: vehicleNumber.trim(), maxLoad: maxLoad.trim(),
+    companyName: companyName.trim(), driverName: driverName.trim(),
+  };
+  const requestHash = requestId ? hashRequest(input) : null;
+  const { start: reservationDate, end: dayEnd } = getJSTDayRange(date);
+  const dayWhere = { gte: reservationDate, lte: dayEnd };
+  const plate = parseVehicleNumber(input.vehicleNumber);
 
-  // センター別の最大受付数を取得
-  // 本スキーマでは Center に maxReservationsPerSlot が無いため AppSetting を使う。
-  // centerId 指定時は存在確認のみ行う。
-  let maxCapacity = 3;
-  if (centerId) {
+  function replay(reservation: ReservationWithDetails) {
+    if (reservation.driverId !== session!.id || reservation.requestHash !== requestHash) {
+      return NextResponse.json({ error: "同じ送信識別番号で異なる予約は登録できません" }, { status: 409 });
+    }
+    return reservationResponse(reservation, 200);
+  }
+
+  try {
+    // 応答が届かなかった再送は、日付が変わった後も保存済みの同じ予約を返す。
+    if (requestId) {
+      const existing = await prisma.reservation.findUnique({ where: { requestId }, include: reservationInclude });
+      if (existing) return replay(existing);
+    }
+    if (date < getJSTToday()) {
+      return NextResponse.json({ error: "過去の日付には予約できません" }, { status: 400 });
+    }
     const center = await prisma.center.findUnique({ where: { id: centerId } });
     if (!center) {
       return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
     }
-  }
-  const setting = await prisma.appSetting.findFirst();
-  if (setting) maxCapacity = setting.maxReservationsPerSlot;
+    const setting = await prisma.appSetting.findFirst();
+    const maxCapacity = setting?.maxReservationsPerSlot ?? 3;
 
-  // 入力の date (YYYY-MM-DD) を DateTime に変換して Prisma に渡す
-  const reservationDate = new Date(date + "T00:00:00Z");
+    // 並行予約の件数競合はトランザクションをやり直し、確定済み件数で判断する。
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const result = await prisma.$transaction(async (tx) => {
+          if (requestId) {
+            const existing = await tx.reservation.findUnique({ where: { requestId }, include: reservationInclude });
+            if (existing) return { reservation: existing, reused: true };
+          }
+          const duplicate = await tx.reservation.findFirst({
+            where: {
+              driverId: session.id, reservationDate: dayWhere, startTime, endTime,
+              status: { not: "cancelled" }, centerId,
+            },
+          });
+          if (duplicate) throw new Error("DUPLICATE");
 
-  const where: Prisma.ReservationWhereInput = {
-    reservationDate,
-    status: { not: "cancelled" },
-    OR: [{ startTime: { lt: endTime }, endTime: { gt: startTime } }],
-    ...(centerId ? { centerId } : {}),
-  };
-
-  try {
-    // Serializableトランザクションで同時予約の競合を完全防止
-    const reservation = await prisma.$transaction(async (tx) => {
-      // 重複予約チェック（同一ドライバー・同日・同時間帯）
-      const duplicate = await tx.reservation.findFirst({
-        where: {
-          driverId: session.id,
-          reservationDate,
-          startTime,
-          endTime,
-          status: { not: "cancelled" },
-          ...(centerId ? { centerId } : {}),
-        },
-      });
-      if (duplicate) {
-        throw new Error("DUPLICATE");
+          const count = await tx.reservation.count({ where: {
+            reservationDate: dayWhere, status: { not: "cancelled" }, centerId,
+            startTime: { lt: endTime }, endTime: { gt: startTime },
+          } });
+          if (count >= maxCapacity) throw new Error("FULL");
+          const driver = await tx.driver.findUnique({
+            where: { id: session.id }, select: { phone: true, name: true, companyName: true },
+          });
+          if (!driver) throw new Error("DRIVER_NOT_FOUND");
+          const reservation = await tx.reservation.create({
+            data: {
+              driverId: session.id, centerId, reservationDate, startTime, endTime,
+              vehicleNumber: input.vehicleNumber, maxLoad: input.maxLoad,
+              companyName: input.companyName || driver.companyName,
+              driverName: input.driverName || driver.name,
+              phone: driver.phone,
+              plateRegion: plate.region, plateClassNum: plate.classNum,
+              plateHira: plate.hira, plateNumber: plate.number,
+              requestId: requestId ?? null, requestHash,
+            },
+            include: reservationInclude,
+          });
+          return { reservation, reused: false };
+        }, {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          maxWait: 5000,
+          timeout: 10000,
+        });
+        return result.reused ? replay(result.reservation) : reservationResponse(result.reservation, 201);
+      } catch (e) {
+        const conflict = e instanceof Prisma.PrismaClientKnownRequestError &&
+          (e.code === "P2002" || e.code === "P2034");
+        if (!conflict) throw e;
+        // 同時送信の片方が既に確定していれば、同じ結果で応答する。
+        if (requestId) {
+          const existing = await prisma.reservation.findUnique({ where: { requestId }, include: reservationInclude });
+          if (existing) return replay(existing);
+        }
+        if (attempt === 2) throw e;
       }
-
-      const count = await tx.reservation.count({ where });
-      if (count >= maxCapacity) {
-        throw new Error("FULL");
-      }
-      if (!centerId) {
-        throw new Error("CENTER_REQUIRED");
-      }
-      return tx.reservation.create({
-        data: {
-          driverId: session.id,
-          reservationDate,
-          startTime,
-          endTime,
-          vehicleNumber,
-          maxLoad: maxLoad || "",
-          companyName: companyName || "",
-          driverName: driverName || "",
-          centerId,
-        },
-        include: { driver: true, center: true },
-      });
-    }, {
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      maxWait: 5000,
-      timeout: 10000,
-    });
-
-    // フロントエンド互換のため date (YYYY-MM-DD) を派生して付与
-    const responseBody = {
-      ...reservation,
-      date: reservation.reservationDate.toISOString().slice(0, 10),
-    };
-    return NextResponse.json(responseBody, { status: 201 });
+    }
+    throw new Error("RETRY_EXHAUSTED");
   } catch (e) {
     if (e instanceof Error && e.message === "DUPLICATE") {
       return NextResponse.json({ error: "この予約は既に登録されています" }, { status: 409 });
@@ -161,16 +194,32 @@ export async function POST(request: NextRequest) {
     if (e instanceof Error && e.message === "FULL") {
       return NextResponse.json({ error: "この時間帯は満車です" }, { status: 409 });
     }
-    if (e instanceof Error && e.message === "CENTER_REQUIRED") {
-      return NextResponse.json({ error: "センターの指定が必要です" }, { status: 400 });
+    if (e instanceof Error && e.message === "DRIVER_NOT_FOUND") {
+      return NextResponse.json({ error: "未認証" }, { status: 401 });
     }
-    // Serializable競合（同時予約）の場合は満車と同じ扱い
+    // 競合だけでは満車と断定しない。同じ送信識別番号で再試行できる。
     if (
       e instanceof Prisma.PrismaClientKnownRequestError &&
       e.code === "P2034"
     ) {
-      return NextResponse.json({ error: "この時間帯は満車です" }, { status: 409 });
+      return NextResponse.json({ error: "予約が混み合っています。もう一度お試しください" }, { status: 409 });
     }
     return NextResponse.json({ error: "予約に失敗しました" }, { status: 500 });
   }
+}
+
+const reservationInclude = {
+  driver: { select: { id: true, name: true, companyName: true, phone: true } },
+  center: { select: { id: true, code: true, name: true } },
+} as const;
+
+type ReservationWithDetails = Prisma.ReservationGetPayload<{ include: typeof reservationInclude }>;
+
+function reservationResponse(reservation: ReservationWithDetails, status: number) {
+  return NextResponse.json({
+    ...reservation,
+    requestId: undefined,
+    requestHash: undefined,
+    date: getJSTToday(reservation.reservationDate),
+  }, { status });
 }

@@ -66,7 +66,7 @@ export default function VehicleSelectPage() {
 
         {/* 戻るボタン */}
         <button
-          onPointerDown={() => router.push("/kiosk/person")}
+          onClick={() => router.push("/kiosk/person")}
           className="flex items-center justify-center font-bold rounded-2xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0"
           style={{ height: 90, width: 280, fontSize: 30 }}
         >
@@ -80,7 +80,7 @@ export default function VehicleSelectPage() {
           <div className="flex flex-col items-center gap-8 mt-20">
             <p className="text-4xl text-gray-500">車両が見つかりませんでした</p>
             <button
-              onPointerDown={notFound}
+              onClick={notFound}
               className="flex items-center justify-center min-h-[100px] px-12 rounded-2xl bg-[#0D9488] text-white text-3xl font-bold active:bg-teal-700"
             >
               新しい車両を入力する
@@ -105,7 +105,7 @@ export default function VehicleSelectPage() {
               >
                 {/* プレート表示 + タップで選択 */}
                 <button
-                  onPointerDown={() => selectVehicle(v)}
+                  onClick={() => selectVehicle(v)}
                   className="flex flex-col items-center gap-3 w-full flex-1 active:bg-green-50 rounded-2xl p-3"
                 >
                   <PlateDisplay plate={v.plate} size="lg" />
@@ -118,7 +118,7 @@ export default function VehicleSelectPage() {
 
                 {/* 削除ボタン */}
                 <button
-                  onPointerDown={() => deleteVehicle(v.id)}
+                  onClick={() => deleteVehicle(v.id)}
                   className="w-full flex items-center justify-center rounded-xl border-2 border-red-500 bg-red-500 text-white text-3xl font-bold active:bg-red-600"
                   style={{ height: 80 }}
                 >
@@ -133,7 +133,7 @@ export default function VehicleSelectPage() {
       {/* 表示されないお客様ボタン（フッター） */}
       <div className="flex-shrink-0 px-10 pb-6">
         <button
-          onPointerDown={notFound}
+          onClick={notFound}
           className="w-full flex items-center justify-center font-bold rounded-2xl border-3 border-orange-400 bg-orange-500 text-white text-4xl active:bg-orange-600 shadow-lg"
           style={{ height: 100 }}
         >

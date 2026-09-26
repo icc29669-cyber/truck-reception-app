@@ -1,7 +1,8 @@
 ﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getKioskSession, setKioskSession, clearKioskSession } from "@/lib/kioskState";
+import { getKioskSession, setKioskSession, clearKioskSession, RECEPTION_REQUEST_KEY } from "@/lib/kioskState";
+import { getPendingRequestId } from "@/lib/pendingRequest";
 import { registerReception } from "@/lib/api";
 import { formatPlate } from "@/types/reception";
 import PlateDisplay, { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
@@ -64,8 +65,8 @@ function EditablePlate({ plate, onEdit }: {
 
   const editBtn = (onClick: () => void) => (
     <button
-      onPointerDown={(e) => { e.stopPropagation(); onClick(); }}
-      className="select-none touch-none"
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className="select-none touch-manipulation"
       style={{
         position: "absolute" as const, bottom: 4, right: 4,
         height: 26, fontSize: 11, fontWeight: 700,
@@ -90,7 +91,7 @@ function EditablePlate({ plate, onEdit }: {
       <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
         {/* 地名 */}
         <div
-          onPointerDown={() => onEdit("region")}
+          onClick={() => onEdit("region")}
           style={{
             position: "relative", border: secBorder, borderRadius: 10,
             padding: "4px 14px 22px", cursor: "pointer",
@@ -104,7 +105,7 @@ function EditablePlate({ plate, onEdit }: {
         </div>
         {/* 分類番号 */}
         <div
-          onPointerDown={() => onEdit("classNum")}
+          onClick={() => onEdit("classNum")}
           style={{
             position: "relative", border: secBorder, borderRadius: 10,
             padding: "4px 14px 22px", cursor: "pointer",
@@ -122,7 +123,7 @@ function EditablePlate({ plate, onEdit }: {
       <div style={{ flex: 1, display: "flex", gap: 10 }}>
         {/* ひらがな */}
         <div
-          onPointerDown={() => onEdit("hira")}
+          onClick={() => onEdit("hira")}
           style={{
             position: "relative", border: secBorder, borderRadius: 10,
             width: 72, flexShrink: 0, cursor: "pointer",
@@ -136,7 +137,7 @@ function EditablePlate({ plate, onEdit }: {
         </div>
         {/* 4桁番号 */}
         <div
-          onPointerDown={() => onEdit("number")}
+          onClick={() => onEdit("number")}
           style={{
             position: "relative", border: secBorder, borderRadius: 10,
             flex: 1, cursor: "pointer", overflow: "hidden",
@@ -260,8 +261,8 @@ function FieldRow({ label, value, onEdit, tall = false }: {
       </span>
       {/* 修正ボタン */}
       <button
-        onPointerDown={onEdit}
-        className="select-none touch-none"
+        onClick={onEdit}
+        className="select-none touch-manipulation"
         style={{
           width: 140, height: 56, fontSize: 22, fontWeight: 700,
           background: "linear-gradient(180deg, #3B82F6, #2563EB)",
@@ -292,6 +293,10 @@ export default function FinalConfirmPage() {
     if (initRef.current) return;
     initRef.current = true;
     const s = getKioskSession();
+    if (s.receptionResult) {
+      router.replace("/kiosk/complete");
+      return;
+    }
     if (!s.phone || !s.centerId) {
       router.replace("/kiosk");
       return;
@@ -307,20 +312,23 @@ export default function FinalConfirmPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await registerReception({
+      const payload = {
         phone: sessionData.phone || sessionData.driverInput.phone,
         centerId: sessionData.centerId,
         plate: sessionData.plate,
         driverInput: sessionData.driverInput,
         reservationId: sessionData.selectedReservation?.id,
         reservationSource: sessionData.selectedReservation?.source,
-      });
+      };
+      const requestId = getPendingRequestId(RECEPTION_REQUEST_KEY, payload);
+      const result = await registerReception({ ...payload, requestId });
       setKioskSession({ receptionResult: result });
+      // 次の来場でclearKioskSessionするまで送信IDを保持し、結果保存後の再読込も回復できる。
       router.push("/kiosk/complete");
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       // ユーザーフレンドリーなメッセージに変換
-      let friendly = "受付処理中にエラーが発生しました。もう一度お試しください。";
+      let friendly = raw || "受付処理中にエラーが発生しました。もう一度お試しください。";
       if (raw.includes("fetch") || raw.includes("network") || raw.includes("Network")) {
         friendly = "通信エラーが発生しました。ネットワーク接続を確認して再試行してください。";
       } else if (raw.includes("timeout") || raw.includes("Timeout")) {
@@ -354,15 +362,15 @@ export default function FinalConfirmPage() {
         <div style={{ display: "flex", gap: 12 }}>
           <button
             type="button"
-            onPointerDown={() => { clearKioskSession(); router.push("/kiosk"); }}
-            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
+            onClick={() => { clearKioskSession(); router.push("/kiosk"); }}
+            className="flex items-center justify-center font-bold rounded-xl border-2 border-white text-white active:bg-blue-800 flex-shrink-0 select-none touch-manipulation"
             style={{ height: 60, width: 180, fontSize: 22, lineHeight: 1.3, textAlign: "center" }}
           >🔄 最初から</button>
           {/* 車両選択に戻る — 候補があれば select 画面、なければ地名入力から */}
           <button
             type="button"
-            onPointerDown={() => router.push("/kiosk/vehicle?back=true")}
-            className="flex items-center justify-center font-bold rounded-xl border-2 border-white/60 text-white active:bg-blue-800 flex-shrink-0 select-none touch-none"
+            onClick={() => router.push("/kiosk/vehicle?back=true")}
+            className="flex items-center justify-center font-bold rounded-xl border-2 border-white/60 text-white active:bg-blue-800 flex-shrink-0 select-none touch-manipulation"
             style={{ height: 60, width: 220, fontSize: 22, lineHeight: 1.3, textAlign: "center" }}
           >◀ 車両選択へ戻る</button>
         </div>
@@ -438,8 +446,8 @@ export default function FinalConfirmPage() {
                 ] as const).map(({ label, value, section }) => (
                   <button
                     key={section}
-                    onPointerDown={() => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
-                    className="select-none touch-none"
+                    onClick={() => router.push(`/kiosk/vehicle?section=${section}&from=final-confirm`)}
+                    className="select-none touch-manipulation"
                     style={{
                       display: "flex", alignItems: "center",
                       background: "#F1F5F9", borderRadius: 14,
@@ -493,8 +501,8 @@ export default function FinalConfirmPage() {
                 <p style={{ fontSize: 24, fontWeight: 700, color: "#DC2626", margin: 0 }}>⚠ {error}</p>
               </div>
               <button
-                onPointerDown={handleRegister}
-                className="select-none touch-none"
+                onClick={handleRegister}
+                className="select-none touch-manipulation"
                 style={{
                   flexShrink: 0, width: 180, height: 64, fontSize: 24, fontWeight: 800,
                   background: "linear-gradient(180deg, #EF4444, #DC2626)",
@@ -569,9 +577,9 @@ export default function FinalConfirmPage() {
 
           {/* 受付するボタン */}
           <button
-            onPointerDown={() => { if (!loading && isComplete) handleRegister(); }}
+            onClick={() => { if (!loading && isComplete) handleRegister(); }}
             disabled={loading || !isComplete}
-            className="flex flex-col items-center justify-center select-none touch-none"
+            className="flex flex-col items-center justify-center select-none touch-manipulation"
             style={{
               flex: selectedReservation ? 1 : undefined,
               alignSelf: selectedReservation ? undefined : "stretch",
