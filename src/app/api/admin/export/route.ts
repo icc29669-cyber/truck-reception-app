@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getJSTDayRange, getJSTToday } from "@/lib/jstDate";
 
 export const dynamic = "force-dynamic";
 
@@ -33,29 +34,15 @@ export async function GET(req: NextRequest) {
   const from = req.nextUrl.searchParams.get("from");
   const to = req.nextUrl.searchParams.get("to");
 
-  // Parse dates as local midnight to avoid UTC offset issues
-  let fromDate: Date;
-  let toDate: Date;
-  if (from) {
-    const [y, m, d] = from.split("-").map(Number);
-    fromDate = new Date(y, m - 1, d, 0, 0, 0, 0);
-  } else {
-    const now = new Date();
-    fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-  }
-  if (to) {
-    const [y, m, d] = to.split("-").map(Number);
-    toDate = new Date(y, m - 1, d + 1, 0, 0, 0, 0);
-  } else {
-    const now = new Date();
-    toDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
-  }
+  const today = getJSTToday();
+  const fromDate = getJSTDayRange(from || today).start;
+  const toDate = getJSTDayRange(to || today).end;
 
   try {
     const receptions = await prisma.reception.findMany({
       where: {
         ...(centerId ? { centerId } : {}),
-        arrivedAt: { gte: fromDate, lt: toDate },
+        arrivedAt: { gte: fromDate, lte: toDate },
       },
       include: {
         center: { select: { name: true } },
@@ -66,6 +53,7 @@ export async function GET(req: NextRequest) {
 
     const rows = receptions.map((r) => ({
       受付ID: r.id,
+      受付番号: r.receptionNo ?? "",
       センター受付番号: r.centerDailyNo,
       センター名: r.center.name,
       受付日時: r.arrivedAt.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }),
@@ -85,9 +73,7 @@ export async function GET(req: NextRequest) {
     }));
 
     const csv = toCSV(rows as Record<string, string | number>[]);
-    const fmtLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    const endDisplay = new Date(toDate); endDisplay.setDate(endDisplay.getDate() - 1);
-    const filename = `reception_${from || fmtLocal(fromDate)}_${to || fmtLocal(endDisplay)}.csv`;
+    const filename = `reception_${from || today}_${to || today}.csv`;
 
     return new NextResponse(csv, {
       headers: {

@@ -3,9 +3,8 @@
  * サーバーのタイムゾーンに依存せず、常にJST基準で日付を扱う
  */
 
-/** 現在のJST日付を "YYYY-MM-DD" 形式で返す */
-export function getJSTToday(): string {
-  const now = new Date();
+/** 指定日時（省略時は現在）のJST日付を "YYYY-MM-DD" 形式で返す */
+export function getJSTToday(now: Date = new Date()): string {
   const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   const yyyy = jst.getUTCFullYear();
   const mm = String(jst.getUTCMonth() + 1).padStart(2, "0");

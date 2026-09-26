@@ -257,6 +257,7 @@ model Reception {
   id            Int      @id @default(autoincrement())
   centerId      Int
   centerDailyNo Int // その日のセンター内連番
+  receptionNo   String? @unique @db.VarChar(16) // 88 + センター4桁 + JST年月日6桁 + 連番4桁。導入前はNULL
   // race防止キー "YYYY-MM-DD_<centerId>_<centerDailyNo>" (JST日付)。新規行のみ付与、既存行は NULL 許容。
   dailyKey      String?
   arrivedAt     DateTime @default(now())

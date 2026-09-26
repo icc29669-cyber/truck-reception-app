@@ -76,7 +76,7 @@ function mockRegister(params: {
     centerDailyNo: 42,
     arrivedAt: new Date().toISOString(),
     waitingCount: 15,
-    receptionNo: "R26-3100-042",
+    receptionNo: "8831002609260042",
     fiscalYear: "26",
     centerCode: "3100",
     driver: {

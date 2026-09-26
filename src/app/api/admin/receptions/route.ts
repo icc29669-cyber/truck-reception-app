@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getJSTDayRange } from "@/lib/jstDate";
 
 export const dynamic = "force-dynamic";
 
@@ -7,24 +8,13 @@ export async function GET(req: NextRequest) {
   const centerId = Number(req.nextUrl.searchParams.get("centerId") ?? "0") || undefined;
   const date = req.nextUrl.searchParams.get("date"); // YYYY-MM-DD
 
-  // Parse date as local midnight to avoid UTC offset issues
-  let dayStart: Date;
-  let dayEnd: Date;
-  if (date) {
-    const [y, m, d] = date.split("-").map(Number);
-    dayStart = new Date(y, m - 1, d, 0, 0, 0, 0);
-    dayEnd = new Date(y, m - 1, d + 1, 0, 0, 0, 0);
-  } else {
-    const now = new Date();
-    dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
-  }
+  const { start: dayStart, end: dayEnd } = getJSTDayRange(date || undefined);
 
   try {
     const receptions = await prisma.reception.findMany({
       where: {
         ...(centerId ? { centerId } : {}),
-        arrivedAt: { gte: dayStart, lt: dayEnd },
+        arrivedAt: { gte: dayStart, lte: dayEnd },
       },
       include: {
         center: { select: { name: true } },
@@ -37,6 +27,7 @@ export async function GET(req: NextRequest) {
       receptions.map((r) => ({
         id: r.id,
         centerDailyNo: r.centerDailyNo,
+        receptionNo: r.receptionNo,
         arrivedAt: r.arrivedAt.toISOString(),
         centerName: r.center.name,
         companyName: r.companyName,

@@ -238,13 +238,17 @@ export default function CompletePage() {
             boxShadow: "0 12px 36px rgba(26,58,107,0.14)",
           }}>
             <span style={{ fontSize: 15, color: "#5a5852", letterSpacing: "0.32em", fontWeight: 800 }}>
-              受 付 番 号
+              呼 出 番 号
             </span>
             <span style={{
               fontSize: 120, fontWeight: 900, color: "#1a3a6b",
               fontVariantNumeric: "tabular-nums", letterSpacing: "0.04em", lineHeight: 1,
             }}>
               {String(result.centerDailyNo).padStart(3, "0")}
+            </span>
+            <span style={{ fontSize: 16, color: "#5a5852", marginTop: 12 }}>受付番号</span>
+            <span style={{ fontSize: 24, fontWeight: 800, color: "#1a3a6b", fontFamily: "monospace" }}>
+              {result.receptionNo}
             </span>
           </div>
         )}

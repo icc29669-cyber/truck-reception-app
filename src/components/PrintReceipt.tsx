@@ -63,13 +63,14 @@ export default function PrintReceipt({ data }: Props) {
 
       {/* 受付番号 */}
       <div style={{ textAlign: "center", margin: "8px 0" }}>
-        <div style={{ fontSize: "11px" }}>受付番号</div>
+        <div style={{ fontSize: "11px" }}>呼出番号</div>
         <div style={{ fontSize: "42px", fontWeight: "bold", lineHeight: 1.1 }}>
           {String(data.centerDailyNo).padStart(3, "0")}
         </div>
         {data.receptionNo && (
-          <div style={{ fontSize: "9px", color: "#555", fontFamily: "ui-monospace, monospace", marginTop: "2px" }}>
-            {data.receptionNo}
+          <div style={{ fontSize: "12px", color: "#000", fontFamily: "ui-monospace, monospace", marginTop: "6px" }}>
+            <div>受付番号</div>
+            <strong>{data.receptionNo}</strong>
           </div>
         )}
       </div>

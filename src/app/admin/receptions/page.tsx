@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { getJSTToday } from "@/lib/jstDate";
 
 type Reception = {
   id: number;
   centerDailyNo: number;
+  receptionNo: string | null;
   arrivedAt: string;
   centerName: string;
   companyName: string;
@@ -25,7 +27,7 @@ function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
 }
 function fmtDate(d: Date) {
-  return d.toISOString().slice(0, 10);
+  return getJSTToday(d);
 }
 
 export default function AdminPage() {
@@ -144,7 +146,7 @@ export default function AdminPage() {
         const q = search.toLowerCase();
         return r.companyName.toLowerCase().includes(q) || r.driverName.toLowerCase().includes(q) ||
           r.phone.includes(q) || r.vehicleNumber.toLowerCase().includes(q) ||
-          r.plateNumber.includes(q) || r.plateRegion.includes(q);
+          r.plateNumber.includes(q) || r.plateRegion.includes(q) || r.receptionNo?.includes(q);
       })
     : receptions;
 
@@ -189,7 +191,7 @@ export default function AdminPage() {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-gray-600">検索</label>
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                  placeholder="会社名 / ドライバー / 電話番号 / 車番"
+                  placeholder="会社名 / ドライバー / 電話番号 / 車番 / 受付番号"
                   className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
                   style={{ minWidth: 280 }} />
               </div>
@@ -229,7 +231,7 @@ export default function AdminPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        {["受付No", "時刻", "センター", "運送会社", "ドライバー名", "電話番号", "ナンバープレート", "積載量(kg)", "予約"].map((h) => (
+                        {["呼出番号 / 受付番号", "時刻", "センター", "運送会社", "ドライバー名", "電話番号", "ナンバープレート", "積載量(kg)", "予約"].map((h) => (
                           <th key={h} className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -238,7 +240,10 @@ export default function AdminPage() {
                       {filtered.map((r, i) => (
                         <tr key={r.id} onClick={() => openEdit(r)}
                           className={`hover:bg-blue-50 transition-colors cursor-pointer ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}>
-                          <td className="px-4 py-3 font-black text-blue-600 text-base">{r.centerDailyNo}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="font-black text-blue-600 text-base">{r.centerDailyNo}</div>
+                            <div className="font-mono text-xs text-gray-600">{r.receptionNo ?? "—"}</div>
+                          </td>
                           <td className="px-4 py-3 text-gray-700 font-mono text-sm whitespace-nowrap">{fmtTime(r.arrivedAt)}</td>
                           <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.centerName}</td>
                           <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{r.companyName}</td>
@@ -288,7 +293,7 @@ export default function AdminPage() {
                   className="px-6 py-2 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors flex items-center gap-2">
                   CSVダウンロード
                 </button>
-                <p className="text-sm text-gray-500">※ BOM付きUTF-8形式（Excelで直接開けます）</p>
+                <p className="text-sm text-gray-500">※ UTF-8形式。Excelでは16桁の受付番号を文字列として取り込んでください。</p>
               </div>
             </div>
           </>

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyKioskSecret } from "@/lib/auth";
 import { getJSTToday, getJSTDayRange } from "@/lib/jstDate";
 import { getClientIp, hitRateLimit } from "@/lib/rateLimit";
+import { createNumberedReception, ReceptionNumberLimitError } from "@/lib/receptionNumber";
 
 export const dynamic = "force-dynamic";
 
@@ -64,8 +65,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "リクエストの形式が不正です" }, { status: 400 });
   }
 
-  // JST 日付範囲は 1リクエスト内で不変なので冒頭で一度だけ計算
-  const jstRange = getJSTDayRange();
+  // 日付をまたいでも受付日時・採番日・集計日を一致させる。
+  const arrivedAt = new Date();
+  const jstRange = getJSTDayRange(getJSTToday(arrivedAt));
 
   try {
     const {
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest) {
     if (!phone || !/^\d{10,11}$/.test(phone)) {
       return NextResponse.json({ error: "正しい電話番号が必要です" }, { status: 400 });
     }
-    if (!centerId || isNaN(centerId) || centerId <= 0) {
+    if (!Number.isInteger(centerId) || centerId <= 0) {
       return NextResponse.json({ error: "センターIDが必要です" }, { status: 400 });
     }
     // 入力文字数制限（XSS/インジェクション対策）
@@ -110,16 +112,18 @@ export async function POST(req: NextRequest) {
     const vehicleNumber = formatPlate(plate);
     const effectivePhone = phone || driverInput.phone;
 
-    // ─── フェーズ1: 前処理を **並列** で実行 ─────────────────────────
-    // 旧コードは $transaction 内で 4 つの操作を直列(center → driver → vehicle → aggregate)
-    // していたため Neon の rtt × 4 が単純に積み上がっていた。
-    // 各操作は独立(相互に依存しない)なので Promise.all で同時発射する。
-    // reception.create は後続フェーズで単独 atomic に実行する(=整合性は保たれる)。
-    const [center, driver, vehicle, maxResult] = await Promise.all([
-      prisma.center.findUnique({
-        where: { id: centerId },
-        select: { id: true, code: true, name: true },
-      }),
+    const center = await prisma.center.findUnique({
+      where: { id: centerId },
+      select: { id: true, code: true, name: true },
+    });
+    if (!center) {
+      return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
+    }
+    if (!/^\d{4}$/.test(center.code)) {
+      return NextResponse.json({ error: "センターコードを4桁の数字に設定してください" }, { status: 400 });
+    }
+
+    const [driver, vehicle] = await Promise.all([
       prisma.driver.upsert({
         where: {
           driver_phone_name_company: {
@@ -155,68 +159,24 @@ export async function POST(req: NextRequest) {
             },
           })
         : Promise.resolve(null),
-      prisma.reception.aggregate({
-        where: {
-          centerId,
-          arrivedAt: { gte: jstRange.start, lte: jstRange.end },
-        },
-        _max: { centerDailyNo: true },
-      }),
     ]);
 
-    if (!center) {
-      return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
-    }
-
-    const pre = {
-      driver,
-      vehicle,
-      center,
-      baseCenterDailyNo: (maxResult._max.centerDailyNo ?? 0) + 1,
-    };
-
-    // ─── フェーズ2: reception.create を通常クライアント経由でリトライ付き実行 ────────
-    // P2002 (dailyKey unique 制約違反) が出たら centerDailyNo を +1 して最大10回リトライ
-    const todayStr = getJSTToday();
-    let centerDailyNo = pre.baseCenterDailyNo;
-    let reception: Awaited<ReturnType<typeof prisma.reception.create>> | null = null;
-    for (let attempt = 0; attempt < 10; attempt++) {
-      try {
-        reception = await prisma.reception.create({
-          data: {
-            centerId,
-            centerDailyNo,
-            dailyKey: `${todayStr}_${centerId}_${centerDailyNo}`,
-            driverName: driverInput.driverName,
-            companyName: driverInput.companyName,
-            phone: effectivePhone,
-            plateRegion: plate.region,
-            plateClassNum: plate.classNum,
-            plateHira: plate.hira,
-            plateNumber: plate.number,
-            vehicleNumber,
-            maxLoad: driverInput.maxLoad ?? "",
-            driverId: pre.driver.id,
-            vehicleId: pre.vehicle?.id ?? null,
-            reservationId: localReservationId,
-          },
-          include: { center: true },
-        });
-        break;
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-          centerDailyNo += 1;  // 他のリクエストが先に取った番号 → 次を試す
-          continue;
-        }
-        throw e;
-      }
-    }
-    if (!reception) {
-      return NextResponse.json(
-        { error: "受付番号の採番に失敗しました（同時リクエスト過多）。再度お試しください。" },
-        { status: 503 }
-      );
-    }
+    const reception = await createNumberedReception(prisma, center.code, {
+      centerId,
+      arrivedAt,
+      driverName: driverInput.driverName,
+      companyName: driverInput.companyName,
+      phone: effectivePhone,
+      plateRegion: plate.region,
+      plateClassNum: plate.classNum,
+      plateHira: plate.hira,
+      plateNumber: plate.number,
+      vehicleNumber,
+      maxLoad: driverInput.maxLoad ?? "",
+      driverId: driver.id,
+      vehicleId: vehicle?.id ?? null,
+      reservationId: localReservationId,
+    });
 
     // ─── フェーズ3: 予約 checked_in 更新 + 待機台数 を **並列** で ─────
     // 旧コードは updateMany → count を直列実行していた。どちらも reception.create 完了後は
@@ -229,30 +189,17 @@ export async function POST(req: NextRequest) {
           })
         : Promise.resolve(null),
       prisma.reception.count({
-        where: { centerId, arrivedAt: { gte: jstRange.start } },
+        where: { centerId, arrivedAt: { gte: jstRange.start, lte: jstRange.end } },
       }),
     ]);
 
-    const result = { reception, centerDailyNo };
-    // center は pre フェーズで取得済み。以降の変数名衝突を避けるため pre.center を直接参照する。
-
-    // 会計年度（日本: 4/1〜3/31）を2桁で算出
-    const arrivedDate = new Date(result.reception.arrivedAt);
-    const fy = arrivedDate.getMonth() + 1 >= 4
-      ? arrivedDate.getFullYear()
-      : arrivedDate.getFullYear() - 1;
-    const fiscalYear = String(fy % 100).padStart(2, "0");
-
-    // 基幹互換の受付番号: "R<年度2桁>-<センターCD>-<日次連番3桁>"
-    const receptionNo = `R${fiscalYear}-${center?.code || "0000"}-${String(result.centerDailyNo).padStart(3, "0")}`;
-
     const responseData: Record<string, unknown> = {
-      id: result.reception.id,
-      centerDailyNo: result.centerDailyNo,
-      arrivedAt: result.reception.arrivedAt.toISOString(),
+      id: reception.id,
+      centerDailyNo: reception.centerDailyNo,
+      arrivedAt: reception.arrivedAt.toISOString(),
       waitingCount,
-      receptionNo,
-      fiscalYear,
+      receptionNo: reception.receptionNo,
+      fiscalYear: reception.fiscalYear,
       centerCode: center?.code ?? "",
       driver: {
         name: driverInput.driverName,
@@ -268,7 +215,7 @@ export async function POST(req: NextRequest) {
       },
       maxLoad: driverInput.maxLoad ? Number(driverInput.maxLoad) : null,
       centerName: center?.name ?? "",
-      barcodeValue: `RC-${result.reception.id}-${result.centerDailyNo}`,
+      barcodeValue: `RC-${reception.id}-${reception.centerDailyNo}`,
     };
 
     // ── berth-app に予約チェックインを通知 ──
@@ -286,8 +233,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(responseData);
   } catch (e) {
-    if (e instanceof Error && e.message === "INVALID_CENTER") {
-      return NextResponse.json({ error: "指定されたセンターが存在しません" }, { status: 400 });
+    if (e instanceof ReceptionNumberLimitError) {
+      return NextResponse.json({ error: e.message }, { status: 503 });
+    }
+    if (e instanceof Prisma.PrismaClientKnownRequestError && ["P2002", "P2034"].includes(e.code)) {
+      return NextResponse.json({ error: "受付番号を発番できませんでした。管理者に連絡してください。" }, { status: 503 });
     }
     console.error(e);
     return NextResponse.json({ error: "受付処理に失敗しました" }, { status: 500 });
