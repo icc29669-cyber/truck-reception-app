@@ -66,7 +66,9 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
   }
   const sectionLabels: Record<PlateSection, string> = { region: "① 地名", classNum: "② 分類番号", hira: "③ ひらがな", number: "④ 4桁番号" };
   const sectionColors: Record<PlateSection, string> = { region: "#1565C0", classNum: "#BF360C", hira: "#4A148C", number: "#1B5E20" };
-  const numBtnStyle = "flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-gray-100 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] transition-all duration-75 select-none touch-none";
+  const numBtnStyle = "flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-gray-100 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] transition-all duration-75 select-none touch-pan-y";
+  // 10列と8pxの間隔を、両端32pxの余白内に収める。1024px端末でも全キーを押せる。
+  const regionKeyWidth = "min(180px, calc(10vw - 13.6px))";
   const plateFilled = !!(plate.region && plate.classNum && plate.hira && plate.number.length >= 1);
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -75,7 +77,7 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
         <span style={{ fontSize: 34, fontWeight: 900, color: "#fff" }}>{sectionLabels[plateSection]}</span>
       </div>
       {/* Section content */}
-      <div className="flex-1 overflow-hidden px-8 py-4">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-8 py-4">
         {/* 地名 */}
         {plateSection === "region" && (kanaFilter === null ? (
           <div>
@@ -84,18 +86,18 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
               {KANA_ROWS.map((row, ri) => (
                 <div key={ri} className="flex" style={{ gap: 8 }}>
                   {row.map((k, ci) => {
-                    if (k === null) return <div key={ci} style={{ width: 180, height: 100, flexShrink: 0 }} />;
+                    if (k === null) return <div key={ci} style={{ width: regionKeyWidth, height: 100, flexShrink: 0 }} />;
                     const col = HIRA_COL_COLORS[ci];
                     const isTopRow = ri === 0;
                     const hasRegions = (REGION_MAP[k] && REGION_MAP[k].length > 0);
                     return (
                       <button
                         key={ci}
-                        onPointerDown={hasRegions ? () => setKanaFilter(k) : undefined}
+                        onClick={hasRegions ? () => setKanaFilter(k) : undefined}
                         disabled={!hasRegions}
-                        className={`flex items-center justify-center font-bold rounded-xl border-2 transition-all select-none touch-none ${hasRegions ? "active:translate-y-[3px]" : ""}`}
+                        className={`flex items-center justify-center font-bold rounded-xl border-2 transition-all select-none touch-pan-y ${hasRegions ? "active:translate-y-[3px]" : ""}`}
                         style={{
-                          width: 180, height: 100, fontSize: 42, flexShrink: 0,
+                          width: regionKeyWidth, height: 100, fontSize: 42, flexShrink: 0,
                           background: hasRegions ? col.bg : "#F1F5F9",
                           borderColor: hasRegions ? col.border : "#E2E8F0",
                           boxShadow: hasRegions ? `0 4px 0 ${col.shadow}` : "none",
@@ -125,8 +127,8 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
           <div>
             <div className="flex items-center gap-4 mb-4">
               <button
-                onPointerDown={() => setKanaFilter(null)}
-                className="flex items-center justify-center font-bold rounded-xl select-none touch-none transition-all active:scale-95"
+                onClick={() => setKanaFilter(null)}
+                className="flex items-center justify-center font-bold rounded-xl select-none touch-pan-y transition-all active:scale-95"
                 style={{
                   height: 68, padding: "0 28px", fontSize: 22, fontWeight: 800,
                   border: "3px solid #F59E0B",
@@ -144,7 +146,7 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
             </div>
             <div className="flex flex-wrap" style={{ gap: 14 }}>
               {(REGION_MAP[kanaFilter] || []).map(r => (
-                <button key={r} onPointerDown={() => { savePlate({ region: r }); setKanaFilter(null); advance("classNum", 100); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_5px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-none" style={{ height: 120, padding: "0 36px", fontSize: 44, minWidth: 190, color: "#26251e" }}>{r}</button>
+                <button key={r} onClick={() => { savePlate({ region: r }); setKanaFilter(null); advance("classNum", 100); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_5px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ height: 120, padding: "0 36px", fontSize: 44, minWidth: 190, color: "#26251e" }}>{r}</button>
               ))}
             </div>
           </div>
@@ -152,32 +154,32 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
 
         {/* 分類番号 */}
         {plateSection === "classNum" && (
-          <div className="h-full flex items-center justify-center">
+          <div className="min-h-full flex items-center justify-center py-4">
             {!alphaMode ? (
               <div className="flex items-stretch" style={{ gap: 20 }}>
                 {/* テンキー */}
                 <div className="flex flex-col" style={{ gap: 16 }}>
                   {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
                     <div key={ri} className="flex" style={{ gap: 16 }}>{row.map(k => (
-                      <button key={k} onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
+                      <button key={k} onClick={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
                     ))}</div>
                   ))}
-                  <button onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + "0"; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 572, height: 130, fontSize: 56 }}>0</button>
+                  <button onClick={() => { if (plate.classNum.length < 3) { const n = plate.classNum + "0"; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 572, height: 130, fontSize: 56 }}>0</button>
                 </div>
                 {/* 操作ボタン列(英字/数字切替 + 全消し + 1文字消す) */}
                 <div className="flex flex-col" style={{ gap: 16 }}>
                   {/* 英字切替 — キーパッドの隣に置いて押しやすく */}
                   <button
-                    onPointerDown={() => setAlphaMode(true)}
-                    className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none active:translate-y-[2px] transition-all"
+                    onClick={() => setAlphaMode(true)}
+                    className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-pan-y active:translate-y-[2px] transition-all"
                     style={{
                       width: 180, flex: 0.8, fontSize: 22,
                       background: "#fefce8", borderColor: "#facc15", color: "#92400e",
                       boxShadow: "0 5px 0 #ca8a04", textAlign: "center", lineHeight: 1.25,
                     }}
                   >英字を<br/>入力</button>
-                  <button onPointerDown={() => savePlate({ classNum: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, flex: 1, fontSize: 28 }}>全消し</button>
-                  <button onPointerDown={() => savePlate({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, flex: 1, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
+                  <button onClick={() => savePlate({ classNum: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ width: 180, flex: 1, fontSize: 28 }}>全消し</button>
+                  <button onClick={() => savePlate({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ width: 180, flex: 1, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
                 </div>
               </div>
             ) : (
@@ -185,22 +187,22 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
               <div className="flex items-stretch" style={{ gap: 20 }}>
                 <div className="flex flex-wrap" style={{ gap: 16, maxWidth: 940 }}>
                   {ALPHA_KEYS.map(k => (
-                    <button key={k} onPointerDown={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56, background: "#fefce8", borderColor: "#fde047" }}>{k}</button>
+                    <button key={k} onClick={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56, background: "#fefce8", borderColor: "#fde047" }}>{k}</button>
                   ))}
                 </div>
                 <div className="flex flex-col" style={{ gap: 16 }}>
                   {/* 数字に戻す(英字モード時) */}
                   <button
-                    onPointerDown={() => setAlphaMode(false)}
-                    className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none active:translate-y-[2px] transition-all"
+                    onClick={() => setAlphaMode(false)}
+                    className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-pan-y active:translate-y-[2px] transition-all"
                     style={{
                       width: 180, height: 130, fontSize: 22,
                       background: "#fff", borderColor: "#3b82f6", color: "#1e3a8a",
                       boxShadow: "0 5px 0 #2563eb", textAlign: "center", lineHeight: 1.25,
                     }}
                   >数字に<br/>戻す</button>
-                  <button onPointerDown={() => savePlate({ classNum: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, height: 130, fontSize: 28 }}>全消し</button>
-                  <button onPointerDown={() => savePlate({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 180, height: 130, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
+                  <button onClick={() => savePlate({ classNum: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ width: 180, height: 130, fontSize: 28 }}>全消し</button>
+                  <button onClick={() => savePlate({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ width: 180, height: 130, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
                 </div>
               </div>
             )}
@@ -219,7 +221,7 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
                 <div key={ri} className="flex" style={{ gap: 8 }}>
                   {row.map((k, ci) => {
                     if (k === null || HIRA_UNUSABLE.has(k)) {
-                      return <div key={ci} style={{ width: 180, height: 100, flexShrink: 0 }} />;
+                      return <div key={ci} style={{ width: regionKeyWidth, height: 100, flexShrink: 0 }} />;
                     }
                     const jigyoyo = HIRA_JIGYOYO.has(k);
                     const rental = HIRA_RENTAL.has(k);
@@ -232,10 +234,10 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
                     return (
                       <button
                         key={ci}
-                        onPointerDown={() => { savePlate({ hira: k }); advance("number", 120); }}
-                        className="flex items-center justify-center font-bold rounded-xl border-2 transition-all active:translate-y-[3px] select-none touch-none"
+                        onClick={() => { savePlate({ hira: k }); advance("number", 120); }}
+                        className="flex items-center justify-center font-bold rounded-xl border-2 transition-all active:translate-y-[3px] select-none touch-pan-y"
                         style={{
-                          width: 180, height: 100, fontSize: 42, flexShrink: 0,
+                          width: regionKeyWidth, height: 100, fontSize: 42, flexShrink: 0,
                           background: bg,
                           borderColor: borderColor,
                           boxShadow: `0 4px 0 ${shadow}`,
@@ -263,24 +265,24 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
 
         {/* 4桁番号 */}
         {plateSection === "number" && (
-          <div className="h-full flex items-center justify-center">
+          <div className="min-h-full flex items-center justify-center py-4">
             <div className="flex items-stretch" style={{ gap: 20 }}>
               {/* テンキー */}
               <div className="flex flex-col" style={{ gap: 16 }}>
                 {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
                   <div key={ri} className="flex" style={{ gap: 16 }}>{row.map(k => (
-                    <button key={k} onPointerDown={() => { if (plate.number.length < 4) savePlate({ number: plate.number + k }); }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
+                    <button key={k} onClick={() => { if (plate.number.length < 4) savePlate({ number: plate.number + k }); }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
                   ))}</div>
                 ))}
-                <button onPointerDown={() => { if (plate.number.length < 4) savePlate({ number: plate.number + "0" }); }} className={numBtnStyle} style={{ width: 572, height: 130, fontSize: 56 }}>0</button>
+                <button onClick={() => { if (plate.number.length < 4) savePlate({ number: plate.number + "0" }); }} className={numBtnStyle} style={{ width: 572, height: 130, fontSize: 56 }}>0</button>
               </div>
               {/* 操作ボタン */}
               <div className="flex flex-col" style={{ gap: 16 }}>
-                <button onPointerDown={() => savePlate({ number: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 200, flex: 1, fontSize: 28 }}>全消し</button>
-                <button onPointerDown={() => savePlate({ number: plate.number.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-none" style={{ width: 200, flex: 1, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
+                <button onClick={() => savePlate({ number: "" })} className="flex items-center justify-center font-bold rounded-xl border-2 border-red-500 bg-red-500 text-white active:bg-red-600 shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ width: 200, flex: 1, fontSize: 28 }}>全消し</button>
+                <button onClick={() => savePlate({ number: plate.number.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-xl border-2 border-orange-400 bg-orange-400 text-white active:bg-orange-500 shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ width: 200, flex: 1, fontSize: 24, textAlign: "center", lineHeight: 1.3 }}>1文字<br/>消す</button>
                 <button
-                  onPointerDown={() => { if (plateFilled) { onComplete(); } }}
-                  className="flex items-center justify-center font-black rounded-2xl text-white select-none touch-none active:brightness-90"
+                  onClick={() => { if (plateFilled) { onComplete(); } }}
+                  className="flex items-center justify-center font-black rounded-2xl text-white select-none touch-pan-y active:brightness-90"
                   style={{
                     width: 200, flex: 1.5, fontSize: 28,
                     background: plateFilled ? "linear-gradient(180deg,#0d9488,#0f766e)" : "#9CA3AF",
