@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import type { PlateInput } from "@/types/reception";
 import { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 
 /* ── データ ─────────────────────────────────── */
 const REGION_MAP: Record<string, string[]> = {
@@ -225,6 +227,8 @@ function BigPlate({
 /* ── メインページ ────────────────────────────── */
 export default function PlatePage() {
   const router = useRouter();
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
   const [plate, setPlate] = useState<PlateInput>({ region: "", classNum: "", hira: "", number: "" });
   const [kanaFilter, setKanaFilter] = useState<string | null>(null);
   const [classMode, setClassMode] = useState<"num" | "alpha">("num");
@@ -284,6 +288,13 @@ export default function PlatePage() {
   }
 
   const isComplete = !!(plate.region && plate.classNum && plate.hira && plate.number);
+  const regionList = kanaFilter ? REGION_MAP[kanaFilter] ?? [] : [];
+  const regionCells = Array.from({ length: Math.ceil(regionList.length / 4) }, (_, i) => {
+    const row = regionList.slice(i * 4, i * 4 + 4);
+    return orderedInputRow<string | null>(
+      [...row, ...Array.from({ length: 4 - row.length }, () => null)], inputOrder
+    );
+  }).flat();
 
   const numBtn =
     "flex items-center justify-center font-black rounded-2xl border-2 border-gray-200 bg-white " +
@@ -320,11 +331,11 @@ export default function PlatePage() {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className={`flex-1 flex overflow-hidden ${rightFirst ? "flex-row-reverse" : ""}`}>
 
         {/* 左: プレートのみ（44vw） */}
         <div
-          className="flex flex-col items-center justify-center gap-6 flex-shrink-0 border-r border-blue-200"
+          className={`flex flex-col items-center justify-center gap-6 flex-shrink-0 border-blue-200 ${rightFirst ? "border-l" : "border-r"}`}
           style={{ width: "44vw", background: "rgba(255,255,255,0.25)" }}
         >
           {mounted && (
@@ -425,7 +436,7 @@ export default function PlatePage() {
                         <div className="flex flex-col gap-2">
                           {KANA_ROWS.map((row, ri) => (
                             <div key={ri} className="flex gap-2">
-                              {row.map((k, ci) => {
+                              {orderedInputRow(row, inputOrder).map((k, ci) => {
                                 if (!k) return <div key={ci} style={{ width: "clamp(56px, 8vw, 100px)", height: "clamp(50px, 6.5vw, 90px)" }} />;
                                 const has = (REGION_MAP[k] ?? []).length > 0;
                                 return (
@@ -471,7 +482,9 @@ export default function PlatePage() {
                         </div>
                         <div className="flex-1 px-6 py-4 overflow-y-auto">
                           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-                            {(REGION_MAP[kanaFilter] ?? []).map((r) => (
+                            {regionCells.map((r, i) => r === null ? (
+                              <div key={`region-empty-${i}`} aria-hidden="true" />
+                            ) : (
                               <button
                                 key={r}
                                 onPointerDown={() => selectRegion(r)}
@@ -507,7 +520,7 @@ export default function PlatePage() {
                           }}
                         >
                           {/* 行1〜3: 1-9 */}
-                          {["1","2","3","4","5","6","7","8","9"].map((k) => (
+                          {[["1","2","3"],["4","5","6"],["7","8","9"]].flatMap((row) => orderedInputRow(row, inputOrder)).map((k) => (
                             <button
                               key={k}
                               onPointerDown={() => pressClassNum(k)}
@@ -521,21 +534,21 @@ export default function PlatePage() {
                           <button
                             onPointerDown={() => save({ classNum: "" })}
                             className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75"
-                            style={{ height: keyH, fontSize: "clamp(14px, 1.8vw, 24px)" }}
+                            style={{ height: keyH, fontSize: "clamp(14px, 1.8vw, 24px)", order: rightFirst ? 12 : 10 }}
                           >
                             消す
                           </button>
                           <button
                             onPointerDown={() => pressClassNum("0")}
                             className={numBtn}
-                            style={{ height: keyH, fontSize: keyFontSize }}
+                            style={{ height: keyH, fontSize: keyFontSize, order: 11 }}
                           >
                             0
                           </button>
                           <button
                             onPointerDown={() => save({ classNum: plate.classNum.slice(0, -1) })}
                             className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75"
-                            style={{ height: keyH, fontSize: "clamp(12px, 1.6vw, 22px)" }}
+                            style={{ height: keyH, fontSize: "clamp(12px, 1.6vw, 22px)", order: rightFirst ? 10 : 12 }}
                           >
                             1文字消す
                           </button>
@@ -543,7 +556,7 @@ export default function PlatePage() {
                       ) : (
                         /* 英字パネル */
                         <div className="flex flex-col gap-4 items-center">
-                          <div className="flex gap-3 flex-wrap justify-center" style={{ maxWidth: "clamp(340px, 48vw, 700px)" }}>
+                          <div className={`flex gap-3 flex-wrap justify-center ${rightFirst ? "flex-row-reverse" : ""}`} style={{ maxWidth: "clamp(340px, 48vw, 700px)" }}>
                             {ALPHA_KEYS.map((ch) => (
                               <button
                                 key={ch}
@@ -555,7 +568,7 @@ export default function PlatePage() {
                               </button>
                             ))}
                           </div>
-                          <div className="flex gap-3">
+                          <div className={`flex gap-3 ${rightFirst ? "flex-row-reverse" : ""}`}>
                             <button onPointerDown={() => save({ classNum: "" })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white text-2xl active:bg-red-600 touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75" style={{ width: 180, height: 90 }}>すべて消す</button>
                             <button onPointerDown={() => save({ classNum: plate.classNum.slice(0, -1) })} className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white text-2xl active:bg-orange-500 touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75" style={{ width: 180, height: 90 }}>1文字消す</button>
                           </div>
@@ -596,7 +609,7 @@ export default function PlatePage() {
                       <div className="flex flex-col gap-2">
                         {HIRA_ROWS.map((row, ri) => (
                           <div key={ri} className="flex gap-2">
-                            {row.map((ch, ci) => {
+                            {orderedInputRow(row, inputOrder).map((ch, ci) => {
                               if (!ch) return (
                                 <div
                                   key={ci}
@@ -654,7 +667,7 @@ export default function PlatePage() {
                         }}
                       >
                         {/* 行1〜3: 1-9 */}
-                        {["1","2","3","4","5","6","7","8","9"].map((k) => (
+                        {[["1","2","3"],["4","5","6"],["7","8","9"]].flatMap((row) => orderedInputRow(row, inputOrder)).map((k) => (
                           <button
                             key={k}
                             onPointerDown={() => pressNumber(k)}
@@ -668,21 +681,21 @@ export default function PlatePage() {
                         <button
                           onPointerDown={() => save({ number: "" })}
                           className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75"
-                          style={{ height: keyH, fontSize: "clamp(14px, 1.8vw, 24px)" }}
+                          style={{ height: keyH, fontSize: "clamp(14px, 1.8vw, 24px)", order: rightFirst ? 12 : 10 }}
                         >
                           消す
                         </button>
                         <button
                           onPointerDown={() => pressNumber("0")}
                           className={numBtn}
-                          style={{ height: keyH, fontSize: keyFontSize }}
+                          style={{ height: keyH, fontSize: keyFontSize, order: 11 }}
                         >
                           0
                         </button>
                         <button
                           onPointerDown={() => save({ number: plate.number.slice(0, -1) })}
                           className="flex items-center justify-center font-bold rounded-2xl border-2 border-orange-400 bg-orange-400 text-white touch-none shadow-[0_5px_0_#C2410C] active:shadow-[0_1px_0_#C2410C] active:translate-y-1 transition-all duration-75"
-                          style={{ height: keyH, fontSize: "clamp(12px, 1.6vw, 22px)" }}
+                          style={{ height: keyH, fontSize: "clamp(12px, 1.6vw, 22px)", order: rightFirst ? 10 : 12 }}
                         >
                           1文字消す
                         </button>

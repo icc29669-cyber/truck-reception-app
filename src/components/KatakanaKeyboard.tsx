@@ -1,6 +1,7 @@
 ﻿"use client";
 import { useState } from "react";
-import { useKanaKeyboardOrder } from "@/components/KanaKeyboardOrderContext";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 
 interface Props {
   value: string;
@@ -17,7 +18,6 @@ const KATA_ROWS: (string | null)[][] = [
   ["エ","ケ","セ","テ","ネ","ヘ","メ", null,"レ", null],
   ["オ","コ","ソ","ト","ノ","ホ","モ","ヨ","ロ", null],
 ];
-const RIGHT_FIRST_KATA_ROWS = KATA_ROWS.map((row) => [...row].reverse());
 
 // ━━ 英数（メイン7列×5行 / 数字3列×5行）━━
 const ALPHA_ROWS: (string | null)[][] = [
@@ -89,7 +89,8 @@ const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
 const COL_LABELS = ["ア", "カ", "サ", "タ", "ナ", "ハ", "マ", "ヤ", "ラ", "ワ"];
 
 export default function KatakanaKeyboard({ value, onChange, onComplete }: Props) {
-  const kanaOrder = useKanaKeyboardOrder();
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
   const [mode, setMode] = useState<"kata"|"alpha">("kata");
   // 英数字モードで以降の入力を大文字/小文字どちらで打ち込むかを保持する(いわゆる Caps Lock)
   const [alphaCase, setAlphaCase] = useState<"upper"|"lower">("upper");
@@ -101,7 +102,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
   const cell = { width:W, height:H, minWidth:W };
 
   return (
-    <div className="flex select-none flex-shrink-0" style={{ gap:G }}>
+    <div className="flex select-none flex-shrink-0" style={{ gap:G, flexDirection: rightFirst ? "row-reverse" : "row" }}>
 
       {/* ━━ 左列：モード切替 + 修飾キー ━━ */}
       <div className="flex flex-col flex-shrink-0" style={{ gap:G, width:LW }}>
@@ -177,50 +178,53 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
 
       {/* ━━ メイングリッド（カタカナ10列 / 英数7列）━━ */}
       <div className="flex flex-col flex-shrink-0" style={{ gap:G }}>
-        {(mode==="kata" ? (kanaOrder === "right-first" ? RIGHT_FIRST_KATA_ROWS : KATA_ROWS) : ALPHA_ROWS).map((row, ri) => (
-          <div key={ri} className="flex" style={{ gap:G }}>
-            {row.map((ch, ci) => {
-              if (ch === null) return <div key={ci} style={cell} />;
-              const isKata = mode === "kata";
-              const originalCi = isKata && kanaOrder === "right-first" ? row.length - 1 - ci : ci;
-              const col = isKata ? COL_COLORS[originalCi] : null;
-              const isTopRow = ri === 0 && isKata;
-              // 英数字モード時はキーの表示文字とアウトプット文字を alphaCase に合わせて変える。
-              // 英字 (A-Z) のみ大文字/小文字切替の対象で、記号 (&・.-_) は常にそのまま。
-              const isLetter = !isKata && /^[A-Z]$/.test(ch);
-              const display = isLetter && alphaCase === "lower" ? ch.toLowerCase() : ch;
-              return (
-                <button
-                  key={ci}
-                  aria-label={display}
-                  onPointerDown={() => onChange(value + display)}
-                  className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all duration-75 active:translate-y-1"
-                  style={{
-                    ...cell,
-                    fontSize: isKata ? 42 : 34,
-                    background: col ? col.bg : "#fff",
-                    borderColor: col ? col.border : "#D1D5DB",
-                    color: "#1a1a1a",
-                    boxShadow: `0 5px 0 ${col ? col.shadow : "#9E9E9E"}`,
-                    fontWeight: isTopRow ? 900 : 700,
-                    position: isTopRow ? "relative" as const : undefined,
-                  }}
-                >
-                  {display}
-                  {isTopRow && (
-                    <span style={{
-                      position: "absolute", top: 4, left: 6,
-                      fontSize: 11, fontWeight: 800, color: "#9CA3AF",
-                      lineHeight: 1, letterSpacing: "0.02em",
-                    }}>
-                      {COL_LABELS[originalCi]}行
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+        {(mode === "kata" ? KATA_ROWS : ALPHA_ROWS).map((sourceRow, ri) => {
+          const row = orderedInputRow(sourceRow, inputOrder);
+          return (
+            <div key={ri} className="flex" style={{ gap:G }}>
+              {row.map((ch, ci) => {
+                if (ch === null) return <div key={ci} style={cell} />;
+                const isKata = mode === "kata";
+                const originalCi = isKata && rightFirst ? row.length - 1 - ci : ci;
+                const col = isKata ? COL_COLORS[originalCi] : null;
+                const isTopRow = ri === 0 && isKata;
+                // 英数字モード時はキーの表示文字とアウトプット文字を alphaCase に合わせて変える。
+                // 英字 (A-Z) のみ大文字/小文字切替の対象で、記号 (&・.-_) は常にそのまま。
+                const isLetter = !isKata && /^[A-Z]$/.test(ch);
+                const display = isLetter && alphaCase === "lower" ? ch.toLowerCase() : ch;
+                return (
+                  <button
+                    key={ci}
+                    aria-label={display}
+                    onPointerDown={() => onChange(value + display)}
+                    className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all duration-75 active:translate-y-1"
+                    style={{
+                      ...cell,
+                      fontSize: isKata ? 42 : 34,
+                      background: col ? col.bg : "#fff",
+                      borderColor: col ? col.border : "#D1D5DB",
+                      color: "#1a1a1a",
+                      boxShadow: `0 5px 0 ${col ? col.shadow : "#9E9E9E"}`,
+                      fontWeight: isTopRow ? 900 : 700,
+                      position: isTopRow ? "relative" as const : undefined,
+                    }}
+                  >
+                    {display}
+                    {isTopRow && (
+                      <span style={{
+                        position: "absolute", top: 4, left: 6,
+                        fontSize: 11, fontWeight: 800, color: "#9CA3AF",
+                        lineHeight: 1, letterSpacing: "0.02em",
+                      }}>
+                        {COL_LABELS[originalCi]}行
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {/* ━━ 右補助列（alpha=数字3列）━━ */}
@@ -228,7 +232,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
         <div className="flex flex-col flex-shrink-0" style={{ gap:G }}>
           {NUM_ROWS.map((row, ri) => (
             <div key={ri} className="flex" style={{ gap:G }}>
-              {row.map((ch, ci) =>
+              {orderedInputRow(row, inputOrder).map((ch, ci) =>
                 ch === null
                   ? <div key={ci} style={cell} />
                   : <button

@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import PlateDisplay from "@/components/PlateDisplay";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 
 interface PlateRegion {
   id: number;
@@ -28,6 +30,8 @@ const HIRA_ROWS: (string | null)[][] = [
 
 export default function PlateKanaPage() {
   const router = useRouter();
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
   const session = getKioskSession();
   const [selectedKana, setSelectedKana] = useState<string | null>(null);
   const [regions, setRegions] = useState<PlateRegion[]>([]);
@@ -46,6 +50,12 @@ export default function PlateKanaPage() {
   const regionList = selectedKana
     ? regions.filter((r) => r.kana.startsWith(selectedKana))
     : [];
+  const regionCells = Array.from({ length: Math.ceil(regionList.length / 3) }, (_, i) => {
+    const row = regionList.slice(i * 3, i * 3 + 3);
+    return orderedInputRow<PlateRegion | null>(
+      [...row, ...Array.from({ length: 3 - row.length }, () => null)], inputOrder
+    );
+  }).flat();
 
   // 各ひらがなに対応する地名があるかチェック
   function hasRegionsForKana(kana: string): boolean {
@@ -82,10 +92,10 @@ export default function PlateKanaPage() {
       </div>
 
       {/* メインコンテンツ: 2カラム */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className={`flex flex-1 overflow-hidden ${rightFirst ? "flex-row-reverse" : ""}`}>
         {/* 左カラム: ひらがな選択グリッド */}
         <div
-          className="flex flex-col items-center px-4 py-5 border-r border-blue-200 flex-shrink-0 overflow-y-auto"
+          className={`flex flex-col items-center px-4 py-5 flex-shrink-0 overflow-y-auto ${rightFirst ? "border-l" : "border-r"} border-blue-200`}
           style={{ background: "transparent" }}
         >
           <p className="text-3xl font-bold text-gray-800 mb-4 text-center">
@@ -96,7 +106,7 @@ export default function PlateKanaPage() {
           <div className="flex flex-col" style={{ gap: GAP }}>
             {HIRA_ROWS.map((row, ri) => (
               <div key={ri} className="flex" style={{ gap: GAP }}>
-                {row.map((kana, ci) => {
+                {orderedInputRow(row, inputOrder).map((kana, ci) => {
                   if (kana === null) {
                     return <div key={ci} style={{ width: BTN_SIZE, height: BTN_SIZE }} />;
                   }
@@ -133,7 +143,7 @@ export default function PlateKanaPage() {
           {!selectedKana ? (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-3xl text-gray-400 font-bold text-center leading-relaxed">
-                ← 地名の読みの最初のひと文字を選んでください
+                {rightFirst ? "→" : "←"} 地名の読みの最初のひと文字を選んでください
               </p>
             </div>
           ) : regionList.length > 0 ? (
@@ -142,7 +152,9 @@ export default function PlateKanaPage() {
                 ナンバーの地名をタッチしてください
               </p>
               <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-                {regionList.map((r) => (
+                {regionCells.map((r, i) => r === null ? (
+                  <div key={`region-empty-${i}`} aria-hidden="true" />
+                ) : (
                   <button
                     key={r.id}
                     onPointerDown={() => selectRegion(r)}

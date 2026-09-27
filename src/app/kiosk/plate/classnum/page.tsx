@@ -3,11 +3,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import PlateDisplay from "@/components/PlateDisplay";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 
 const ALPHA_CHARS = ["A", "C", "F", "H", "K", "L", "M", "P", "X", "Y"];
 
 export default function ClassNumPage() {
   const router = useRouter();
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
   const [plate, setPlate] = useState(() => getKioskSession().plate);
   const [value, setValue] = useState("");
   const [mode, setMode] = useState<"num" | "alpha">("num");
@@ -87,7 +91,7 @@ export default function ClassNumPage() {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="flex-1 flex items-center justify-center gap-16 px-16">
+      <div className={`flex-1 flex items-center justify-center gap-16 px-16 ${rightFirst ? "flex-row-reverse" : ""}`}>
 
         {/* 左：ナンバープレート＋入力表示 */}
         <div className="flex flex-col items-center gap-8">
@@ -121,7 +125,7 @@ export default function ClassNumPage() {
 
           {/* 数字/英字 トグル */}
           <div className="flex gap-3">
-            {(["num", "alpha"] as const).map((m) => (
+            {orderedInputRow(["num", "alpha"] as const, inputOrder).map((m) => (
               <button
                 key={m}
                 onPointerDown={() => setMode(m)}
@@ -140,12 +144,12 @@ export default function ClassNumPage() {
 
         {/* 右：テンキー */}
         {mode === "num" ? (
-          <div className="flex gap-4">
+          <div className={`flex gap-4 ${rightFirst ? "flex-row-reverse" : ""}`}>
             {/* 数字グリッド */}
             <div className="flex flex-col gap-3">
               {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
                 <div key={ri} className="flex gap-3">
-                  {row.map((k) => (
+                  {orderedInputRow(row, inputOrder).map((k) => (
                     <button
                       key={k}
                       onPointerDown={() => press(k)}
@@ -199,7 +203,7 @@ export default function ClassNumPage() {
         ) : (
           /* 英字モード */
           <div className="flex flex-col gap-4 items-center">
-            <div className="flex gap-3 flex-wrap justify-center" style={{ maxWidth: 700 }}>
+            <div className={`flex gap-3 flex-wrap justify-center ${rightFirst ? "flex-row-reverse" : ""}`} style={{ maxWidth: 700 }}>
               {ALPHA_CHARS.map((ch) => (
                 <button
                   key={ch}
@@ -211,7 +215,7 @@ export default function ClassNumPage() {
                 </button>
               ))}
             </div>
-            <div className="flex gap-3">
+            <div className={`flex gap-3 ${rightFirst ? "flex-row-reverse" : ""}`}>
               <button
                 onPointerDown={() => { setOverwrite(false); handleChange(""); }}
                 className="flex items-center justify-center font-bold rounded-2xl border-2 border-red-500 bg-red-500 text-white text-2xl active:bg-red-600 touch-none shadow-[0_5px_0_#B91C1C] active:shadow-[0_1px_0_#B91C1C] active:translate-y-1 transition-all duration-75"

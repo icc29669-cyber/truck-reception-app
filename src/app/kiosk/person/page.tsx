@@ -2,6 +2,7 @@
 import KioskSteps from "@/components/KioskSteps";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import { deleteCandidate as apiDeleteCandidate } from "@/lib/api";
 import type { DriverCandidate } from "@/types/reception";
@@ -105,6 +106,7 @@ function CandidateCard({
 /* ━━ メインページ ━━ */
 export default function PersonPage() {
   const router = useRouter();
+  const rightFirst = useKioskInputOrder() === "right-first";
   const initRef = useRef(false);
 
   const [mode, setMode] = useState<Mode>("select");
@@ -277,7 +279,7 @@ export default function PersonPage() {
       {mode === "input" && (
         <div className="flex justify-center flex-shrink-0" style={{ padding: "0 40px 14px" }}>
           <div suppressHydrationWarning style={{
-            width: 1200, maxWidth: "100%", display: "flex", alignItems: "center", gap: 14,
+            width: 1200, maxWidth: "100%", display: "flex", flexDirection: rightFirst ? "row-reverse" : "row", alignItems: "center", gap: 14,
           }}>
             {/* ① 運送会社名フィールド */}
             <button
@@ -312,7 +314,7 @@ export default function PersonPage() {
               </div>
             </button>
 
-            <div style={{ fontSize: 32, color: "#94A3B8", flexShrink: 0, fontWeight: 900 }}>▶</div>
+            <div style={{ fontSize: 32, color: "#94A3B8", flexShrink: 0, fontWeight: 900 }}>{rightFirst ? "◀" : "▶"}</div>
 
             {/* ② お名前フィールド */}
             <button
@@ -344,7 +346,7 @@ export default function PersonPage() {
                 color: name ? "#26251e" : "#CBD5E1",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {name || (company.trim() ? "タナカ タロウ" : "← 先に会社名を入力")}
+                {name || (company.trim() ? "タナカ タロウ" : rightFirst ? "先に会社名を入力 →" : "← 先に会社名を入力")}
               </div>
             </button>
           </div>

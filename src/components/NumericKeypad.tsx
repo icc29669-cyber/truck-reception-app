@@ -1,5 +1,8 @@
 "use client";
 
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
+
 interface Props {
   value: string;
   onChange: (v: string) => void;
@@ -18,6 +21,7 @@ export default function NumericKeypad({
   maxLength = 12,
   phoneMode = false,
 }: Props) {
+  const inputOrder = useKioskInputOrder();
   function press(d: string) {
     if (value.replace(/,/g, "").length >= maxLength) return;
     onChange(value + d);
@@ -35,12 +39,12 @@ export default function NumericKeypad({
     const btnH = 180;
 
     return (
-      <div className="flex gap-4 select-none">
+      <div className={`flex gap-4 select-none ${inputOrder === "right-first" ? "flex-row-reverse" : ""}`}>
         {/* 左エリア */}
         <div className="flex flex-col gap-3">
           {/* 070/080/090 ショートカット */}
           <div className="flex gap-3">
-            {["070", "080", "090"].map((prefix) => (
+            {orderedInputRow(["070", "080", "090"], inputOrder).map((prefix) => (
               <button
                 key={prefix}
                 onPointerDown={() => onChange(prefix)}
@@ -57,7 +61,7 @@ export default function NumericKeypad({
           {/* 数字キー 1-9 */}
           {[["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]].map((row, ri) => (
             <div key={ri} className="flex gap-3">
-              {row.map((k) => (
+              {orderedInputRow(row, inputOrder).map((k) => (
                 <button
                   key={k}
                   onPointerDown={() => press(k)}
@@ -121,12 +125,12 @@ export default function NumericKeypad({
   const btnH = 200;
 
   return (
-    <div className="flex gap-4 select-none">
+    <div className={`flex gap-4 select-none ${inputOrder === "right-first" ? "flex-row-reverse" : ""}`}>
       {/* 左エリア */}
       <div className="flex flex-col gap-3">
         {[["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"]].map((row, ri) => (
           <div key={ri} className="flex gap-3">
-            {row.map((k) => (
+            {orderedInputRow(row, inputOrder).map((k) => (
               <button
                 key={k}
                 onPointerDown={() => press(k)}

@@ -4,8 +4,8 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { clearKioskSession, getKioskSession, RECEPTION_REQUEST_KEY } from "@/lib/kioskState";
 import { readPendingRequest } from "@/lib/pendingRequest";
-import { KanaKeyboardOrderContext } from "@/components/KanaKeyboardOrderContext";
-import type { KanaKeyboardOrder } from "@/lib/kanaKeyboardOrder";
+import { KioskInputOrderContext } from "@/components/KioskInputOrderContext";
+import type { KioskInputOrder } from "@/lib/kioskInputOrder";
 
 /** 無操作タイムアウト（秒） — トップ画面以外で操作がなければ自動リセット */
 const INACTIVITY_TIMEOUT_SEC = 600; // 10分（現場オペレーションで電話応対や休憩を挟む余裕を優先）
@@ -96,9 +96,9 @@ function FullscreenPrompt({ onStart }: { onStart: () => void }) {
   );
 }
 
-export default function KioskClientLayout({ children, kanaOrder }: {
+export default function KioskClientLayout({ children, inputOrder }: {
   children: React.ReactNode;
-  kanaOrder: KanaKeyboardOrder;
+  inputOrder: KioskInputOrder;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -242,12 +242,12 @@ export default function KioskClientLayout({ children, kanaOrder }: {
   }, [ready]);
 
   return (
-    <KanaKeyboardOrderContext.Provider value={kanaOrder}>
+    <KioskInputOrderContext.Provider value={inputOrder}>
       <div ref={ref}>
         {children}
         {navigating && <TransitionOverlay />}
         {needsFullscreen && <FullscreenPrompt onStart={startFullscreen} />}
       </div>
-    </KanaKeyboardOrderContext.Provider>
+    </KioskInputOrderContext.Provider>
   );
 }

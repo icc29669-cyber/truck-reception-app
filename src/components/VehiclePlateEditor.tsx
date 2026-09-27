@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 import type { PlateInput } from "@/types/reception";
 export type PlateSection = "region" | "classNum" | "hira" | "number";
 const REGION_MAP: Record<string, string[]> = {
@@ -56,6 +58,9 @@ const HIRA_COL_LABELS = ["あ","か","さ","た","な","は","ま","や","ら","
 type Props = { plate: PlateInput; plateSection: PlateSection; fromFinal: boolean;
   savePlate: (value: Partial<PlateInput>) => void; onSectionChange: (section: PlateSection) => void; onComplete: () => void };
 export default function VehiclePlateEditor({ plate, plateSection, fromFinal, savePlate, onSectionChange, onComplete }: Props) {
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
+  const kanaRows = KANA_ROWS.map(row => orderedInputRow(row, inputOrder));
   const [kanaFilter, setKanaFilter] = useState<string | null>(null);
   const [alphaMode, setAlphaMode] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -83,11 +88,12 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
           <div>
             <p style={{ fontSize: 24, fontWeight: 700, color: "#475569", marginBottom: 10 }}>頭文字を選んでください</p>
             <div className="flex flex-col" style={{ gap: 8 }}>
-              {KANA_ROWS.map((row, ri) => (
+              {kanaRows.map((row, ri) => (
                 <div key={ri} className="flex" style={{ gap: 8 }}>
                   {row.map((k, ci) => {
                     if (k === null) return <div key={ci} style={{ width: regionKeyWidth, height: 100, flexShrink: 0 }} />;
-                    const col = HIRA_COL_COLORS[ci];
+                    const originalCi = rightFirst ? row.length - 1 - ci : ci;
+                    const col = HIRA_COL_COLORS[originalCi];
                     const isTopRow = ri === 0;
                     const hasRegions = (REGION_MAP[k] && REGION_MAP[k].length > 0);
                     return (
@@ -114,7 +120,7 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
                             position: "absolute", top: 3, left: 5,
                             fontSize: 11, fontWeight: 800, color: "#9CA3AF",
                             lineHeight: 1, letterSpacing: "0.02em",
-                          }}>{HIRA_COL_LABELS[ci]}行</span>
+                          }}>{HIRA_COL_LABELS[originalCi]}行</span>
                         )}
                       </button>
                     );
@@ -144,7 +150,7 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
                 「<span style={{ color: "#D97706", fontWeight: 900 }}>{kanaFilter}</span>」から始まる地名
               </span>
             </div>
-            <div className="flex flex-wrap" style={{ gap: 14 }}>
+            <div className="flex flex-wrap" style={{ gap: 14, flexDirection: rightFirst ? "row-reverse" : "row" }}>
               {(REGION_MAP[kanaFilter] || []).map(r => (
                 <button key={r} onClick={() => { savePlate({ region: r }); setKanaFilter(null); advance("classNum", 100); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white active:bg-blue-50 shadow-[0_5px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ height: 120, padding: "0 36px", fontSize: 44, minWidth: 190, color: "#26251e" }}>{r}</button>
               ))}
@@ -156,11 +162,11 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
         {plateSection === "classNum" && (
           <div className="min-h-full flex items-center justify-center py-4">
             {!alphaMode ? (
-              <div className="flex items-stretch" style={{ gap: 20 }}>
+              <div className="flex items-stretch" style={{ gap: 20, flexDirection: rightFirst ? "row-reverse" : "row" }}>
                 {/* テンキー */}
                 <div className="flex flex-col" style={{ gap: 16 }}>
                   {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
-                    <div key={ri} className="flex" style={{ gap: 16 }}>{row.map(k => (
+                    <div key={ri} className="flex" style={{ gap: 16 }}>{orderedInputRow(row, inputOrder).map(k => (
                       <button key={k} onClick={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
                     ))}</div>
                   ))}
@@ -184,8 +190,8 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
               </div>
             ) : (
               /* 英字モード */
-              <div className="flex items-stretch" style={{ gap: 20 }}>
-                <div className="flex flex-wrap" style={{ gap: 16, maxWidth: 940 }}>
+              <div className="flex items-stretch" style={{ gap: 20, flexDirection: rightFirst ? "row-reverse" : "row" }}>
+                <div className="flex flex-wrap" style={{ gap: 16, maxWidth: 940, flexDirection: rightFirst ? "row-reverse" : "row" }}>
                   {ALPHA_KEYS.map(k => (
                     <button key={k} onClick={() => { if (plate.classNum.length < 3) { const n = plate.classNum + k; savePlate({ classNum: n }); if (n.length === 3) advance("hira", 150); } }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56, background: "#fefce8", borderColor: "#fde047" }}>{k}</button>
                   ))}
@@ -217,7 +223,7 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
               <span style={{ color: "#ea580c" }}>■ レンタカー</span>
             </div>
             <div className="flex flex-col" style={{ gap: 8 }}>
-              {KANA_ROWS.map((row, ri) => (
+              {kanaRows.map((row, ri) => (
                 <div key={ri} className="flex" style={{ gap: 8 }}>
                   {row.map((k, ci) => {
                     if (k === null || HIRA_UNUSABLE.has(k)) {
@@ -225,7 +231,8 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
                     }
                     const jigyoyo = HIRA_JIGYOYO.has(k);
                     const rental = HIRA_RENTAL.has(k);
-                    const col = HIRA_COL_COLORS[ci];
+                    const originalCi = rightFirst ? row.length - 1 - ci : ci;
+                    const col = HIRA_COL_COLORS[originalCi];
                     const isTopRow = ri === 0;
                     const bg = jigyoyo ? "#dbeafe" : rental ? "#ffedd5" : col.bg;
                     const borderColor = jigyoyo ? "#93c5fd" : rental ? "#fb923c" : col.border;
@@ -252,7 +259,7 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
                             position: "absolute", top: 3, left: 5,
                             fontSize: 11, fontWeight: 800, color: "#9CA3AF",
                             lineHeight: 1, letterSpacing: "0.02em",
-                          }}>{HIRA_COL_LABELS[ci]}行</span>
+                          }}>{HIRA_COL_LABELS[originalCi]}行</span>
                         )}
                       </button>
                     );
@@ -266,11 +273,11 @@ export default function VehiclePlateEditor({ plate, plateSection, fromFinal, sav
         {/* 4桁番号 */}
         {plateSection === "number" && (
           <div className="min-h-full flex items-center justify-center py-4">
-            <div className="flex items-stretch" style={{ gap: 20 }}>
+            <div className="flex items-stretch" style={{ gap: 20, flexDirection: rightFirst ? "row-reverse" : "row" }}>
               {/* テンキー */}
               <div className="flex flex-col" style={{ gap: 16 }}>
                 {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
-                  <div key={ri} className="flex" style={{ gap: 16 }}>{row.map(k => (
+                  <div key={ri} className="flex" style={{ gap: 16 }}>{orderedInputRow(row, inputOrder).map(k => (
                     <button key={k} onClick={() => { if (plate.number.length < 4) savePlate({ number: plate.number + k }); }} className={numBtnStyle} style={{ width: 180, height: 130, fontSize: 56 }}>{k}</button>
                   ))}</div>
                 ))}

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import { lookupByPhone, lookupReservation } from "@/lib/api";
 import { fmtPhone, isMobilePrefix, getJpAreaMap } from "@/lib/phoneFormat";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 
 const JP_AREA = getJpAreaMap();
 
@@ -19,6 +21,7 @@ const totalW = WP + GAP + (W * 3 + GAP * 2) + GAP + WA;
 
 export default function PhonePage() {
   const router = useRouter();
+  const inputOrder = useKioskInputOrder();
   const [phone, setPhone]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [fromFinal, setFromFinal] = useState(false);
@@ -304,7 +307,7 @@ export default function PhonePage() {
             </button>
           </div>
         )}
-        <div style={{ display: "flex", gap: GAP }}>
+        <div style={{ display: "flex", flexDirection: inputOrder === "right-first" ? "row-reverse" : "row", gap: GAP }}>
 
           {/* ── 左列: プレフィクス (070/080/090) ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
@@ -336,7 +339,7 @@ export default function PhonePage() {
           <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
             {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
               <div key={ri} style={{ display: "flex", gap: GAP }}>
-                {row.map((k) => (
+                {orderedInputRow(row, inputOrder).map((k) => (
                   <button
                     key={k}
                     className="kiosk-num"

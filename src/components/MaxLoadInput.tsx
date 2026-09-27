@@ -1,12 +1,16 @@
 "use client";
 
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
+
 type Props = { maxLoad: string; saveMaxLoad: (value: string) => void; submitInput: () => void };
 export default function MaxLoadInput({ maxLoad, saveMaxLoad, submitInput }: Props) {
+  const inputOrder = useKioskInputOrder();
   return (
-          <div className="min-h-full flex items-center justify-center gap-6 px-12 py-4">
+          <div className={`min-h-full flex items-center justify-center gap-6 px-12 py-4 ${inputOrder === "right-first" ? "flex-row-reverse" : ""}`}>
             <div className="flex flex-col gap-4 flex-shrink-0">
               {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row, ri) => (
-                <div key={ri} className="flex gap-4">{row.map(k => (
+                <div key={ri} className="flex gap-4">{orderedInputRow(row, inputOrder).map(k => (
                   <button key={k} onClick={() => { if (maxLoad.length < 6) saveMaxLoad(maxLoad + k); }} className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-gray-100 shadow-[0_5px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] transition-all select-none touch-pan-y" style={{ width: 200, height: 144, fontSize: 64 }}>{k}</button>
                 ))}</div>
               ))}

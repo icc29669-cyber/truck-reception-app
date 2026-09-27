@@ -6,6 +6,8 @@ import { formatPlate } from "@/types/reception";
 import type { PlateInput } from "@/types/reception";
 import { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
 import KatakanaKeyboard from "@/components/KatakanaKeyboard";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 
 /* ━━ プレートデータ ━━ */
 interface PlateRegion {
@@ -62,6 +64,8 @@ function PlatePanel({ plate, onChange }: {
   plate: PlateInput;
   onChange: (p: Partial<PlateInput>) => void;
 }) {
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
   const [section, setSection] = useState<PlateSection>(() => {
     if (!plate.region) return "region";
     if (!plate.classNum) return "classNum";
@@ -118,7 +122,7 @@ function PlatePanel({ plate, onChange }: {
   const numBtnStyle = "flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-gray-100 shadow-[0_4px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[3px] transition-all duration-75 select-none touch-none";
 
   return (
-    <div className="flex gap-6 h-full justify-center px-8">
+    <div className={`flex gap-6 h-full justify-center px-8 ${rightFirst ? "flex-row-reverse" : ""}`}>
       {/* BigPlate */}
       <div className="flex flex-col items-center justify-center flex-shrink-0" style={{width:400}}>
         <div style={{
@@ -167,7 +171,7 @@ function PlatePanel({ plate, onChange }: {
                 <div className="flex flex-col gap-2">
                   {KANA_ROWS.map((row,ri)=>(
                     <div key={ri} className="flex gap-2">
-                      {row.map((k,ci)=>k===null
+                      {orderedInputRow(row, inputOrder).map((k,ci)=>k===null
                         ? <div key={ci} style={{width:80,height:80}}/>
                         : <button key={ci} onPointerDown={()=>setKanaFilter(k)}
                             className="flex items-center justify-center font-bold rounded-xl border-2 border-gray-200 bg-white text-gray-800 active:bg-blue-50 shadow-[0_3px_0_#BDBDBD] active:shadow-[0_1px_0_#BDBDBD] active:translate-y-[2px] transition-all duration-75"
@@ -200,7 +204,7 @@ function PlatePanel({ plate, onChange }: {
                     「<span style={{ color: "#D97706", fontWeight: 900 }}>{kanaFilter}</span>」から始まる地名
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className={`flex flex-wrap gap-3 ${rightFirst ? "flex-row-reverse" : ""}`}>
                   {regionList.map(r=>(
                     <button key={r.id} onPointerDown={()=>{onChange({region:r.name});setKanaFilter(null);setTimeout(()=>setSection("classNum"),100);}}
                       className="flex items-center justify-center font-black rounded-xl border-2 border-gray-200 bg-white text-gray-900 active:bg-blue-50 shadow-[0_3px_0_#BDBDBD] active:translate-y-[2px] transition-all"
@@ -220,13 +224,13 @@ function PlatePanel({ plate, onChange }: {
                 <div className="flex flex-col gap-2">
                   {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row,ri)=>(
                     <div key={ri} className="flex gap-2">
-                      {row.map(k=>(
+                      {orderedInputRow(row, inputOrder).map(k=>(
                         <button key={k} onPointerDown={()=>{if(plate.classNum.length<3){const n=plate.classNum+k;onChange({classNum:n});if(n.length===3)setTimeout(()=>setSection("hira"),150);}}}
                           className={numBtnStyle} style={{width:100,height:100,fontSize:40}}>{k}</button>
                       ))}
                     </div>
                   ))}
-                  <div className="flex gap-2">
+                  <div className={`flex gap-2 ${rightFirst ? "flex-row-reverse" : ""}`}>
                     <button onPointerDown={()=>{if(plate.classNum.length<3){const n=plate.classNum+"0";onChange({classNum:n});if(n.length===3)setTimeout(()=>setSection("hira"),150);}}}
                       className={numBtnStyle} style={{width:214,height:100,fontSize:40}}>0</button>
                     <button onPointerDown={()=>onChange({classNum:plate.classNum.slice(0,-1)})}
@@ -234,7 +238,7 @@ function PlatePanel({ plate, onChange }: {
                       style={{width:100,height:100,fontSize:24}}>消す</button>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className={`flex flex-wrap gap-2 mt-3 ${rightFirst ? "flex-row-reverse" : ""}`}>
                   {ALPHA_KEYS.map(k=>(
                     <button key={k} onPointerDown={()=>{if(plate.classNum.length<3){const n=plate.classNum+k;onChange({classNum:n});if(n.length===3)setTimeout(()=>setSection("hira"),150);}}}
                       className={numBtnStyle} style={{width:80,height:72,fontSize:28}}>{k}</button>
@@ -255,7 +259,7 @@ function PlatePanel({ plate, onChange }: {
               <div className="flex flex-col gap-2">
                 {HIRA_ROWS.map((row,ri)=>(
                   <div key={ri} className="flex gap-2">
-                    {row.map((k,ci)=>k===null
+                    {orderedInputRow(row, inputOrder).map((k,ci)=>k===null
                       ? <div key={ci} style={{width:72,height:72}}/>
                       : (() => {
                           const unusable=HIRA_UNUSABLE.has(k);
@@ -287,13 +291,13 @@ function PlatePanel({ plate, onChange }: {
               <div className="flex flex-col gap-2">
                 {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row,ri)=>(
                   <div key={ri} className="flex gap-2">
-                    {row.map(k=>(
+                    {orderedInputRow(row, inputOrder).map(k=>(
                       <button key={k} onPointerDown={()=>{if(plate.number.length<4)onChange({number:plate.number+k});}}
                         className={numBtnStyle} style={{width:100,height:100,fontSize:40}}>{k}</button>
                     ))}
                   </div>
                 ))}
-                <div className="flex gap-2">
+                <div className={`flex gap-2 ${rightFirst ? "flex-row-reverse" : ""}`}>
                   <button onPointerDown={()=>{if(plate.number.length<4)onChange({number:plate.number+"0"});}}
                     className={numBtnStyle} style={{width:214,height:100,fontSize:40}}>0</button>
                   <button onPointerDown={()=>onChange({number:plate.number.slice(0,-1)})}
@@ -313,6 +317,8 @@ function PlatePanel({ plate, onChange }: {
 /* ━━ メイン ━━ */
 export default function DataConfirmPage() {
   const router = useRouter();
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
   const [active, setActive] = useState<ActiveField>("company");
   const [company,  setCompany]  = useState("");
   const [name,     setName]     = useState("");
@@ -412,7 +418,7 @@ export default function DataConfirmPage() {
 
       {/* ━━ 上：タブ（4項目） ━━ */}
       <div className="flex flex-shrink-0" style={{background:"white",borderBottom:"2px solid #e2e8f0"}}>
-        {tabs.map((tab,i)=>{
+        {orderedInputRow(tabs, inputOrder).map((tab,i)=>{
           const filled = !!tab.value;
           const isActive = active===tab.id;
           return (
@@ -483,7 +489,7 @@ export default function DataConfirmPage() {
 
         {/* 最大積載 */}
         {active==="maxLoad" && (
-          <div className="h-full flex items-center justify-center gap-16 px-16">
+          <div className={`h-full flex items-center justify-center gap-16 px-16 ${rightFirst ? "flex-row-reverse" : ""}`}>
             {/* 左：説明 + 表示 */}
             <div className="flex flex-col gap-5 flex-shrink-0" style={{width:400}}>
               <p style={{fontSize:26,fontWeight:700,color:"#475569",lineHeight:1.5}}>
@@ -497,11 +503,11 @@ export default function DataConfirmPage() {
               </div>
             </div>
             {/* 右：テンキー */}
-            <div className="flex gap-4 flex-shrink-0">
+            <div className={`flex gap-4 flex-shrink-0 ${rightFirst ? "flex-row-reverse" : ""}`}>
               <div className="flex flex-col gap-3">
                 {[["1","2","3"],["4","5","6"],["7","8","9"]].map((row,ri)=>(
                   <div key={ri} className="flex gap-3">
-                    {row.map(k=>(
+                    {orderedInputRow(row, inputOrder).map(k=>(
                       <button key={k} onPointerDown={()=>saveMaxLoad(maxLoad+k)}
                         className={numBtnBase} style={{width:156,height:122,fontSize:54}}>{k}</button>
                     ))}

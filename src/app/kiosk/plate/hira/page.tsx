@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import PlateDisplay from "@/components/PlateDisplay";
+import { useKioskInputOrder } from "@/components/KioskInputOrderContext";
+import { orderedInputRow } from "@/lib/kioskInputOrder";
 
 // 左から右（あ行→左端、わ行→右端）
 const HIRA_ROWS: (string | null)[][] = [
@@ -50,6 +52,8 @@ const GAP = 9;
 export default function HiraPage() {
   const router = useRouter();
   const session = getKioskSession();
+  const inputOrder = useKioskInputOrder();
+  const rightFirst = inputOrder === "right-first";
 
   function select(ch: string) {
     if (!ch || UNUSABLE.has(ch)) return;
@@ -108,13 +112,14 @@ export default function HiraPage() {
       <div className="flex-1 flex flex-col items-center px-8 pt-3 pb-3 gap-3 overflow-hidden">
 
         {/* ── グリッド + 英字 ── */}
-        <div style={{ display: "flex", gap: 20, flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: rightFirst ? "row-reverse" : "row", gap: 20, flexShrink: 0 }}>
 
           {/* ひらがなグリッド */}
           <div style={{ display: "flex", flexDirection: "column", gap: GAP }}>
             {HIRA_ROWS.map((row, ri) => (
               <div key={ri} style={{ display: "flex", gap: GAP }}>
-                {row.map((ch, ci) => {
+                {orderedInputRow(row, inputOrder).map((ch, ci) => {
+                  const originalCi = rightFirst ? row.length - 1 - ci : ci;
                   if (ch === null) {
                     return <div key={ci} style={{ width: BTN_W, height: BTN_H }} />;
                   }
@@ -122,7 +127,7 @@ export default function HiraPage() {
                   if (UNUSABLE.has(ch)) {
                     return <div key={ci} style={{ width: BTN_W, height: BTN_H }} />;
                   }
-                  const col = COL_COLORS[ci];
+                  const col = COL_COLORS[originalCi];
                   const isTopRow = ri === 0;
                   return (
                     <button
@@ -156,7 +161,7 @@ export default function HiraPage() {
                           fontSize: 11, fontWeight: 800, color: "#9CA3AF",
                           lineHeight: 1, letterSpacing: "0.02em",
                         }}>
-                          {COL_LABELS[ci]}行
+                          {COL_LABELS[originalCi]}行
                         </span>
                       )}
                     </button>
@@ -179,7 +184,9 @@ export default function HiraPage() {
             </div>
             {/* 英字ボタン 2列 */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: GAP }}>
-              {ALPHA_KEYS.map((k) => (
+              {Array.from({ length: ALPHA_KEYS.length / 2 }, (_, i) =>
+                orderedInputRow(ALPHA_KEYS.slice(i * 2, i * 2 + 2), inputOrder)
+              ).flat().map((k) => (
                 <button
                   key={k}
                   onPointerDown={() => select(k)}
