@@ -1,52 +1,11 @@
 "use client";
+import KioskSteps from "@/components/KioskSteps";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import type { ReservationCandidate } from "@/types/reception";
 import PlateDisplay from "@/components/PlateDisplay";
 
-/* ━━ ステップドット ━━ */
-function StepDots({ current }: { current: number }) {
-  const labels = ["電話番号", "お名前", "車　両", "最終確認"];
-  return (
-    <div className="flex items-center gap-4">
-      {labels.map((label, i) => {
-        const step = i + 1;
-        const done = step < current;
-        const active = step === current;
-        return (
-          <div key={i} className="flex items-center gap-4">
-            <div className="flex flex-col items-center" style={{ minWidth: 72 }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: "50%",
-                background: done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.25)",
-                border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, fontWeight: 900,
-                color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
-              }}>
-                {done ? "✓" : step}
-              </div>
-              <span style={{
-                fontSize: 15, fontWeight: 700, marginTop: 4,
-                color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.4)",
-                whiteSpace: "nowrap",
-              }}>{label}</span>
-            </div>
-            {i < labels.length - 1 && (
-              <div style={{
-                width: 56, height: 3,
-                background: done ? "#4ade80" : "rgba(255,255,255,0.2)",
-                borderRadius: 2,
-                marginBottom: 20,
-              }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 export default function ReservationSelectPage() {
   const router = useRouter();
@@ -128,7 +87,7 @@ export default function ReservationSelectPage() {
           ◀ 電話番号へ戻る
         </button>
         <div style={{ flex: 1 }} />
-        <StepDots current={1} />
+        <KioskSteps current={1} />
       </div>
 
       {/* タイトル */}

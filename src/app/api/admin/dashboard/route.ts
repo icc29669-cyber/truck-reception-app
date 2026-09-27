@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifySession, SESSION_COOKIE } from "@/lib/session";
+import { PENDING_RESERVATION_STATUSES } from "@/lib/reservationStatus";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,19 +26,14 @@ export async function GET(req: NextRequest) {
   const center = await prisma.center.findUnique({ where: { id: centerId } });
   if (!center) return NextResponse.json({ error: "センターが見つかりません" }, { status: 404 });
 
-  const [recCount, resvCount, unchecked, lastRec, userCount, nextResvs, recentReceptions] = await Promise.all([
+  const [recCount, resvCount, unchecked, nextResvs, recentReceptions] = await Promise.all([
     prisma.reception.count({ where: { centerId, arrivedAt: { gte: startUtc, lt: endUtc } } }),
     prisma.reservation.count({ where: { centerId, reservationDate: { gte: startUtc, lt: endUtc } } }),
     prisma.reservation.count({
-      where: { centerId, reservationDate: { gte: startUtc, lt: endUtc }, status: "pending" },
+      where: { centerId, reservationDate: { gte: startUtc, lt: endUtc }, status: { in: PENDING_RESERVATION_STATUSES } },
     }),
-    prisma.reception.findFirst({
-      where: { centerId, arrivedAt: { gte: startUtc, lt: endUtc } },
-      orderBy: { arrivedAt: "desc" }, select: { arrivedAt: true },
-    }),
-    prisma.user.count({ where: { centerId, isActive: true } }),
     prisma.reservation.findMany({
-      where: { centerId, reservationDate: { gte: startUtc, lt: endUtc }, status: "pending" },
+      where: { centerId, reservationDate: { gte: startUtc, lt: endUtc }, status: { in: PENDING_RESERVATION_STATUSES } },
       orderBy: { startTime: "asc" }, take: 5,
       select: { id: true, startTime: true, endTime: true, companyName: true, driverName: true, plateNumber: true },
     }),
@@ -64,8 +60,7 @@ export async function GET(req: NextRequest) {
       receptionsToday: recCount,
       reservationsToday: resvCount,
       uncheckedInToday: unchecked,
-      userCount,
-      lastReceptionAt: lastRec?.arrivedAt.toISOString() ?? null,
+      lastReceptionAt: recentReceptions[0]?.arrivedAt.toISOString() ?? null,
       isOpenNow,
     },
     nextReservations: nextResvs,

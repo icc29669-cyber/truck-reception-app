@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import type { ReceptionResult } from "@/types/reception";
 
 interface Props {
   data: ReceptionResult;
+  onReady?: () => void;
+  onError?: () => void;
 }
 
 function formatDateTime(iso: string): string {
@@ -16,11 +18,15 @@ function formatDateTime(iso: string): string {
   return `${mm}/${dd} ${hh}:${mi}`;
 }
 
-export default function PrintReceipt({ data }: Props) {
+export default function PrintReceipt({ data, onReady, onError }: Props) {
   // iframe 経由での印刷で canvas はコピーできないため、data URL (PNG) + <img> で描画する
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const qrTimeout = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
+    let active = true;
+    const timeout = setTimeout(() => { if (active) onError?.(); }, 10000);
+    qrTimeout.current = timeout;
     // QR内に項目名を含めないため、固定順のJSON配列で出力する。
     const payload = [
       1,
@@ -47,12 +53,13 @@ export default function PrintReceipt({ data }: Props) {
       errorCorrectionLevel: "M",
       color: { dark: "#000", light: "#fff" },
     })
-      .then(setQrDataUrl)
+      .then(value => { if (active) setQrDataUrl(value); })
       .catch((e) => {
         console.error("QR generation failed:", e);
-        setQrDataUrl("");
+        if (active) { setQrDataUrl(""); onError?.(); }
       });
-  }, [data]);
+    return () => { active = false; clearTimeout(timeout); };
+  }, [data, onError]);
 
   return (
     <div id="print-receipt" style={{ width: "74mm", fontFamily: "'MS Gothic', 'Courier New', monospace", fontSize: "12px" }}>
@@ -109,6 +116,8 @@ export default function PrintReceipt({ data }: Props) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={qrDataUrl}
+            onLoad={() => { clearTimeout(qrTimeout.current); onReady?.(); }}
+            onError={() => { clearTimeout(qrTimeout.current); onError?.(); }}
             alt="受付 QR コード"
             style={{ display: "block", margin: "0 auto", width: "30mm", height: "30mm" }}
           />

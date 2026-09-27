@@ -1,3 +1,4 @@
+import { validatePrinterSettings } from "@/lib/printerSettings";
 import { NextRequest, NextResponse } from "next/server";
 import {
   verifySession, signSession, cookieOptions,
@@ -55,6 +56,8 @@ export async function PATCH(req: NextRequest) {
     paperWidth?: string; autoPrint?: boolean;
   } | null;
   if (!body) return NextResponse.json({ error: "リクエスト不正" }, { status: 400 });
+  const printerError = validatePrinterSettings(body);
+  if (printerError) return NextResponse.json({ error: printerError }, { status: 400 });
 
   const data: Record<string, unknown> = {};
   if (typeof body.name === "string") data.name = body.name;

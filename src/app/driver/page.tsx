@@ -9,7 +9,7 @@ import {
 } from "@simplewebauthn/browser";
 import {
   TruckIcon, KeyIcon, NumPadIcon, AlertIcon, CheckIcon,
-  ChevronLeftIcon, ChevronRightIcon, InstallIcon,
+  ChevronLeftIcon, ChevronRightIcon,
 } from "@/components/Icon";
 import LoginAppHint from "@/components/LoginAppHint";
 

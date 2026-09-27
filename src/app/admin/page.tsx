@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 
 type Dashboard = {
@@ -8,7 +8,6 @@ type Dashboard = {
     receptionsToday: number;
     reservationsToday: number;
     uncheckedInToday: number;
-    userCount: number;
     lastReceptionAt: string | null;
     isOpenNow: boolean;
   };
@@ -33,24 +32,44 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const active = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    if (document.hidden || active.current) return;
+    const controller = new AbortController(); active.current = controller;
     setLoading(true);
     setFetchError(false);
     try {
-      const res = await fetch("/api/admin/dashboard");
+      const res = await fetch("/api/admin/dashboard", { signal: controller.signal });
       if (!res.ok) { setFetchError(true); return; }
-      setData(await res.json());
+      const result = await res.json();
+      if (!controller.signal.aborted) setData(result);
     } catch {
-      setFetchError(true);
-    } finally { setLoading(false); }
+      if (!controller.signal.aborted) setFetchError(true);
+    } finally {
+      if (active.current === controller) { active.current = null; setLoading(false); }
+    }
   }, []);
 
   useEffect(() => { load(); }, [load, refreshKey]);
   useEffect(() => {
-    const t = setInterval(() => setRefreshKey((k) => k + 1), 30_000);
-    return () => clearInterval(t);
-  }, []);
+    let timer: ReturnType<typeof setInterval> | undefined;
+    function visibilityChanged() {
+      clearInterval(timer);
+      if (document.hidden) {
+        active.current?.abort(); active.current = null;
+      } else {
+        void load();
+        timer = setInterval(() => void load(), 30_000);
+      }
+    }
+    visibilityChanged();
+    document.addEventListener("visibilitychange", visibilityChanged);
+    return () => {
+      clearInterval(timer); active.current?.abort(); active.current = null;
+      document.removeEventListener("visibilitychange", visibilityChanged);
+    };
+  }, [load]);
 
   if (!data) {
     if (fetchError) {

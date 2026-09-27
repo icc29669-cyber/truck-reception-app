@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getSession, invalidateAllSessions, setSession } from "@/lib/driverAuth";
+import { getSession, setSession } from "@/lib/driverAuth";
 import { getClientIp, isRateLimited, recordFailure, RATE_LIMIT_SENSITIVE_MAX } from "@/lib/rateLimit";
 import { normalizePhone } from "@/lib/phone";
 import bcrypt from "bcryptjs";

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { parseVehicleNumber } from "@/lib/vehiclePlate";
+import { detectPlateColor, type PlateColor } from "@/lib/plateColor";
+export { detectPlateColor, type PlateColor } from "@/lib/plateColor";
 
 // ━━ 地名（50音別）━━
 // 読みの頭文字で分類（濁音は清音に統合: ぎ→き, ぐ→く, こおりやま→こ など）
@@ -76,64 +79,8 @@ const KANA_GRID: (string | null)[][] = [
 ];
 
 export type Step = "area" | "num3" | "kana" | "num4";
-export type PlateColor = "white" | "green" | "yellow" | "black";
 
-// ━━ 分類番号＋ひらがなからプレート色を自動判定 ━━
-//
-// 【色の決まり方】
-//   普通車（登録自動車）: 白（自家用） / 緑（事業用）
-//   軽自動車           : 黄（自家用） / 黒（事業用）
-//
-// 【軽自動車の分類番号帯】
-//   480〜499 : 軽貨物
-//   580〜799 : 軽乗用（780〜799は580〜599枯渇後の繰り上げ）
-//   880〜899 : 軽特種
-//
-// 【事業用ひらがな】
-//   普通車: あ い う え か き く け こ を
-//   軽自動車: り れ
-//
-// 【未入力時のデフォルト】
-//   分類番号未入力 → 緑（本システムはトラックが多い想定）
-//   分類番号あり・ひらがな未入力 → 番号帯で推定
-//
-export function detectPlateColor(num3: string, kana: string = ""): PlateColor {
-  if (!num3) return "green"; // 未入力: トラックが多い想定でデフォルト緑
 
-  // 分類番号の数値部分を取得（下2桁がアルファベットの場合は先頭1〜2桁で判定）
-  const numericStr = num3.replace(/[^0-9]/g, "");
-  const n = parseInt(numericStr || "0", 10);
-
-  // ── 軽自動車判定 (公式: 軽自動車検査協会) ──
-  // 旧実装 580-799 は普通車の 599-679/699-779 も巻き込むので 4 レンジに分離。
-  const isKei =
-    (n >= 480 && n <= 498) || // 軽貨物
-    (n >= 580 && n <= 598) || // 軽乗用
-    (n >= 680 && n <= 698) || // 軽乗合
-    (n >= 780 && n <= 798) || // 軽乗用(新番号帯)
-    (n >= 880 && n <= 898);   // 軽特種
-
-  if (isKei) {
-    // 軽事業用（黒ナンバー）: り・れ
-    if (kana === "り" || kana === "れ") return "black";
-    // ひらがな未入力でも黄で表示（軽自家用が大多数）
-    return "yellow";
-  }
-
-  // ── 普通車 ──
-  // 事業用ひらがな: あいうえ・かきくけこ・を
-  const jigyoKana = new Set(["あ", "い", "う", "え", "か", "き", "く", "け", "こ", "を"]);
-  if (jigyoKana.has(kana)) return "green"; // 普通車事業用（緑）
-
-  // ひらがな未入力: 分類番号先頭で推定
-  if (!kana) {
-    const first = num3[0];
-    if (first === "1" || first === "2") return "green"; // 大型貨物・バス→事業用が多い
-    return "white"; // 3〜9, 0 → 自家用が多い
-  }
-
-  return "white"; // 普通車自家用（白）
-}
 
 // ━━ プレート色設定 ━━
 const COLOR_CONFIG: Record<PlateColor, { bg: string; text: string; dim: string; border: string; label: string }> = {
@@ -142,37 +89,11 @@ const COLOR_CONFIG: Record<PlateColor, { bg: string; text: string; dim: string; 
   yellow: { bg: "#f5d800", text: "#111111", dim: "rgba(17,17,17,0.35)",    border: "#999",    label: "黄" },
   black:  { bg: "#111111", text: "#f5d800", dim: "rgba(245,216,0,0.55)",   border: "#444",    label: "黒" },
 };
-
-// ━━ 4桁を「12-34」形式で右詰め表示（3桁以上でハイフン登場）━━
-// 例: ""→"・・・・"  "1"→"・・・1"  "12"→"・・12"  "123"→"・1-23"  "1234"→"12-34"
-function formatNum4(num4: string): string {
-  const padded = ("・・・・" + num4).slice(-4); // 右詰めで4桁にパディング
-  if (num4.length < 3) return padded; // 1〜2桁はハイフンなし
-  return padded.slice(0, 2) + "-" + padded.slice(2, 4);
-}
-
-// ━━ フルstring→パーツ分解（num3は1〜3桁、num4は1〜4桁可変に対応）━━
-// ひらがなの位置を基準に分割するためnum4が何桁でも正しく解析できる
 export function parsePlate(value: string) {
-  // ひらがな（U+3041〜U+3096）を右から探してkana位置を特定
-  let kanaIdx = -1;
-  for (let i = value.length - 1; i >= 0; i--) {
-    const c = value.charCodeAt(i);
-    if (c >= 0x3041 && c <= 0x3096) { kanaIdx = i; break; }
-  }
-  if (kanaIdx < 0) return { area: "", num3: "", kana: "", num4: "" };
-
-  const kana = value[kanaIdx];
-  const num4 = value.slice(kanaIdx + 1);          // kana以降がnum4（1〜4桁）
-  const rest = value.slice(0, kanaIdx);            // kana以前がarea+num3
-  // num3は末尾の連続した英数字、areaは漢字
-  let num3Start = rest.length;
-  for (let i = rest.length - 1; i >= 0; i--) {
-    if (/[0-9A-Za-z]/.test(rest[i])) num3Start = i;
-    else break;
-  }
-  return { area: rest.slice(0, num3Start), num3: rest.slice(num3Start), kana, num4 };
+  const p = parseVehicleNumber(value);
+  return { area: p.region, num3: p.classNum, kana: p.hira, num4: p.number };
 }
+
 
 // ━━ プレート描画コア ━━
 function PlateBody({
@@ -190,7 +111,6 @@ function PlateBody({
   const dimArea  = !area;
   const dimNum3  = !num3;
   const dimKana  = !kana;
-  const dimNum4  = !num4;
 
   // 日本語・数字とも統一フォント
   const pf = '"Hiragino Kaku Gothic ProN", "Meiryo", "MS Gothic", Arial, sans-serif';

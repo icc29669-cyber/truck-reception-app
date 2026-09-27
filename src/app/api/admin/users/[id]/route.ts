@@ -1,3 +1,4 @@
+import { validatePrinterSettings } from "@/lib/printerSettings";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/session";
@@ -14,6 +15,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     isActive?: boolean; password?: string;
   } | null;
   if (!body) return NextResponse.json({ error: "リクエスト不正" }, { status: 400 });
+  const printerError = validatePrinterSettings(body);
+  if (printerError) return NextResponse.json({ error: printerError }, { status: 400 });
 
   const data: Record<string, unknown> = {};
   if (typeof body.loginId === "string") {

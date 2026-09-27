@@ -1,174 +1,14 @@
 ﻿"use client";
+import KioskSteps from "@/components/KioskSteps";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession, clearKioskSession, RECEPTION_REQUEST_KEY } from "@/lib/kioskState";
 import { getPendingRequestId } from "@/lib/pendingRequest";
 import { registerReception } from "@/lib/api";
 import { formatPlate } from "@/types/reception";
-import PlateDisplay, { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
-import type { PlateInput } from "@/types/reception";
+import PlateDisplay from "@/components/PlateDisplay";
 import { fmtPhone } from "@/lib/phoneFormat";
 
-/* ━━ ステップドット ━━ */
-function StepDots({ current, completed }: { current: number; completed?: boolean[] }) {
-  const labels = ["電話番号", "お名前", "車　両", "最終確認"];
-  return (
-    <div className="flex items-center gap-4">
-      {labels.map((label, i) => {
-        const step = i + 1;
-        const done = completed ? (completed[i] ?? false) : step < current;
-        const active = step === current;
-        return (
-          <div key={i} className="flex items-center gap-4">
-            <div className="flex flex-col items-center" style={{ minWidth: 72 }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: "50%",
-                background: done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.25)",
-                border: `3px solid ${done ? "#4ade80" : active ? "#fff" : "rgba(255,255,255,0.4)"}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, fontWeight: 900,
-                color: done ? "#0f766e" : active ? "#1e3a6b" : "rgba(255,255,255,0.5)",
-              }}>
-                {done ? "✓" : step}
-              </div>
-              <span style={{
-                fontSize: 15, fontWeight: 700, marginTop: 4,
-                color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.4)",
-                whiteSpace: "nowrap",
-              }}>{label}</span>
-            </div>
-            {i < labels.length - 1 && (
-              <div style={{
-                width: 56, height: 3,
-                background: done ? "#4ade80" : "rgba(255,255,255,0.2)",
-                borderRadius: 2,
-                marginBottom: 20,
-              }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ━━ プレート（枠付き・修正ボタン右下） ━━ */
-function EditablePlate({ plate, onEdit }: {
-  plate: PlateInput;
-  onEdit: (section: string) => void;
-}) {
-  const color = detectPlateColor(plate.classNum, plate.hira);
-  const { bg, text, dim, border } = COLOR_CONFIG[color];
-  const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
-  const len = plate.number.length;
-  const secBorder = "2px dashed #F59E0B";
-
-  const editBtn = (onClick: () => void) => (
-    <button
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
-      className="select-none touch-manipulation"
-      style={{
-        position: "absolute" as const, bottom: 4, right: 4,
-        height: 26, fontSize: 11, fontWeight: 700,
-        background: "linear-gradient(180deg, #3B82F6, #2563EB)",
-        color: "#fff", border: "none", borderRadius: 7,
-        boxShadow: "0 2px 0 #1d4ed8", cursor: "pointer",
-        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 3,
-        padding: "0 9px", whiteSpace: "nowrap" as const,
-      }}
-    ><span style={{ fontSize: 10 }}>✎</span> 修正</button>
-  );
-
-  return (
-    <div style={{
-      width: 500, height: 280, background: bg, border: `5px solid ${border}`,
-      borderRadius: 16, display: "flex", flexDirection: "column",
-      padding: "10px 14px 10px", boxSizing: "border-box",
-      boxShadow: "0 8px 30px rgba(0,0,0,0.28)", flexShrink: 0,
-      gap: 8,
-    }}>
-      {/* 上段: 地名 + 分類番号 */}
-      <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-        {/* 地名 */}
-        <div
-          onClick={() => onEdit("region")}
-          style={{
-            position: "relative", border: secBorder, borderRadius: 10,
-            padding: "4px 14px 22px", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.region ? text : dim }}>
-            {plate.region || "地名"}
-          </span>
-          {editBtn(() => onEdit("region"))}
-        </div>
-        {/* 分類番号 */}
-        <div
-          onClick={() => onEdit("classNum")}
-          style={{
-            position: "relative", border: secBorder, borderRadius: 10,
-            padding: "4px 14px 22px", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <span style={{ fontSize: 38, fontWeight: 900, fontFamily: pf, color: plate.classNum ? text : dim, letterSpacing: 4 }}>
-            {plate.classNum || "・・・"}
-          </span>
-          {editBtn(() => onEdit("classNum"))}
-        </div>
-      </div>
-
-      {/* 下段: ひらがな + 4桁番号 */}
-      <div style={{ flex: 1, display: "flex", gap: 10 }}>
-        {/* ひらがな */}
-        <div
-          onClick={() => onEdit("hira")}
-          style={{
-            position: "relative", border: secBorder, borderRadius: 10,
-            width: 72, flexShrink: 0, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <span style={{ fontSize: 58, fontWeight: 900, fontFamily: pf, color: plate.hira ? text : dim, lineHeight: 1 }}>
-            {plate.hira || "あ"}
-          </span>
-          {editBtn(() => onEdit("hira"))}
-        </div>
-        {/* 4桁番号 */}
-        <div
-          onClick={() => onEdit("number")}
-          style={{
-            position: "relative", border: secBorder, borderRadius: 10,
-            flex: 1, cursor: "pointer", overflow: "hidden",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <span style={{
-            fontSize: 96, fontWeight: 900, fontFamily: pf, color: plate.number ? text : dim,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transform: "scaleX(0.85)", transformOrigin: "center", lineHeight: 1,
-          }}>
-            {[0, 1, 2, 3].map(pos => {
-              const hasDigit = pos >= (4 - len);
-              const ch = hasDigit ? plate.number[pos - (4 - len)] : null;
-              return (
-                <span key={pos} style={{ display: "inline-flex", alignItems: "center" }}>
-                  {pos === 2 && <span style={{ visibility: len >= 3 ? "visible" : "hidden" }}>-</span>}
-                  {ch !== null
-                    ? <span style={{ display: "inline-block", width: "0.6em", textAlign: "center" }}>{ch}</span>
-                    : <span style={{ display: "inline-block", width: "0.6em", textAlign: "center", opacity: 0.35 }}>・</span>
-                  }
-                </span>
-              );
-            })}
-          </span>
-          {editBtn(() => onEdit("number"))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ━━ アイコン定義 ━━ */
 const IconPhone = () => (
@@ -375,7 +215,7 @@ export default function FinalConfirmPage() {
           >◀ 車両選択へ戻る</button>
         </div>
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-          <StepDots current={4} completed={[phoneComplete, personComplete, vehicleComplete, true]} />
+          <KioskSteps large current={4} completed={[phoneComplete, personComplete, vehicleComplete, true]} />
         </div>
         <div style={{ width: 160 }} />
       </div>

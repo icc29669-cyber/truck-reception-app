@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getJSTDayRange, isValidJSTDate } from "@/lib/jstDate";
 
+import { validateReservationSchedule } from "@/lib/reservationValidation";
+import { normalizeReservationStatus, PENDING_RESERVATION_STATUSES } from "@/lib/reservationStatus";
+import { vehicleSnapshotUpdate } from "@/lib/vehiclePlate";
+
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
@@ -26,7 +30,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (status) {
-      where.status = status;
+      where.status = normalizeReservationStatus(status) === "pending" ? { in: PENDING_RESERVATION_STATUSES } : status;
     }
 
     const reservations = await prisma.reservation.findMany({
@@ -42,11 +46,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-function isValidTime(t: string): boolean {
-  if (!/^\d{2}:\d{2}$/.test(t)) return false;
-  const [h, m] = t.split(":").map(Number);
-  return h >= 0 && h <= 23 && m >= 0 && m <= 59;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,19 +61,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
     }
 
-    // 入力バリデーション
-    if (!isValidTime(startTime)) {
-      return NextResponse.json({ error: "開始時刻が不正です (HH:mm, 00:00〜23:59)" }, { status: 400 });
-    }
-    if (!isValidTime(endTime)) {
-      return NextResponse.json({ error: "終了時刻が不正です (HH:mm, 00:00〜23:59)" }, { status: 400 });
-    }
-    if (startTime >= endTime) {
-      return NextResponse.json({ error: "終了時刻は開始時刻より後にしてください" }, { status: 400 });
-    }
-    if (!isValidJSTDate(reservationDate)) {
-      return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
-    }
+    const scheduleError = validateReservationSchedule(reservationDate, startTime, endTime);
+    if (scheduleError) return NextResponse.json({ error: scheduleError }, { status: 400 });
     if (phone && !/^\d{0,15}$/.test(phone)) {
       return NextResponse.json({ error: "電話番号の形式が不正です" }, { status: 400 });
     }
@@ -85,11 +73,8 @@ export async function POST(req: NextRequest) {
         phone: phone || "",
         driverName: driverName || "",
         companyName: companyName || "",
-        plateRegion: plateRegion || "",
-        plateClassNum: plateClassNum || "",
-        plateHira: plateHira || "",
-        plateNumber: plateNumber || "",
-        vehicleNumber: vehicleNumber || "",
+        ...vehicleSnapshotUpdate({ plateRegion: "", plateClassNum: "", plateHira: "", plateNumber: "", vehicleNumber: "" }, { plateRegion, plateClassNum, plateHira, plateNumber, vehicleNumber }),
+        status: "pending",
         maxLoad: maxLoad || "",
         reservationDate: getJSTDayRange(reservationDate).start,
         startTime,

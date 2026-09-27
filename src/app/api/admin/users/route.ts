@@ -1,3 +1,4 @@
+import { validatePrinterSettings } from "@/lib/printerSettings";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/session";
@@ -26,6 +27,8 @@ export async function POST(req: NextRequest) {
     paperWidth?: string; autoPrint?: boolean;
   } | null;
   if (!body) return NextResponse.json({ error: "リクエスト不正" }, { status: 400 });
+  const printerError = validatePrinterSettings(body);
+  if (printerError) return NextResponse.json({ error: printerError }, { status: 400 });
   const { loginId, password, name, centerId, paperWidth = "80", autoPrint = true } = body;
   if (!loginId || !password || !name || !centerId) {
     return NextResponse.json({ error: "全項目必須" }, { status: 400 });

@@ -3,9 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/driverAuth";
 import { checkAdminAuth } from "@/lib/adminAuth";
 import { Prisma } from "@prisma/client";
-import { getJSTDayRange, getJSTToday, isValidJSTDate } from "@/lib/jstDate";
+import { getJSTDayRange, getJSTToday } from "@/lib/jstDate";
 import { parseVehicleNumber } from "@/lib/vehiclePlate";
 import { hashRequest, isValidRequestId } from "@/lib/idempotency";
+
+import { validateReservationSchedule } from "@/lib/reservationValidation";
+import { PENDING_RESERVATION_STATUSES, normalizeReservationStatus } from "@/lib/reservationStatus";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +18,31 @@ export async function GET(request: NextRequest) {
 
   if (!session && !isAdmin) {
     return NextResponse.json({ error: "未認証" }, { status: 401 });
+  }
+
+  const mine = request.nextUrl.searchParams.get("mine") === "true";
+  if (mine && !session) return NextResponse.json({ error: "ドライバーのログインが必要です" }, { status: 401 });
+  const scope = request.nextUrl.searchParams.get("scope");
+  if (mine && scope) {
+    const page = Number(request.nextUrl.searchParams.get("page") || "1");
+    if (!["upcoming", "past"].includes(scope) || !Number.isInteger(page) || page < 1 || page > 100000) {
+      return NextResponse.json({ error: "一覧の条件が不正です" }, { status: 400 });
+    }
+    const { start } = getJSTDayRange();
+    const where: Prisma.ReservationWhereInput = { driverId: session!.id, ...(scope === "upcoming"
+      ? { reservationDate: { gte: start }, status: { in: [...PENDING_RESERVATION_STATUSES, "checked_in"] } }
+      : { OR: [{ reservationDate: { lt: start } }, { status: { in: ["completed", "cancelled", "no_show"] } }] }) };
+    const direction = scope === "past" ? "desc" : "asc";
+    const rows = await prisma.reservation.findMany({
+      where, skip: (page - 1) * 30, take: 31,
+      select: { id: true, driverId: true, centerId: true, reservationDate: true, startTime: true, endTime: true,
+        vehicleNumber: true, companyName: true, driverName: true, maxLoad: true, status: true,
+        center: { select: { id: true, name: true } } },
+      orderBy: [{ reservationDate: direction }, { startTime: direction }, { id: direction }],
+    });
+    return NextResponse.json(rows.slice(0, 30).map(row => ({ ...row, date: getJSTToday(row.reservationDate), status: normalizeReservationStatus(row.status) ?? row.status })), {
+      headers: { "X-Has-More": String(rows.length > 30), "Cache-Control": "private, no-store" },
+    });
   }
 
   // 管理者は全件取得、ドライバーは自分の予約のみ
@@ -66,16 +94,8 @@ export async function POST(request: NextRequest) {
       ![maxLoad, companyName, driverName].every((v) => typeof v === "string")) {
     return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
   }
-  if (!isValidJSTDate(date)) {
-    return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
-  }
-  const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
-  if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
-    return NextResponse.json({ error: "時刻の形式が不正です (HH:MM, 00:00〜23:59)" }, { status: 400 });
-  }
-  if (startTime >= endTime) {
-    return NextResponse.json({ error: "開始時刻は終了時刻より前である必要があります" }, { status: 400 });
-  }
+  const scheduleError = validateReservationSchedule(date, startTime, endTime);
+  if (scheduleError) return NextResponse.json({ error: scheduleError }, { status: 400 });
   // 文字数制限
   if (vehicleNumber.length > 50) {
     return NextResponse.json({ error: "車番は50文字以内にしてください" }, { status: 400 });

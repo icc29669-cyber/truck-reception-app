@@ -32,12 +32,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "電話番号は必須です" }, { status: 400 });
     }
 
-    // ── ローカルDB + centerCache + berth-app 用の前準備 を並列実行 ──
-    // 旧コードは fetchBerthReservations 内で center.findUnique が同期実行されていた。
-    // ここで center 引き当てを先頭の並列に混ぜて、HTTP fetch の待ち時間と重ねない。
-    // getJSTDayRange() の end を直接使う。
-    // todayStart.toISOString() は UTC 日付文字列になるため、
-    // そこから再計算すると JST との日付ズレで当日予約が消える。
+    // JST当日でローカル検索し、外部検索は独立して並行開始する。
     const { start: todayStart, end: todayEnd } = getJSTDayRange();
 
     const localWhere: Record<string, unknown> = {
@@ -49,19 +44,18 @@ export async function GET(req: NextRequest) {
     if (centerId) localWhere.centerId = Number(centerId);
 
     const needCenter = !!(BERTH_API_URL && BERTH_KIOSK_SECRET && !centerName && centerId);
-    const [localReservations, centerRow] = await Promise.all([
+    const berthLookup = BERTH_API_URL && BERTH_KIOSK_SECRET
+      ? (needCenter ? getCenterCached(Number(centerId)) : Promise.resolve(null))
+        .then(center => fetchBerthReservations(phone, centerName || center?.name || ""))
+      : Promise.resolve([]);
+    const [localReservations, berthResults] = await Promise.all([
       prisma.reservation.findMany({
         where: localWhere,
         include: { driver: { select: { name: true, companyName: true } } },
         orderBy: { startTime: "asc" },
       }),
-      needCenter ? getCenterCached(Number(centerId)) : Promise.resolve(null),
+      berthLookup,
     ]);
-
-    const resolvedCenterName = centerName || centerRow?.name || "";
-    const berthResults = (BERTH_API_URL && BERTH_KIOSK_SECRET)
-      ? await fetchBerthReservations(phone, resolvedCenterName)
-      : [];
 
     // ── ローカル結果マッピング ──
     const results: ReservationResult[] = localReservations.map((r) => {

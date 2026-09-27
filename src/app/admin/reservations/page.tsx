@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getJSTToday } from "@/lib/jstDate";
+import { canChangeReservationStatus, normalizeReservationStatus, RESERVATION_STATUSES, reservationStatusLabel as statusLabel } from "@/lib/reservationStatus";
+import { parseVehicleNumber, vehicleSnapshotUpdate } from "@/lib/vehiclePlate";
 
 type Center = { id: number; name: string };
 
@@ -69,11 +71,7 @@ function fmtDate(d: Date) {
 
 const STATUS_LIST = [
   { key: "", label: "全て" },
-  { key: "pending", label: "予約済" },
-  { key: "checked_in", label: "受付済" },
-  { key: "completed", label: "完了" },
-  { key: "cancelled", label: "キャンセル" },
-  { key: "no_show", label: "不来" },
+  ...RESERVATION_STATUSES.map(key => ({ key, label: statusLabel(key) })),
 ];
 
 const statusBadge = (s: string) => {
@@ -84,18 +82,7 @@ const statusBadge = (s: string) => {
     cancelled: "bg-red-100 text-red-700",
     no_show: "bg-orange-100 text-orange-700",
   };
-  return map[s] || "bg-gray-100 text-gray-700";
-};
-
-const statusLabel = (s: string) => {
-  const map: Record<string, string> = {
-    pending: "予約済",
-    checked_in: "受付済",
-    completed: "完了",
-    cancelled: "キャンセル",
-    no_show: "不来",
-  };
-  return map[s] || s;
+  return map[normalizeReservationStatus(s) || s] || "bg-gray-100 text-gray-700";
 };
 
 export default function ReservationsPage() {
@@ -437,7 +424,7 @@ export default function ReservationsPage() {
                         >
                           編集
                         </button>
-                        {r.status === "pending" && (
+                        {canChangeReservationStatus(r.status, "checked_in", "admin") && normalizeReservationStatus(r.status) === "pending" && (
                           <>
                             <button
                               onClick={() => handleStatusChange(r, "checked_in")}
@@ -453,7 +440,7 @@ export default function ReservationsPage() {
                             </button>
                           </>
                         )}
-                        {r.status === "checked_in" && (
+                        {normalizeReservationStatus(r.status) === "checked_in" && (
                           <button
                             onClick={() => handleStatusChange(r, "completed")}
                             className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-300 transition-colors"
@@ -574,7 +561,7 @@ export default function ReservationsPage() {
                   <input
                     type="text"
                     value={form.plateRegion}
-                    onChange={(e) => setForm({ ...form, plateRegion: e.target.value })}
+                    onChange={(e) => setForm({ ...form, ...vehicleSnapshotUpdate(form, { plateRegion: e.target.value }) })}
                     className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
                     placeholder="多摩"
                   />
@@ -584,7 +571,7 @@ export default function ReservationsPage() {
                   <input
                     type="text"
                     value={form.plateClassNum}
-                    onChange={(e) => setForm({ ...form, plateClassNum: e.target.value })}
+                    onChange={(e) => setForm({ ...form, ...vehicleSnapshotUpdate(form, { plateClassNum: e.target.value }) })}
                     className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
                     placeholder="500"
                   />
@@ -594,7 +581,7 @@ export default function ReservationsPage() {
                   <input
                     type="text"
                     value={form.plateHira}
-                    onChange={(e) => setForm({ ...form, plateHira: e.target.value })}
+                    onChange={(e) => setForm({ ...form, ...vehicleSnapshotUpdate(form, { plateHira: e.target.value }) })}
                     className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
                     placeholder="あ"
                   />
@@ -604,7 +591,7 @@ export default function ReservationsPage() {
                   <input
                     type="text"
                     value={form.plateNumber}
-                    onChange={(e) => setForm({ ...form, plateNumber: e.target.value })}
+                    onChange={(e) => setForm({ ...form, ...vehicleSnapshotUpdate(form, { plateNumber: e.target.value }) })}
                     className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
                     placeholder="7917"
                   />
@@ -619,6 +606,10 @@ export default function ReservationsPage() {
                     type="text"
                     value={form.vehicleNumber}
                     onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })}
+                    onBlur={() => setForm(current => {
+                      const plate = parseVehicleNumber(current.vehicleNumber);
+                      return plate.region ? { ...current, plateRegion: plate.region, plateClassNum: plate.classNum, plateHira: plate.hira, plateNumber: plate.number } : current;
+                    })}
                     className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
                     placeholder="多摩 500 あ 7917"
                   />

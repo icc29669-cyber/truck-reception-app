@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getJSTDayRange, isValidJSTDate } from "@/lib/jstDate";
+import { getJSTDayRange, getJSTToday } from "@/lib/jstDate";
+import { Prisma } from "@prisma/client";
+import { validateReservationSchedule } from "@/lib/reservationValidation";
+import { canChangeReservationStatus, normalizeReservationStatus } from "@/lib/reservationStatus";
+import { vehicleSnapshotUpdate } from "@/lib/vehiclePlate";
 
 export const dynamic = "force-dynamic";
 
@@ -21,72 +25,47 @@ export async function PUT(
       reservationDate, startTime, endTime, status, notes,
     } = body;
 
-    // 入力バリデーション
-    const timeRe = /^\d{2}:\d{2}$/;
-    if (startTime !== undefined && !timeRe.test(startTime)) {
-      return NextResponse.json({ error: "開始時刻の形式が不正です (HH:mm)" }, { status: 400 });
+    const current = await prisma.reservation.findUnique({ where: { id } });
+    if (!current) return NextResponse.json({ error: "予約が見つかりません" }, { status: 404 });
+    if ([reservationDate, startTime, endTime].some(v => v !== undefined)) {
+      const error = validateReservationSchedule(
+        reservationDate === undefined ? getJSTToday(current.reservationDate) : reservationDate,
+        startTime === undefined ? current.startTime : startTime,
+        endTime === undefined ? current.endTime : endTime,
+      );
+      if (error) return NextResponse.json({ error }, { status: 400 });
     }
-    if (endTime !== undefined && !timeRe.test(endTime)) {
-      return NextResponse.json({ error: "終了時刻の形式が不正です (HH:mm)" }, { status: 400 });
-    }
-    if (startTime && endTime && startTime >= endTime) {
-      return NextResponse.json({ error: "終了時刻は開始時刻より後にしてください" }, { status: 400 });
-    }
-    if (reservationDate !== undefined && !isValidJSTDate(reservationDate)) {
-      return NextResponse.json({ error: "日付の形式が不正です (YYYY-MM-DD)" }, { status: 400 });
-    }
-    const validStatuses = ["pending", "checked_in", "completed", "cancelled", "no_show"];
-    if (status !== undefined && !validStatuses.includes(status)) {
+    if (status !== undefined && !normalizeReservationStatus(status)) {
       return NextResponse.json({ error: "無効なステータスです" }, { status: 400 });
     }
-
-    // ステータス遷移バリデーション
-    if (status !== undefined) {
-      const current = await prisma.reservation.findUnique({ where: { id }, select: { status: true } });
-      if (!current) {
-        return NextResponse.json({ error: "予約が見つかりません" }, { status: 404 });
-      }
-      const allowedTransitions: Record<string, string[]> = {
-        pending: ["checked_in", "completed", "cancelled", "no_show"],
-        checked_in: ["completed", "cancelled"],
-        completed: [],
-        cancelled: [],
-        no_show: [],
-      };
-      const allowed = allowedTransitions[current.status] ?? [];
-      if (!allowed.includes(status)) {
-        return NextResponse.json(
-          { error: `このステータス変更はできません (${current.status} → ${status})` },
-          { status: 400 }
-        );
-      }
+    if (status !== undefined && !canChangeReservationStatus(current.status, status, "admin")) {
+      return NextResponse.json({ error: "このステータス変更はできません" }, { status: 409 });
     }
 
     const reservation = await prisma.reservation.update({
-      where: { id },
+      where: { id, updatedAt: current.updatedAt, status: current.status },
       data: {
         ...(centerId !== undefined && { centerId: Number(centerId) }),
         ...(phone !== undefined && { phone }),
         ...(driverName !== undefined && { driverName }),
         ...(companyName !== undefined && { companyName }),
-        ...(plateRegion !== undefined && { plateRegion }),
-        ...(plateClassNum !== undefined && { plateClassNum }),
-        ...(plateHira !== undefined && { plateHira }),
-        ...(plateNumber !== undefined && { plateNumber }),
-        ...(vehicleNumber !== undefined && { vehicleNumber }),
+        ...vehicleSnapshotUpdate(current, { plateRegion, plateClassNum, plateHira, plateNumber, vehicleNumber }),
         ...(maxLoad !== undefined && { maxLoad }),
         ...(reservationDate !== undefined && {
           reservationDate: getJSTDayRange(reservationDate).start,
         }),
         ...(startTime !== undefined && { startTime }),
         ...(endTime !== undefined && { endTime }),
-        ...(status !== undefined && { status }),
+        ...(status !== undefined && { status: normalizeReservationStatus(status)! }),
         ...(notes !== undefined && { notes }),
       },
     });
 
     return NextResponse.json(reservation);
   } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {
+      return NextResponse.json({ error: "予約が更新されています。一覧を更新して確認してください" }, { status: 409 });
+    }
     console.error(e);
     return NextResponse.json({ error: "更新に失敗しました" }, { status: 500 });
   }
@@ -98,23 +77,30 @@ export async function DELETE(
 ) {
   try {
     const id = Number(params.id);
+    const current = await prisma.reservation.findUnique({ where: { id } });
+    if (!current) return NextResponse.json({ error: "予約が見つかりません" }, { status: 404 });
 
     // Check if any receptions reference this reservation
     const receptionCount = await prisma.reception.count({
       where: { reservationId: id },
     });
     if (receptionCount > 0) {
-      // If receptions exist, soft-delete by cancelling instead
+      if (!canChangeReservationStatus(current.status, "cancelled", "admin")) {
+        return NextResponse.json({ error: "この予約は取り消せません" }, { status: 409 });
+      }
       const reservation = await prisma.reservation.update({
-        where: { id },
+        where: { id, updatedAt: current.updatedAt, status: current.status },
         data: { status: "cancelled" },
       });
       return NextResponse.json(reservation);
     }
 
-    await prisma.reservation.delete({ where: { id } });
+    await prisma.reservation.delete({ where: { id, updatedAt: current.updatedAt, status: current.status } });
     return NextResponse.json({ ok: true });
   } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && ["P2025", "P2003"].includes(e.code)) {
+      return NextResponse.json({ error: "予約が更新されています。一覧を更新して確認してください" }, { status: 409 });
+    }
     console.error(e);
     return NextResponse.json({ error: "削除に失敗しました" }, { status: 500 });
   }

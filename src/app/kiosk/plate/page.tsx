@@ -293,7 +293,6 @@ export default function PlatePage() {
   const step = STEP_CONFIG[active];
 
   /* テンキーボタン幅: 右パネルの flex-1 幅 ≒ 56vw、3列なら 56vw/3 ≒ 18.5vw */
-  const keyW = "calc((min(56vw, 100%) - 6rem) / 4)";   // 4列基準（消すボタン行）
   const keyH = "clamp(70px, 8vw, 130px)";
   const keyFontSize = "clamp(28px, 4vw, 60px)";
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { vehicleSnapshotUpdate } from "@/lib/vehiclePlate";
 
 export const dynamic = "force-dynamic";
 
@@ -64,17 +65,15 @@ export async function PUT(
       return NextResponse.json({ error: "番号は4桁以内の数字にしてください" }, { status: 400 });
     }
 
+    const current = await prisma.reception.findUnique({ where: { id } });
+    if (!current) return NextResponse.json({ error: "受付が見つかりません" }, { status: 404 });
     const reception = await prisma.reception.update({
       where: { id },
       data: {
         ...(companyName !== undefined && { companyName }),
         ...(driverName !== undefined && { driverName }),
         ...(phone !== undefined && { phone }),
-        ...(plateRegion !== undefined && { plateRegion }),
-        ...(plateClassNum !== undefined && { plateClassNum }),
-        ...(plateHira !== undefined && { plateHira }),
-        ...(plateNumber !== undefined && { plateNumber }),
-        ...(vehicleNumber !== undefined && { vehicleNumber }),
+        ...vehicleSnapshotUpdate(current, { plateRegion, plateClassNum, plateHira, plateNumber, vehicleNumber }),
         ...(maxLoad !== undefined && { maxLoad }),
       },
     });

@@ -1,4 +1,5 @@
 "use client";
+import { loadPrinterSettings } from "@/lib/printerSettings";
 
 import { useState, useEffect, useCallback } from "react";
 
@@ -541,27 +542,30 @@ function PrinterTab({ showToast }: { showToast: (m: string) => void }) {
   const [paperWidth, setPaperWidth] = useState("80");
   const [loaded, setLoaded] = useState(false);
 
-  // localStorageから読み込み
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
   useEffect(() => {
-    const saved = localStorage.getItem("printer_settings");
-    if (saved) {
-      try {
-        const s = JSON.parse(saved);
-        setPrinterName(s.printerName || "");
-        setAutoPrint(s.autoPrint ?? true);
-        setPaperWidth(s.paperWidth || "80");
-      } catch { /* ignore */ }
-    }
-    setLoaded(true);
+    const controller = new AbortController();
+    try { setPrinterName(localStorage.getItem("printer_name") || ""); } catch { /* メモは任意 */ }
+    loadPrinterSettings(controller.signal).then(settings => {
+      setAutoPrint(settings.autoPrint); setPaperWidth(settings.paperWidth); setLoaded(true);
+    }).catch(() => { if (!controller.signal.aborted) setSaveError("印刷設定を取得できません。画面を再読み込みしてください"); });
+    return () => controller.abort();
   }, []);
 
-  function handleSave() {
-    const settings = { printerName, autoPrint, paperWidth };
-    localStorage.setItem("printer_settings", JSON.stringify(settings));
-    showToast("プリンタ設定を保存しました");
+  async function handleSave() {
+    setSaving(true); setSaveError("");
+    try {
+      const res = await fetch("/api/auth/me", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ autoPrint, paperWidth }) });
+      if (!res.ok) throw new Error();
+      try { localStorage.setItem("printer_name", printerName); } catch { /* 印刷設定の保存成功は維持 */ }
+      showToast("プリンタ設定を保存しました");
+    } catch { setSaveError("設定を保存できませんでした。もう一度お試しください"); }
+    finally { setSaving(false); }
   }
 
   function handleTestPrint() {
+    const safePrinterName = printerName.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
     const w = window.open("", "_blank", "width=400,height=600");
     if (!w) return;
     w.document.write(`
@@ -579,7 +583,7 @@ function PrinterTab({ showToast }: { showToast: (m: string) => void }) {
       <div class="center big bold">No. 001</div>
       <hr />
       <div>用紙幅: ${paperWidth}mm</div>
-      <div>プリンタ: ${printerName || "\uFF08\u672A\u8A2D\u5B9A\uFF09"}</div>
+      <div>プリンタ: ${safePrinterName || "\uFF08\u672A\u8A2D\u5B9A\uFF09"}</div>
       <div>自動印刷: ${autoPrint ? "ON" : "OFF"}</div>
       <div>日時: ${new Date().toLocaleString("ja-JP")}</div>
       <hr />
@@ -590,15 +594,16 @@ function PrinterTab({ showToast }: { showToast: (m: string) => void }) {
     setTimeout(() => { w.print(); }, 300);
   }
 
-  if (!loaded) return null;
+  if (!loaded) return <p role="alert" className="p-6">{saveError || "印刷設定を読み込み中..."}</p>;
 
   return (
     <div className="bg-white rounded-2xl shadow p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-gray-800">プリンタ設定</h2>
-        <p className="text-sm text-gray-500">※ この設定はこの端末（ブラウザ）にのみ保存されます（端末ごとに異なるプリンタ構成に対応するため）</p>
+        <p className="text-sm text-gray-500">用紙幅・自動印刷はログインIDごとの設定です。プリンタ名のメモはこの端末に保存します。</p>
       </div>
 
+      {saveError && <p role="alert" className="text-red-700">{saveError}</p>}
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-4">
           <div className="flex flex-col gap-1">
@@ -671,6 +676,7 @@ function PrinterTab({ showToast }: { showToast: (m: string) => void }) {
       <div className="flex gap-3 pt-2">
         <button
           onClick={handleSave}
+          disabled={saving}
           className="px-6 py-2.5 bg-[#1a3a6b] text-white font-bold rounded-lg hover:bg-[#1E5799] transition-colors"
         >
           設定を保存

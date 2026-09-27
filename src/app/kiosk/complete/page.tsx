@@ -2,98 +2,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, clearKioskSession } from "@/lib/kioskState";
+import { useReceiptPrinter } from "@/components/useReceiptPrinter";
 import PrintReceipt from "@/components/PrintReceipt";
 import type { ReceptionResult } from "@/types/reception";
 
 const AUTO_RETURN = 15;
-
-/** localStorage からプリンタ設定を取得 */
-function getPrinterSettings() {
-  try {
-    const raw = localStorage.getItem("printer_settings");
-    if (!raw) return { autoPrint: true, paperWidth: "80" };
-    const s = JSON.parse(raw);
-    return {
-      autoPrint: s.autoPrint ?? true,
-      paperWidth: s.paperWidth || "80",
-    };
-  } catch {
-    return { autoPrint: true, paperWidth: "80" };
-  }
-}
-
-/**
- * サイレント印刷: iframeに受付票を描画して印刷
- * Chrome --kiosk-printing モードならダイアログなしで直接印刷される
- *
- * @returns Promise: 印刷トリガー成功なら resolve、失敗なら reject
- *                   （トリガーしただけで実際に紙が出たかは知ることはできない）
- */
-function silentPrint(paperWidth: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const src = document.getElementById("print-receipt");
-    if (!src) return reject(new Error("受付票の描画が見つかりません"));
-
-    // 既存iframeがあれば削除
-    const old = document.getElementById("print-frame");
-    if (old) old.remove();
-
-    const iframe = document.createElement("iframe");
-    iframe.id = "print-frame";
-    iframe.style.cssText = "position:fixed;width:0;height:0;border:none;left:-9999px;top:-9999px;";
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!doc) return reject(new Error("印刷用ドキュメントを作成できません"));
-
-    doc.open();
-    doc.write(`<!DOCTYPE html><html><head>
-<style>
-  @page { size: ${paperWidth}mm auto; margin: 3mm; }
-  body { margin: 0; padding: 0; }
-  * { font-family: "MS Gothic", "Courier New", monospace; }
-  img { max-width: 100%; }
-</style>
-</head><body>${src.innerHTML}</body></html>`);
-    doc.close();
-
-    // QR 画像のデコード完了を待ってから印刷（setTimeout 固定待機より確実）
-    const img = doc.querySelector("img");
-    const triggerPrint = () => {
-      try {
-        iframe.contentWindow?.print();
-        setTimeout(() => iframe.remove(), 2000);
-        resolve();
-      } catch (e) {
-        iframe.remove();
-        reject(e instanceof Error ? e : new Error(String(e)));
-      }
-    };
-
-    if (img && !img.complete) {
-      // 画像がまだロード中: onload / onerror を待つ（最大2秒でタイムアウト）
-      const timeoutId = setTimeout(triggerPrint, 2000);
-      img.onload = () => { clearTimeout(timeoutId); triggerPrint(); };
-      img.onerror = () => {
-        clearTimeout(timeoutId);
-        iframe.remove();
-        reject(new Error("QR画像のデコードに失敗しました"));
-      };
-    } else {
-      // 既にロード済 or img がない → 即印刷
-      setTimeout(triggerPrint, 100);
-    }
-  });
-}
 
 export default function CompletePage() {
   const router = useRouter();
   const [result, setResult]       = useState<ReceptionResult | null>(null);
   const [countdown, setCountdown] = useState(AUTO_RETURN);
   const [paused, setPaused]       = useState(false);
-  const [printError, setPrintError] = useState(false);
+  const printer = useReceiptPrinter();
+  const printError = printer.error;
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const printTriggered = useRef(false);
 
   useEffect(() => {
     const s = getKioskSession();
@@ -103,18 +25,11 @@ export default function CompletePage() {
     }
     setResult(s.receptionResult);
 
-    // 自動印刷: QR画像ロード完了を待って印刷 → 失敗したら画面に案内表示
-    const { autoPrint, paperWidth } = getPrinterSettings();
-    if (autoPrint && !printTriggered.current) {
-      printTriggered.current = true;
-      setTimeout(() => {
-        silentPrint(paperWidth).catch((e) => {
-          console.error("silent print failed:", e);
-          setPrintError(true);
-        });
-      }, 800);
-    }
+  }, [router]);
 
+  useEffect(() => {
+    if (!printer.readyToLeave || paused) return;
+    setCountdown(AUTO_RETURN);
     let n = AUTO_RETURN;
     timerRef.current = setInterval(() => {
       n -= 1;
@@ -127,8 +42,7 @@ export default function CompletePage() {
     }, 1000);
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router, printer.readyToLeave, paused]);
 
   function pauseCountdown() {
     if (paused) return;
@@ -147,19 +61,8 @@ export default function CompletePage() {
 
   function handlePrint() {
     pauseCountdown();
-    setPrintError(false);
-    const { paperWidth } = getPrinterSettings();
-    silentPrint(paperWidth).catch((e) => {
-      console.error("manual print failed:", e);
-      setPrintError(true);
-    });
+    printer.retryPrint();
   }
-
-  const arrivedAt = result ? new Date(result.arrivedAt) : new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const dateStr = result
-    ? `${arrivedAt.getMonth()+1}月${arrivedAt.getDate()}日　${pad(arrivedAt.getHours())}:${pad(arrivedAt.getMinutes())}`
-    : "";
 
   return (
     <div
@@ -304,7 +207,8 @@ export default function CompletePage() {
           <div style={{ display: "flex", gap: 18, width: "100%" }}>
             {/* もう一度印刷（セカンダリ: アウトライン） */}
             <button
-              onPointerDown={handlePrint}
+              onClick={handlePrint}
+              disabled={printer.printing}
               style={{
                 flex: 1, height: 88, fontSize: 22, fontWeight: 800,
                 background: "#fff", color: "#26251e",
@@ -346,7 +250,7 @@ export default function CompletePage() {
             fontSize: 14, color: paused ? "#9a978c" : "#5a5852",
             letterSpacing: "0.08em", fontWeight: 600,
           }}>
-            {paused ? (
+            {paused || !printer.readyToLeave ? (
               <span>自動遷移を停止しました</span>
             ) : (
               <span>
@@ -362,7 +266,7 @@ export default function CompletePage() {
       </div>
 
       {/* ── 印刷用受付票（画面上は非表示、iframe経由で印刷） ── */}
-      {result && <PrintReceipt data={result} />}
+      {result && <PrintReceipt key={printer.attempt} data={result} onReady={printer.onQrReady} onError={printer.onQrError} />}
     </div>
   );
 }

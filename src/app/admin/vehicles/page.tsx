@@ -41,6 +41,7 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 100;
@@ -50,6 +51,11 @@ export default function VehiclesPage() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setSearch(searchInput); setPage(1); }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -199,8 +205,8 @@ export default function VehiclesPage() {
           <label className="text-sm font-semibold text-gray-600">検索</label>
           <input
             type="text"
-            value={search}
-            onChange={(e) => { setPage(1); setSearch(e.target.value); }}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="車両番号・地域・電話番号で検索..."
             className="border-2 border-gray-200 rounded-lg px-3 py-2 text-base focus:border-blue-500 outline-none"
           />

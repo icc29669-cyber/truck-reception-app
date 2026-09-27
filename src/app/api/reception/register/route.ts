@@ -8,6 +8,8 @@ import { createNumberedReceptionInTransaction, ReceptionNumberLimitError } from 
 import { hashRequest, isValidRequestId } from "@/lib/idempotency";
 import { formatPlate } from "@/types/reception";
 
+import { PENDING_RESERVATION_STATUSES } from "@/lib/reservationStatus";
+
 export const dynamic = "force-dynamic";
 
 const BERTH_API_URL = process.env.BERTH_API_URL || "";
@@ -173,7 +175,7 @@ export async function POST(req: NextRequest) {
           });
           if (localReservationId) {
             const updated = await tx.reservation.updateMany({
-              where: { id: localReservationId, centerId, status: "pending" }, data: { status: "checked_in" },
+              where: { id: localReservationId, centerId, status: { in: PENDING_RESERVATION_STATUSES } }, data: { status: "checked_in" },
             });
             if (updated.count !== 1) throw new RegistrationError("この予約は受付済み、または取り消されています。受付担当者に確認してください", 409);
           }

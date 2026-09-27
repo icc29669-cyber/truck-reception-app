@@ -17,7 +17,6 @@ export default function NumericKeypad({
   onOK,
   maxLength = 12,
   phoneMode = false,
-  unit,
 }: Props) {
   function press(d: string) {
     if (value.replace(/,/g, "").length >= maxLength) return;

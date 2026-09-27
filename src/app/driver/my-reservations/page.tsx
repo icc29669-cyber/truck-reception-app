@@ -9,23 +9,9 @@ import {
   CenterIcon, TruckIcon, ListIcon, AlertIcon,
   ChevronRightIcon, ChevronLeftIcon,
 } from "@/components/Icon";
-import { toLocalDateStr } from "@/lib/dateFormat";
+import { useReservationList, type DriverReservation as Reservation } from "@/components/useReservationList";
+import { canChangeReservationStatus, reservationStatusLabel } from "@/lib/reservationStatus";
 import { clearCompletedReservationRequest } from "@/lib/reservationRequest";
-
-interface Reservation {
-  id: number;
-  driverId: number | null;
-  centerId: number;
-  date: string;
-  startTime: string;
-  endTime: string;
-  vehicleNumber: string;
-  companyName: string;
-  driverName: string;
-  maxLoad: string;
-  status: string;
-  center?: { id: number; name: string } | null;
-}
 
 interface User {
   name: string;
@@ -35,42 +21,29 @@ interface User {
 export default function MyReservationsPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [loadingReservations, setLoadingReservations] = useState(true);
-  const [fetchError, setFetchError] = useState(false);
   const [cancelling, setCancelling] = useState<number | null>(null);
   const [cancelError, setCancelError] = useState("");
   const [confirmTarget, setConfirmTarget] = useState<Reservation | null>(null);
   const [showPast, setShowPast] = useState(false);
+  const futureList = useReservationList("upcoming");
+  const pastList = useReservationList("past", showPast);
+  const upcoming = futureList.items, past = pastList.items;
+  const loadingReservations = futureList.loading, fetchError = futureList.error;
 
   useEffect(() => {
     fetch("/api/driver/auth")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setUser)
       .catch(() => router.push("/driver"));
-    fetchReservations();
   }, [router]);
 
   function fetchReservations() {
-    setLoadingReservations(true);
-    setFetchError(false);
-    fetch("/api/driver/reservations?mine=true")
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((data) => {
-        setReservations(data);
-        setLoadingReservations(false);
-      })
-      .catch(() => {
-        setFetchError(true);
-        setLoadingReservations(false);
-      });
+    futureList.reload();
+    if (showPast) pastList.reload();
   }
 
   async function handleCancelConfirmed() {
-    if (!confirmTarget) return;
+    if (!confirmTarget || !canChangeReservationStatus(confirmTarget.status, "cancelled", "driver")) return;
     const r = confirmTarget;
     setConfirmTarget(null);
     setCancelling(r.id);
@@ -112,10 +85,6 @@ export default function MyReservationsPage() {
       </div>
     );
   }
-
-  const today = toLocalDateStr(new Date());
-  const upcoming = reservations.filter((r) => r.date >= today && r.status !== "cancelled");
-  const past = reservations.filter((r) => r.date < today || r.status === "cancelled");
 
   return (
     <div style={{ minHeight: "100vh", background: "#f2f1ed", paddingBottom: 100 }}>
@@ -329,7 +298,7 @@ export default function MyReservationsPage() {
                       </p>
                     )}
                   </div>
-                  <button
+                  {canChangeReservationStatus(r.status, "cancelled", "driver") ? <button
                     onClick={() => setConfirmTarget(r)}
                     disabled={cancelling === r.id}
                     style={{
@@ -356,14 +325,16 @@ export default function MyReservationsPage() {
                         取り消し中...
                       </>
                     ) : "この予約を取り消す"}
-                  </button>
+                  </button> : <p className="px-5 pb-4 font-bold">{reservationStatusLabel(r.status)}</p>}
                 </div>
               );
             })}
           </div>
         )}
 
-        {!loadingReservations && !fetchError && past.length > 0 && (
+        {futureList.hasMore && <button className="w-full min-h-12 font-bold" disabled={loadingReservations} onClick={futureList.loadMore}>今後の予約をさらに表示</button>}
+
+        {!loadingReservations && !fetchError && (
           <div className="space-y-3">
             <button
               onClick={() => setShowPast((v) => !v)}
@@ -375,11 +346,14 @@ export default function MyReservationsPage() {
                 background: "transparent", border: "none", cursor: "pointer",
               }}
             >
-              <span>過去・取消済みを見る（{past.length}件）</span>
+              <span>過去・取消済みを見る</span>
               <span style={{ display: "inline-flex", transform: showPast ? "rotate(90deg)" : "rotate(-90deg)" }}>
                 <ChevronLeftIcon size={18} strokeWidth={2} />
               </span>
             </button>
+            {showPast && pastList.loading && <p role="status">履歴を読み込み中...</p>}
+            {showPast && pastList.error && <button onClick={pastList.reload}>履歴の読み込みに失敗しました。もう一度試す</button>}
+            {showPast && !pastList.loading && !pastList.error && past.length === 0 && <p>過去の予約はありません</p>}
             {showPast && past.map((r) => (
               <div key={r.id} style={{
                 background: "#faf9f5", borderRadius: 12, padding: "16px 18px",
@@ -408,11 +382,12 @@ export default function MyReservationsPage() {
                     background: r.status === "cancelled" ? "#fdecef" : "#E7E5DF",
                     color: r.status === "cancelled" ? "#BE123C" : "#5a5852",
                   }}>
-                    {r.status === "cancelled" ? "取消済" : "完了"}
+                    {reservationStatusLabel(r.status)}
                   </span>
                 </div>
               </div>
             ))}
+            {showPast && pastList.hasMore && <button className="w-full min-h-12 font-bold" disabled={pastList.loading} onClick={pastList.loadMore}>履歴をさらに表示</button>}
           </div>
         )}
 

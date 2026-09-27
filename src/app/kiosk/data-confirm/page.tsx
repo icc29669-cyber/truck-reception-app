@@ -1,5 +1,5 @@
 ﻿"use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import { formatPlate } from "@/types/reception";
@@ -56,80 +56,6 @@ const ALPHA_KEYS   = ["A","C","F","H","K","L","M","P","X","Y"];
 type ActiveField = "company" | "name" | "maxLoad" | "plate";
 type PlateSection = "region" | "classNum" | "hira" | "number";
 
-/* ━━ 左サイドバーのサマリー行 ━━ */
-function SideItem({ num, icon, label, value, placeholder, active, onClick }: {
-  num: string; icon: string; label: string; value: string; placeholder: string;
-  active: boolean; onClick: () => void;
-}) {
-  const filled = !!value;
-  return (
-    <button
-      onPointerDown={onClick}
-      className="flex flex-col text-left w-full transition-all duration-100 active:brightness-90"
-      style={{
-        padding: "16px 20px",
-        background: active ? "rgba(255,255,255,0.15)" : "transparent",
-        borderLeft: active ? "4px solid white" : "4px solid transparent",
-        flexShrink: 0,
-      }}
-    >
-      <div className="flex items-center gap-2 mb-1">
-        <span style={{ fontSize: 18, opacity: 0.6 }}>{num}</span>
-        <span style={{ fontSize: 18 }}>{icon}</span>
-        <span style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.55)", letterSpacing: "0.05em" }}>{label}</span>
-        {filled
-          ? <span style={{ marginLeft: "auto", fontSize: 12, color: "#4ade80", fontWeight: 800 }}>✓</span>
-          : <span style={{ marginLeft: "auto", fontSize: 12, color: "#f87171", fontWeight: 800 }}>未入力</span>
-        }
-      </div>
-      <span style={{
-        fontSize: 28, fontWeight: 900, lineHeight: 1.2,
-        color: filled ? "white" : "rgba(248,113,113,0.8)",
-        paddingLeft: 4,
-      }}>
-        {value || placeholder}
-      </span>
-    </button>
-  );
-}
-
-/* ━━ プレートプレビュー（左サイドバー用小型） ━━ */
-function MiniPlate({ plate }: { plate: PlateInput }) {
-  const color = detectPlateColor(plate.classNum, plate.hira);
-  const { bg, text, dim, border } = COLOR_CONFIG[color];
-  const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
-  const len = plate.number.length;
-
-  const numEl = (
-    <span style={{ display:"inline-flex", alignItems:"center", fontFamily:pf, fontWeight:900 }}>
-      {[0,1,2,3].map(pos=>{
-        const hasDigit = pos>=(4-len); const ch=hasDigit?plate.number[pos-(4-len)]:null;
-        return <span key={pos} style={{display:"inline-flex",alignItems:"center"}}>
-          {pos===2&&<span style={{visibility:len>=3?"visible":"hidden"}}>-</span>}
-          {ch!==null?<span style={{display:"inline-block",width:"0.6em",textAlign:"center"}}>{ch}</span>:<span style={{display:"inline-block",width:"0.6em",textAlign:"center",opacity:0.35}}>・</span>}
-        </span>;
-      })}
-    </span>
-  );
-
-  return (
-    <div style={{
-      width:240, height:120, background:bg, border:`4px solid ${border}`,
-      borderRadius:8, boxShadow:"0 4px 12px rgba(0,0,0,0.3)",
-      display:"flex", flexDirection:"column", padding:"5px 12px 7px",
-      boxSizing:"border-box", userSelect:"none", margin:"8px 20px 16px",
-    }}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-        <span style={{fontSize:18,fontWeight:900,fontFamily:pf,color:plate.region?text:dim}}>{plate.region||"地名"}</span>
-        <span style={{fontSize:18,fontWeight:900,fontFamily:pf,letterSpacing:2,color:plate.classNum?text:dim}}>{plate.classNum||"・・・"}</span>
-      </div>
-      <div style={{flex:1,display:"flex",alignItems:"center",position:"relative"}}>
-        <span style={{position:"absolute",left:0,fontSize:28,fontWeight:900,fontFamily:pf,color:plate.hira?text:dim,lineHeight:1}}>{plate.hira||"あ"}</span>
-        <span style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",paddingLeft:28,fontSize:52,color:plate.number?text:dim,transform:"scaleX(0.85)",transformOrigin:"center"}}>{numEl}</span>
-      </div>
-    </div>
-  );
-}
 
 /* ━━ 右パネル：プレート入力 ━━ */
 function PlatePanel({ plate, onChange }: {

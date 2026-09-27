@@ -1,4 +1,5 @@
 "use client";
+import KioskSteps from "@/components/KioskSteps";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getKioskSession, setKioskSession } from "@/lib/kioskState";
@@ -7,48 +8,6 @@ import { fmtPhone, isMobilePrefix, getJpAreaMap } from "@/lib/phoneFormat";
 
 const JP_AREA = getJpAreaMap();
 
-/* ━━ ステップインジケータ ━━ */
-function StepDots({ current }: { current: number }) {
-  const labels = ["電話番号", "お名前", "車　両", "最終確認"];
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      {labels.map((label, i) => {
-        const step = i + 1;
-        const done = step < current;
-        const active = step === current;
-        return (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 66 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: "50%",
-                background: done ? "#4ade80" : active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.12)",
-                border: `2.5px solid ${done ? "#22c55e" : active ? "#fff" : "rgba(255,255,255,0.25)"}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, fontWeight: 900,
-                color: done ? "#166534" : active ? "#1e3a6b" : "rgba(255,255,255,0.35)",
-                transition: "all 0.3s ease",
-              }}>
-                {done ? "✓" : step}
-              </div>
-              <span style={{
-                fontSize: 12.5, fontWeight: 700, marginTop: 3,
-                color: active ? "#fff" : done ? "#bbf7d0" : "rgba(255,255,255,0.3)",
-                whiteSpace: "nowrap",
-              }}>{label}</span>
-            </div>
-            {i < labels.length - 1 && (
-              <div style={{
-                width: 36, height: 2.5,
-                background: done ? "#4ade80" : "rgba(255,255,255,0.12)",
-                borderRadius: 2, marginBottom: 16,
-              }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 /* ━━ レイアウト定数 ━━ */
 const W   = 190;
@@ -250,7 +209,7 @@ export default function PhonePage() {
           ◀ {fromFinal ? "最終確認へ戻る" : "注意事項へ戻る"}
         </button>
         <div style={{ flex: 1 }} />
-        <StepDots current={1} />
+        <KioskSteps current={1} />
       </div>
 
       {/* ━━ サブヘッダー：STEPバッジ+大きな見出し ━━ */}

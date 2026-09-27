@@ -22,13 +22,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // ── すべて並列実行: ドライバー + 車両 + センター(キャッシュ) + berth-app ──
-    // 旧コードは fetchBerth 内で center.findUnique が同期実行されていたため
-    // 外部 HTTP fetch が始まる前に DB 1rtt を待たされていた。
-    // ここで center を先取りし、fetchBerth は既に解決済みの center を受け取る形に変更。
+    // 外部検索はセンターが取れ次第開始し、ローカルDBの完了を待たない。
     const canFetchBerth = BERTH_API_URL && BERTH_KIOSK_SECRET && centerId > 0;
 
-    const [drivers, vehicles, center] = await Promise.all([
+    const berthLookup = canFetchBerth
+      ? getCenterCached(centerId).then(center => fetchBerth(phone, centerId, center?.code ?? ""))
+      : Promise.resolve(null);
+    const [drivers, vehicles, berthData] = await Promise.all([
       prisma.driver.findMany({
         where: { phone, isActive: true },
         orderBy: { updatedAt: "desc" },
@@ -39,11 +39,8 @@ export async function GET(req: NextRequest) {
         orderBy: { updatedAt: "desc" },
         take: 10,
       }),
-      canFetchBerth ? getCenterCached(centerId) : Promise.resolve(null),
+      berthLookup,
     ]);
-
-    // center 取得後に berth-app へ fetch(並列 DB 群が完了 = 典型的には 50-100ms)
-    const berthData = canFetchBerth ? await fetchBerth(phone, centerId, center?.code ?? "") : null;
 
     // ── ローカル結果をマッピング ──
     // source は "local" と "berth" の合併 — 後段で berth 結果を push するため union で確定させる

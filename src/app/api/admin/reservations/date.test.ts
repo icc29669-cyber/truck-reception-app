@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-const mocks = vi.hoisted(() => ({ findMany: vi.fn(), create: vi.fn(), update: vi.fn(), center: vi.fn(), setting: vi.fn(), holiday: vi.fn() }));
+const mocks = vi.hoisted(() => ({ findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), center: vi.fn(), setting: vi.fn(), holiday: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
-  prisma: { reservation: { findMany: mocks.findMany, create: mocks.create, update: mocks.update }, center: { findUnique: mocks.center }, holiday: { findUnique: mocks.holiday } },
+  prisma: { reservation: { findMany: mocks.findMany, findUnique: mocks.findUnique, create: mocks.create, update: mocks.update }, center: { findUnique: mocks.center }, holiday: { findUnique: mocks.holiday } },
   getOrCreateSetting: mocks.setting,
 }));
 import { GET, POST } from "./route";
@@ -13,6 +13,7 @@ const date = "2026-09-26";
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.findMany.mockResolvedValue([]);
+  mocks.findUnique.mockResolvedValue({ id: 1, status: "pending", updatedAt: new Date(), reservationDate: new Date("2026-09-25T15:00:00Z"), startTime: "10:00", endTime: "11:00" });
   mocks.create.mockImplementation(async ({ data }) => ({ id: 1, ...data }));
   mocks.update.mockImplementation(async ({ data }) => ({ id: 1, ...data }));
   mocks.center.mockResolvedValue({ id: 2, breaks: "[]", closeTime: "18:00" });
