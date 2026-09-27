@@ -6,6 +6,12 @@ import { getKioskSession, setKioskSession } from "@/lib/kioskState";
 import { deleteCandidate as apiDeleteCandidate } from "@/lib/api";
 import type { DriverCandidate } from "@/types/reception";
 import KatakanaKeyboard from "@/components/KatakanaKeyboard";
+import KioskCandidateSelection, {
+  MULTI_CANDIDATE_CARD_HEIGHT,
+  ROOMY_CANDIDATE_CARD_HEIGHT,
+  candidateArtworkWidth,
+  candidateArtworkHeight,
+} from "@/components/KioskCandidateSelection";
 
 type Mode = "select" | "input";
 type InputField = "company" | "name";
@@ -13,10 +19,11 @@ type InputField = "company" | "name";
 
 /* ━━ 候補選択カード ━━ */
 function CandidateCard({
-  candidate, isFirst, onSelect, onDelete,
+  candidate, isFirst, roomy, onSelect, onDelete,
 }: {
   candidate: DriverCandidate;
   isFirst: boolean;
+  roomy: boolean;
   onSelect: () => void;
   onDelete: () => void;
 }) {
@@ -32,37 +39,42 @@ function CandidateCard({
         onPointerCancel={() => setPressed(false)}
         className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75"
         style={{
-          // 高さは VehicleCard と 140px で統一(=両画面のカード高さ一致)
-          height: 140, borderRadius: 22,
+          minHeight: roomy ? ROOMY_CANDIDATE_CARD_HEIGHT : MULTI_CANDIDATE_CARD_HEIGHT,
+          borderRadius: 22,
           background: pressed ? "#EFF6FF" : "#fff",
           border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
           boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
           borderLeft: isFirst ? "6px solid #0d9488" : undefined,
-          paddingLeft: isFirst ? 26 : 32,
-          paddingRight: 28,
-          overflow: "hidden",
+          paddingLeft: isFirst ? 20 : 26,
+          paddingRight: 20,
+          paddingTop: 12,
+          paddingBottom: 12,
         }}
       >
-        {/* 人アイコン — VehicleCard のプレート(200x100)と視覚重量を合わせるため大きめに */}
-        <div style={{
-          width: 88, height: 88, borderRadius: "50%",
-          background: "#EFF6FF", display: "flex", alignItems: "center",
-          justifyContent: "center", fontSize: 44, flexShrink: 0, marginRight: 28,
-        }}>👤</div>
+        {/* ナンバープレートと同じ幅を使い、名前と車番の開始位置を揃える */}
+        <div className="flex-shrink-0 mr-4 xl:mr-8 flex items-center justify-center" style={{
+          width: candidateArtworkWidth(roomy), height: candidateArtworkHeight(roomy),
+          borderRadius: 10, background: "#EFF6FF",
+        }}>
+          <svg aria-hidden="true" viewBox="0 0 100 100" fill="#3D3B78"
+            style={{ width: roomy ? 108 : 76, height: roomy ? 108 : 76 }}>
+            <circle cx="50" cy="33" r="19" />
+            <path d="M14 89c0-20 16-35 36-35s36 15 36 35H14Z" />
+          </svg>
+        </div>
 
-        {/* テキスト — 車番 32px / 最大積載量 28px の車両レイアウトに揃える */}
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <span style={{ fontSize: 36, fontWeight: 900, color: "#26251e", lineHeight: 1.2, letterSpacing: "0.04em" }}>
+        <div className="flex flex-col flex-1 min-w-0">
+          <span className={roomy ? "text-[26px] lg:text-[32px] xl:text-[38px]" : "text-[32px]"} style={{ fontWeight: 900, color: "#26251e", lineHeight: 1.2, letterSpacing: "0.04em", overflowWrap: "anywhere" }}>
             {candidate.name || "（名前なし）"}
           </span>
-          <span style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", lineHeight: 1.3, marginTop: 4 }}>
+          <span className={roomy ? "text-[21px] lg:text-[26px] xl:text-[30px]" : "text-[28px]"} style={{ fontWeight: 600, color: "#6B7280", lineHeight: 1.3, marginTop: 6, overflowWrap: "anywhere" }}>
             {candidate.companyName || "（会社名なし）"}
           </span>
         </div>
 
         {/* 最近バッジ */}
         {isFirst && (
-          <span style={{
+          <span className={roomy ? "max-lg:hidden" : ""} style={{
             fontSize: 20, fontWeight: 800, background: "#dcfce7",
             color: "#0f766e", borderRadius: 8, padding: "4px 14px",
             marginRight: 20, flexShrink: 0,
@@ -220,6 +232,7 @@ export default function PersonPage() {
   }
 
   const bgStyle = "#f2f1ed";
+  const roomyCandidates = candidates.length <= 2;
 
   if (!mounted) return <div className="w-screen h-screen" style={{ background: "#f2f1ed" }} />;
 
@@ -238,8 +251,8 @@ export default function PersonPage() {
         <KioskSteps current={2} />
       </div>
 
-      {/* サブヘッダー：STEPバッジ+大きな見出し */}
-      <div className="flex items-center flex-shrink-0" style={{ padding: "20px 40px 18px", gap: 22 }}>
+      {/* 入力画面の見出し。候補選択時は車両画面と共通の見出しを使う */}
+      {mode === "input" && <div className="flex items-center flex-shrink-0" style={{ padding: "20px 40px 18px", gap: 22 }}>
         <div style={{
           fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
           padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
@@ -248,20 +261,17 @@ export default function PersonPage() {
           STEP 2 / 4
         </div>
         <div style={{
-          fontSize: mode === "select" ? 30 : 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
+          fontSize: 40, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
           display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap",
           lineHeight: 1.25,
         }}>
-          {/* select モードは副文を大見出し位置にそのまま配置(別行で説明するより目線が一箇所で済む) */}
-          {mode === "select" ? (
-            "以前ご来場時の記録が見つかりました。ご自身のお名前をタッチしてください"
-          ) : inputField === "company" ? (
+          {inputField === "company" ? (
             <>運送会社名<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
           ) : (
             <>お名前<span style={{ fontSize: 28, color: "#0D9488", fontWeight: 800 }}>をカタカナで入力してください</span></>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* 入力モード：会社名 + お名前 を並べて表示（高齢者配慮でハイライト強化） */}
       {mode === "input" && (
@@ -342,19 +352,21 @@ export default function PersonPage() {
       )}
 
       {/* ━━ メインコンテンツ ━━ */}
-      <div className="flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
 
         {/* ── 選択モード ── */}
         {mode === "select" && (
-          <div className="h-full flex flex-col px-10 pt-2 pb-6">
-            {/* 候補カード + 新しく入力するカード(STEP ヘッダー直下にそのまま並べる) */}
-            <div className="flex-1 overflow-y-auto" style={{ paddingRight: 4, paddingTop: 34 }}>
-              <div className="flex flex-col gap-4">
+          <KioskCandidateSelection
+            step={2}
+            instruction="以前ご来場時の記録が見つかりました。ご自身のお名前をタッチしてください"
+            roomy={roomyCandidates}
+          >
                 {candidates.map((c, i) => (
                   <CandidateCard
                     key={c.id}
                     candidate={c}
                     isFirst={i === 0}
+                    roomy={roomyCandidates}
                     onSelect={() => selectCandidate(c)}
                     onDelete={() => setDeleteTarget(c)}
                   />
@@ -376,29 +388,30 @@ export default function PersonPage() {
                     }}
                     className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75 active:scale-[0.99]"
                     style={{
-                      height: 140, borderRadius: 22,
+                      height: roomyCandidates ? ROOMY_CANDIDATE_CARD_HEIGHT : MULTI_CANDIDATE_CARD_HEIGHT,
+                      borderRadius: 22,
                       background: "#fff",
                       border: "2px solid #D1D5DB",
                       borderLeft: "6px solid #1565C0",
-                      paddingLeft: 26, paddingRight: 28,
+                      paddingLeft: 20, paddingRight: 20,
                       boxShadow: "0 4px 14px rgba(0,0,0,0.09)",
                     }}
                   >
-                    {/* +アイコン(人アイコンと同じサイズ 88x88) */}
-                    <div style={{
-                      width: 88, height: 88, borderRadius: "50%",
+                    {/* 名前候補・車両候補と同じ左側の幅 */}
+                    <div className="flex-shrink-0 mr-4 xl:mr-8" style={{
+                      width: candidateArtworkWidth(roomyCandidates),
+                      height: candidateArtworkHeight(roomyCandidates), borderRadius: 10,
                       background: "#EFF6FF",
                       border: "3px dashed #60A5FA",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 48, flexShrink: 0, marginRight: 28,
+                      fontSize: 56,
                       color: "#1565C0", fontWeight: 300, lineHeight: 1,
                     }}>+</div>
-                    {/* テキスト情報(CandidateCard と同じ 2 行構造: 主見出し 36px + 補足 24px) */}
-                    <div className="flex flex-col flex-1">
-                      <span style={{ fontSize: 36, fontWeight: 900, color: "#1565C0", lineHeight: 1.2, letterSpacing: "0.04em" }}>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className={roomyCandidates ? "text-[26px] lg:text-[32px] xl:text-[38px]" : "text-[32px]"} style={{ fontWeight: 900, color: "#1565C0", lineHeight: 1.2, letterSpacing: "0.04em" }}>
                         新しく入力する
                       </span>
-                      <span style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", lineHeight: 1.3, marginTop: 4 }}>
+                      <span className={roomyCandidates ? "text-[20px] lg:text-[24px] xl:text-[28px]" : "text-[24px]"} style={{ fontWeight: 600, color: "#6B7280", lineHeight: 1.3, marginTop: 6 }}>
                         上記にない場合
                       </span>
                     </div>
@@ -407,9 +420,7 @@ export default function PersonPage() {
                   {/* 削除ボタンの幅と合わせる(ダミースペース) */}
                   <div style={{ width: 100, flexShrink: 0 }} />
                 </div>
-              </div>
-            </div>
-          </div>
+          </KioskCandidateSelection>
         )}
 
         {/* ── 確認モード（候補1件）── */}

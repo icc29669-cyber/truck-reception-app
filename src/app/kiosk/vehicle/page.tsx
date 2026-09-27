@@ -1,5 +1,11 @@
 ﻿"use client";
-import VehicleCard, { MULTI_CANDIDATE_CARD_HEIGHT } from "@/components/VehicleCandidateCard";
+import VehicleCard from "@/components/VehicleCandidateCard";
+import KioskCandidateSelection, {
+  MULTI_CANDIDATE_CARD_HEIGHT,
+  ROOMY_CANDIDATE_CARD_HEIGHT,
+  candidateArtworkWidth,
+  candidateArtworkHeight,
+} from "@/components/KioskCandidateSelection";
 import VehiclePlateEditor, { type PlateSection } from "@/components/VehiclePlateEditor";
 import MaxLoadInput from "@/components/MaxLoadInput";
 import KioskSteps from "@/components/KioskSteps";
@@ -330,34 +336,15 @@ export default function VehiclePage() {
       )}
 
       {/* ━━ メインコンテンツ ━━ */}
-      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+      <div className={mode === "select" ? "min-h-0 flex-1 overflow-hidden" : "min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"}>
 
         {/* ── 選択モード ── */}
         {mode === "select" && (
-          <div className="h-full flex flex-col pb-6">
-            {/* STEP バッジ + 案内文(他画面と同じヘッダーパターンで揃える) */}
-            <div style={{
-              display: "flex", alignItems: "center", flexShrink: 0,
-              padding: "20px 40px 18px", gap: 22,
-            }}>
-              <div style={{
-                fontSize: 16, color: "#64748B", letterSpacing: "0.22em", fontWeight: 800,
-                padding: "6px 14px", background: "#E2E8F0", borderRadius: 6,
-                flexShrink: 0,
-              }}>
-                STEP 3 / 4
-              </div>
-              <div style={{
-                fontSize: 30, fontWeight: 900, color: "#26251e", letterSpacing: "0.04em",
-                lineHeight: 1.25,
-              }}>
-                以前ご使用の車両記録が見つかりました。今回ご使用の車両をタッチしてください
-              </div>
-            </div>
-            {/* 候補が少ない場合は画面中央で選びやすい大きさにする */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 lg:px-10">
-              <div className={`w-full max-w-[1280px] mx-auto min-h-full flex flex-col justify-center ${roomyCandidates ? "py-3 xl:py-6" : "py-6"}`}>
-                <div className={`flex flex-col ${roomyCandidates ? "gap-4 xl:gap-6" : "gap-4"}`}>
+          <KioskCandidateSelection
+            step={3}
+            instruction="以前ご使用の車両記録が見つかりました。今回ご使用の車両をタッチしてください"
+            roomy={roomyCandidates}
+          >
                 {shownCandidates.map((c, i) => (
                   <VehicleCard key={c.id} candidate={c} isFirst={i === 0} roomy={roomyCandidates} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
                 ))}
@@ -381,7 +368,7 @@ export default function VehiclePage() {
                     }}
                     className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75 active:scale-[0.99]"
                     style={{
-                      height: roomyCandidates ? "clamp(160px, 20vh, 220px)" : MULTI_CANDIDATE_CARD_HEIGHT, borderRadius: 22,
+                      height: roomyCandidates ? ROOMY_CANDIDATE_CARD_HEIGHT : MULTI_CANDIDATE_CARD_HEIGHT, borderRadius: 22,
                       background: "#fff",
                       border: "2px solid #D1D5DB",
                       borderLeft: "6px solid #1565C0",
@@ -391,8 +378,8 @@ export default function VehiclePage() {
                   >
                     {/* +アイコンバッジ（プレートと同じ配置） */}
                     <div className="flex-shrink-0 mr-4 xl:mr-8" style={{
-                      width: roomyCandidates ? "clamp(160px, 18vw, 300px)" : 200,
-                      height: roomyCandidates ? "clamp(80px, 9vw, 150px)" : 100, borderRadius: 10,
+                      width: candidateArtworkWidth(roomyCandidates),
+                      height: candidateArtworkHeight(roomyCandidates), borderRadius: 10,
                       background: "#EFF6FF",
                       border: "3px dashed #60A5FA",
                       display: "flex", alignItems: "center", justifyContent: "center",
@@ -413,10 +400,7 @@ export default function VehiclePage() {
                   </button>
                   <div style={{ width: 100, flexShrink: 0 }} />
                 </div>
-              </div>
-              </div>
-            </div>
-          </div>
+          </KioskCandidateSelection>
         )}
 
         {/* ── 確認モード（候補1件）── */}
