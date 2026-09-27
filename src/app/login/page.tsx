@@ -1,11 +1,10 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 type Center = { id: number; code: string; name: string };
 
 function LoginInner() {
-  const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get("next") || "/admin";
 
@@ -32,6 +31,15 @@ function LoginInner() {
       .catch(() => setMode("login"));
   }, []);
 
+  function navigateAfterLogin() {
+    // ログインIDで決まるキオスクのキー配置を、前のユーザーの画面キャッシュから復元しない。
+    const target = new URL(next, window.location.origin);
+    const destination = target.origin === window.location.origin
+      ? `${target.pathname}${target.search}${target.hash}`
+      : "/admin";
+    window.location.replace(destination);
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true); setError("");
@@ -43,7 +51,7 @@ function LoginInner() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "ログインに失敗しました"); setLoading(false); return; }
-      router.replace(next);
+      navigateAfterLogin();
     } catch { setError("通信エラーが発生しました"); setLoading(false); }
   }
 
@@ -66,7 +74,7 @@ function LoginInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ loginId, password }),
       });
-      router.replace(next);
+      navigateAfterLogin();
     } catch { setError("通信エラーが発生しました"); setLoading(false); }
   }
 

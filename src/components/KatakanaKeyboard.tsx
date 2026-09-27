@@ -1,5 +1,6 @@
 ﻿"use client";
 import { useState } from "react";
+import { useKanaKeyboardOrder } from "@/components/KanaKeyboardOrderContext";
 
 interface Props {
   value: string;
@@ -16,6 +17,7 @@ const KATA_ROWS: (string | null)[][] = [
   ["エ","ケ","セ","テ","ネ","ヘ","メ", null,"レ", null],
   ["オ","コ","ソ","ト","ノ","ホ","モ","ヨ","ロ", null],
 ];
+const RIGHT_FIRST_KATA_ROWS = KATA_ROWS.map((row) => [...row].reverse());
 
 // ━━ 英数（メイン7列×5行 / 数字3列×5行）━━
 const ALPHA_ROWS: (string | null)[][] = [
@@ -69,7 +71,7 @@ const G  = 8;    // ギャップ
 const LW = 136;  // 左列幅
 const AW = 168;  // 操作列幅
 
-// ━━ 行カラー（列インデックス: 0=ワ行 … 9=ア行）━━
+// ━━ 行カラー（元の列インデックス: 0=ア行 … 9=ワ行）━━
 // 淡いパステルで品よく色分け
 const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
   { bg: "#EFF6FF", border: "#BFDBFE", shadow: "#93C5FD" },  // ア行
@@ -87,6 +89,7 @@ const COL_COLORS: { bg: string; border: string; shadow: string }[] = [
 const COL_LABELS = ["ア", "カ", "サ", "タ", "ナ", "ハ", "マ", "ヤ", "ラ", "ワ"];
 
 export default function KatakanaKeyboard({ value, onChange, onComplete }: Props) {
+  const kanaOrder = useKanaKeyboardOrder();
   const [mode, setMode] = useState<"kata"|"alpha">("kata");
   // 英数字モードで以降の入力を大文字/小文字どちらで打ち込むかを保持する(いわゆる Caps Lock)
   const [alphaCase, setAlphaCase] = useState<"upper"|"lower">("upper");
@@ -174,12 +177,13 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
 
       {/* ━━ メイングリッド（カタカナ10列 / 英数7列）━━ */}
       <div className="flex flex-col flex-shrink-0" style={{ gap:G }}>
-        {(mode==="kata" ? KATA_ROWS : ALPHA_ROWS).map((row, ri) => (
+        {(mode==="kata" ? (kanaOrder === "right-first" ? RIGHT_FIRST_KATA_ROWS : KATA_ROWS) : ALPHA_ROWS).map((row, ri) => (
           <div key={ri} className="flex" style={{ gap:G }}>
             {row.map((ch, ci) => {
               if (ch === null) return <div key={ci} style={cell} />;
               const isKata = mode === "kata";
-              const col = isKata ? COL_COLORS[ci] : null;
+              const originalCi = isKata && kanaOrder === "right-first" ? row.length - 1 - ci : ci;
+              const col = isKata ? COL_COLORS[originalCi] : null;
               const isTopRow = ri === 0 && isKata;
               // 英数字モード時はキーの表示文字とアウトプット文字を alphaCase に合わせて変える。
               // 英字 (A-Z) のみ大文字/小文字切替の対象で、記号 (&・.-_) は常にそのまま。
@@ -188,6 +192,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
               return (
                 <button
                   key={ci}
+                  aria-label={display}
                   onPointerDown={() => onChange(value + display)}
                   className="flex items-center justify-center font-bold rounded-xl border-2 select-none touch-none transition-all duration-75 active:translate-y-1"
                   style={{
@@ -208,7 +213,7 @@ export default function KatakanaKeyboard({ value, onChange, onComplete }: Props)
                       fontSize: 11, fontWeight: 800, color: "#9CA3AF",
                       lineHeight: 1, letterSpacing: "0.02em",
                     }}>
-                      {COL_LABELS[ci]}行
+                      {COL_LABELS[originalCi]}行
                     </span>
                   )}
                 </button>
