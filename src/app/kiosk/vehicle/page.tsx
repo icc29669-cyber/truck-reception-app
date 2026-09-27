@@ -147,7 +147,8 @@ export default function VehiclePage() {
   }
 
   const bgStyle = "#f2f1ed";
-  const roomyCandidates = candidates.length <= 2;
+  const shownCandidates = candidates.slice(0, 10);
+  const roomyCandidates = shownCandidates.length <= 2;
 
   if (!mounted) return <div className="w-screen h-screen" style={{ background: "#f2f1ed" }} />;
 
@@ -353,11 +354,17 @@ export default function VehiclePage() {
                 以前ご使用の車両記録が見つかりました。今回ご使用の車両をタッチしてください
               </div>
             </div>
+            {shownCandidates.length > 4 && (
+              <div className="mx-auto flex w-full max-w-[1360px] flex-shrink-0 flex-wrap items-center gap-x-6 gap-y-1 px-5 pb-1 lg:px-10" style={{ fontSize: 22, fontWeight: 800, color: "#475569" }}>
+                <span>車両候補 {shownCandidates.length}台</span>
+                <span>下にも候補があります。画面を上に滑らせてください ↓</span>
+              </div>
+            )}
             {/* 候補が少ない場合は画面中央で選びやすい大きさにする */}
             <div className="flex-1 min-h-0 overflow-y-auto px-5 lg:px-10">
-              <div className={`w-full mx-auto min-h-full flex flex-col justify-center ${roomyCandidates ? "max-w-[1280px] py-3 xl:py-6" : "py-6"}`}>
+              <div className={`w-full max-w-[1280px] mx-auto min-h-full flex flex-col justify-center ${roomyCandidates ? "py-3 xl:py-6" : "py-6"}`}>
                 <div className={`flex flex-col ${roomyCandidates ? "gap-4 xl:gap-6" : "gap-4"}`}>
-                {candidates.slice(0, 4).map((c, i) => (
+                {shownCandidates.map((c, i) => (
                   <VehicleCard key={c.id} candidate={c} isFirst={i === 0} roomy={roomyCandidates} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
                 ))}
                 {/* 新しく入力するカード（候補カードと統一感のあるデザイン） */}
