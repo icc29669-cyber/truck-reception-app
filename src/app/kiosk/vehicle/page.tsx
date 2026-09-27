@@ -1,5 +1,5 @@
 ﻿"use client";
-import VehicleCard from "@/components/VehicleCandidateCard";
+import VehicleCard, { MULTI_CANDIDATE_CARD_HEIGHT } from "@/components/VehicleCandidateCard";
 import VehiclePlateEditor, { type PlateSection } from "@/components/VehiclePlateEditor";
 import MaxLoadInput from "@/components/MaxLoadInput";
 import KioskSteps from "@/components/KioskSteps";
@@ -381,7 +381,7 @@ export default function VehiclePage() {
                     }}
                     className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75 active:scale-[0.99]"
                     style={{
-                      height: roomyCandidates ? "clamp(160px, 20vh, 220px)" : 140, borderRadius: 22,
+                      height: roomyCandidates ? "clamp(160px, 20vh, 220px)" : MULTI_CANDIDATE_CARD_HEIGHT, borderRadius: 22,
                       background: "#fff",
                       border: "2px solid #D1D5DB",
                       borderLeft: "6px solid #1565C0",

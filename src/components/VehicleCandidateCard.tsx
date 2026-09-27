@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
 import { formatPlate, type PlateInput, type VehicleCandidate } from "@/types/reception";
+
+export const MULTI_CANDIDATE_CARD_HEIGHT = "clamp(140px, 16.8vh, 182px)";
+
 function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "md" | "lg" | "card" }) {
   const color = detectPlateColor(plate.classNum, plate.hira);
   const { bg, text, dim, border } = COLOR_CONFIG[color];
@@ -78,7 +81,7 @@ export default function VehicleCard({
         onPointerCancel={() => setPressed(false)}
         className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75"
         style={{
-          height: roomy ? "clamp(160px, 20vh, 220px)" : 140, borderRadius: 22,
+          height: roomy ? "clamp(160px, 20vh, 220px)" : MULTI_CANDIDATE_CARD_HEIGHT, borderRadius: 22,
           background: pressed ? "#EFF6FF" : "#fff",
           border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
           boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
