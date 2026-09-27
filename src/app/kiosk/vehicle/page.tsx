@@ -147,6 +147,7 @@ export default function VehiclePage() {
   }
 
   const bgStyle = "#f2f1ed";
+  const roomyCandidates = candidates.length <= 2;
 
   if (!mounted) return <div className="w-screen h-screen" style={{ background: "#f2f1ed" }} />;
 
@@ -352,62 +353,65 @@ export default function VehiclePage() {
                 以前ご使用の車両記録が見つかりました。今回ご使用の車両をタッチしてください
               </div>
             </div>
-            {/* 候補カード群 — STEP ヘッダー直下にそのまま並べる */}
-            <div className="flex-1 overflow-y-auto px-10" style={{ paddingTop: 34 }}>
-              <div className="flex flex-col gap-4">
-              {candidates.slice(0, 4).map((c, i) => (
-                <VehicleCard key={c.id} candidate={c} isFirst={i === 0} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
-              ))}
-              {/* 新しく入力するカード（候補カードと統一感のあるデザイン） */}
-              <div className="w-full flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // 入力開始時はプレート・最大積載量をクリアして白紙から始める
-                    const s = getKioskSession();
-                    const emptyPlate = { region: "", classNum: "", hira: "", number: "" };
-                    setPlate(emptyPlate);
-                    setMaxLoad("");
-                    setKioskSession({
-                      selectedVehicle: null,
-                      plate: emptyPlate,
-                      driverInput: { ...s.driverInput, maxLoad: "" },
-                    });
-                    setPlateSection("region");
-                    setMode("input");
-                  }}
-                  className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75 active:scale-[0.99]"
-                  style={{
-                    height: 140, borderRadius: 22,
-                    background: "#fff",
-                    border: "2px solid #D1D5DB",
-                    borderLeft: "6px solid #1565C0",
-                    paddingLeft: 26, paddingRight: 28,
-                    boxShadow: "0 4px 14px rgba(0,0,0,0.09)",
-                  }}
-                >
-                  {/* +アイコンバッジ（プレートと同じ配置） */}
-                  <div className="flex-shrink-0 mr-8" style={{
-                    width: 200, height: 100, borderRadius: 10,
-                    background: "#EFF6FF",
-                    border: "3px dashed #60A5FA",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    gap: 8,
-                  }}>
-                    <span style={{ fontSize: 56, color: "#1565C0", fontWeight: 300, lineHeight: 1 }}>+</span>
-                  </div>
-                  {/* テキスト情報(VehicleCard と同じ 2 行構造) */}
-                  <div className="flex flex-col flex-1">
-                    <span style={{ fontSize: 32, fontWeight: 900, color: "#1565C0", letterSpacing: "0.06em" }}>
-                      新しく入力する
-                    </span>
-                    <span style={{ fontSize: 24, fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
-                      上記にない車両の場合
-                    </span>
-                  </div>
-                  <span style={{ fontSize: 36, color: "#1565C0", flexShrink: 0 }}>▶</span>
-                </button>
-                <div style={{ width: 100, flexShrink: 0 }} />
+            {/* 候補が少ない場合は画面中央で選びやすい大きさにする */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 lg:px-10">
+              <div className={`w-full mx-auto min-h-full flex flex-col justify-center py-6 ${roomyCandidates ? "max-w-[1280px]" : ""}`}>
+                <div className={`flex flex-col ${roomyCandidates ? "gap-6" : "gap-4"}`}>
+                {candidates.slice(0, 4).map((c, i) => (
+                  <VehicleCard key={c.id} candidate={c} isFirst={i === 0} roomy={roomyCandidates} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
+                ))}
+                {/* 新しく入力するカード（候補カードと統一感のあるデザイン） */}
+                <div className="w-full flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // 入力開始時はプレート・最大積載量をクリアして白紙から始める
+                      const s = getKioskSession();
+                      const emptyPlate = { region: "", classNum: "", hira: "", number: "" };
+                      setPlate(emptyPlate);
+                      setMaxLoad("");
+                      setKioskSession({
+                        selectedVehicle: null,
+                        plate: emptyPlate,
+                        driverInput: { ...s.driverInput, maxLoad: "" },
+                      });
+                      setPlateSection("region");
+                      setMode("input");
+                    }}
+                    className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75 active:scale-[0.99]"
+                    style={{
+                      height: roomyCandidates ? "clamp(160px, 20vh, 220px)" : 140, borderRadius: 22,
+                      background: "#fff",
+                      border: "2px solid #D1D5DB",
+                      borderLeft: "6px solid #1565C0",
+                      paddingLeft: 20, paddingRight: 20,
+                      boxShadow: "0 4px 14px rgba(0,0,0,0.09)",
+                    }}
+                  >
+                    {/* +アイコンバッジ（プレートと同じ配置） */}
+                    <div className="flex-shrink-0 mr-4 xl:mr-8" style={{
+                      width: roomyCandidates ? "clamp(160px, 18vw, 300px)" : 200,
+                      height: roomyCandidates ? "clamp(80px, 9vw, 150px)" : 100, borderRadius: 10,
+                      background: "#EFF6FF",
+                      border: "3px dashed #60A5FA",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      gap: 8,
+                    }}>
+                      <span style={{ fontSize: 56, color: "#1565C0", fontWeight: 300, lineHeight: 1 }}>+</span>
+                    </div>
+                    {/* テキスト情報(VehicleCard と同じ 2 行構造) */}
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className={roomyCandidates ? "text-[26px] lg:text-[32px] xl:text-[38px]" : "text-[32px]"} style={{ fontWeight: 900, color: "#1565C0", letterSpacing: "0.06em" }}>
+                        新しく入力する
+                      </span>
+                      <span className={roomyCandidates ? "text-[20px] lg:text-[24px] xl:text-[28px]" : "text-[24px]"} style={{ fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
+                        上記にない車両の場合
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 36, color: "#1565C0", flexShrink: 0 }}>▶</span>
+                  </button>
+                  <div style={{ width: 100, flexShrink: 0 }} />
+                </div>
               </div>
               </div>
             </div>

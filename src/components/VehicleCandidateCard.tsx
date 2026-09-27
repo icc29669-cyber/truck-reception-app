@@ -2,12 +2,17 @@
 import { useState } from "react";
 import { detectPlateColor, COLOR_CONFIG } from "@/components/PlateDisplay";
 import { formatPlate, type PlateInput, type VehicleCandidate } from "@/types/reception";
-function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "md" | "lg" }) {
+function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "md" | "lg" | "card" }) {
   const color = detectPlateColor(plate.classNum, plate.hira);
   const { bg, text, dim, border } = COLOR_CONFIG[color];
   const pf = '"Hiragino Kaku Gothic ProN","Meiryo","MS Gothic",Arial,sans-serif';
   // ひらがな(r)は「視覚的ノイズにならない」よう数字よりかなり小さめに抑える
   const dims = size === "sm" ? { w: 200, h: 100, r: 28, c: 18, n: 42 }
+             : size === "card" ? {
+                 w: "clamp(160px, 18vw, 300px)", h: "clamp(80px, 9vw, 150px)",
+                 r: "clamp(24px, 2vw, 36px)", c: "clamp(16px, 1.35vw, 24px)",
+                 n: "clamp(36px, 3.3vw, 64px)",
+               }
              : size === "lg" ? { w: 480, h: 240, r: 40, c: 24, n: 90 }
              : { w: 320, h: 160, r: 32, c: 20, n: 64 };
   const { w, h, r, c, n } = dims;
@@ -33,7 +38,8 @@ function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "m
         </span>
         <span style={{
           flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-          paddingLeft: r + 4, fontSize: n, color: plate.number ? text : dim,
+          paddingLeft: size === "card" ? "clamp(28px, 2.4vw, 40px)" : Number(r) + 4,
+          fontSize: n, color: plate.number ? text : dim,
           transform: "scaleX(0.85)", transformOrigin: "center", fontFamily: pf, fontWeight: 900,
         }}>
           {[0, 1, 2, 3].map(pos => {
@@ -52,10 +58,11 @@ function MiniPlate({ plate, size = "md" }: { plate: PlateInput; size?: "sm" | "m
   );
 }
 export default function VehicleCard({
-  candidate, isFirst, onSelect, onDelete,
+  candidate, isFirst, roomy = false, onSelect, onDelete,
 }: {
   candidate: VehicleCandidate;
   isFirst: boolean;
+  roomy?: boolean;
   onSelect: () => void;
   onDelete: () => void;
 }) {
@@ -71,33 +78,33 @@ export default function VehicleCard({
         onPointerCancel={() => setPressed(false)}
         className="flex-1 flex items-center text-left select-none touch-pan-y transition-all duration-75"
         style={{
-          height: 140, borderRadius: 22,
+          height: roomy ? "clamp(160px, 20vh, 220px)" : 140, borderRadius: 22,
           background: pressed ? "#EFF6FF" : "#fff",
           border: `2px solid ${pressed ? "#1565C0" : "#D1D5DB"}`,
           boxShadow: pressed ? "0 2px 8px rgba(21,101,192,0.18)" : "0 4px 14px rgba(0,0,0,0.09)",
           borderLeft: isFirst ? "6px solid #0d9488" : undefined,
-          paddingLeft: isFirst ? 26 : 32,
-          paddingRight: 28,
+          paddingLeft: isFirst ? 20 : 26,
+          paddingRight: 20,
         }}
       >
         {/* プレート */}
-        <div className="flex-shrink-0 mr-8">
-          <MiniPlate plate={candidate.plate} size="sm" />
+        <div className="flex-shrink-0 mr-4 xl:mr-8">
+          <MiniPlate plate={candidate.plate} size={roomy ? "card" : "sm"} />
         </div>
 
         {/* テキスト情報 */}
-        <div className="flex flex-col flex-1">
-          <span style={{ fontSize: 32, fontWeight: 900, color: "#26251e", letterSpacing: "0.06em" }}>
+        <div className="flex flex-col flex-1 min-w-0">
+          <span className={roomy ? "text-[26px] lg:text-[32px] xl:text-[38px]" : "text-[32px]"} style={{ fontWeight: 900, color: "#26251e", letterSpacing: "0.06em" }}>
             {formatPlate(candidate.plate) || candidate.vehicleNumber}
           </span>
-          <span style={{ fontSize: 28, fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
+          <span className={roomy ? "text-[21px] lg:text-[26px] xl:text-[30px]" : "text-[28px]"} style={{ fontWeight: 600, color: "#6B7280", marginTop: 6 }}>
             最大積載量　{candidate.maxLoad ? Number(candidate.maxLoad).toLocaleString() + " kg" : "未登録"}
           </span>
         </div>
 
         {/* 最近バッジ */}
         {isFirst && (
-          <span style={{
+          <span className={roomy ? "max-lg:hidden" : ""} style={{
             fontSize: 20, fontWeight: 800, background: "#dcfce7",
             color: "#0f766e", borderRadius: 8, padding: "4px 14px",
             marginRight: 20, flexShrink: 0,
