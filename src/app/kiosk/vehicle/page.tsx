@@ -355,8 +355,8 @@ export default function VehiclePage() {
             </div>
             {/* 候補が少ない場合は画面中央で選びやすい大きさにする */}
             <div className="flex-1 min-h-0 overflow-y-auto px-5 lg:px-10">
-              <div className={`w-full mx-auto min-h-full flex flex-col justify-center py-6 ${roomyCandidates ? "max-w-[1280px]" : ""}`}>
-                <div className={`flex flex-col ${roomyCandidates ? "gap-6" : "gap-4"}`}>
+              <div className={`w-full mx-auto min-h-full flex flex-col justify-center ${roomyCandidates ? "max-w-[1280px] py-3 xl:py-6" : "py-6"}`}>
+                <div className={`flex flex-col ${roomyCandidates ? "gap-4 xl:gap-6" : "gap-4"}`}>
                 {candidates.slice(0, 4).map((c, i) => (
                   <VehicleCard key={c.id} candidate={c} isFirst={i === 0} roomy={roomyCandidates} onSelect={() => selectCandidate(c)} onDelete={() => setDeleteTarget(c)} />
                 ))}
